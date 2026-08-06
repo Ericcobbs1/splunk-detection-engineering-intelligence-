@@ -31,9 +31,11 @@ def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center.css").read_text(encoding="utf-8")
 
-    assert 'Splunk.util.make_url(' in javascript
+    assert "Splunk.util.make_url(" in javascript
     assert '"recommendations"' in javascript
     assert '"health"' in javascript
+    assert '"X-Splunk-Form-Key"' in javascript
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
     assert "#dei-analyze" in javascript
     assert ".dei-shell" in stylesheet
     assert "--dei-accent" in stylesheet

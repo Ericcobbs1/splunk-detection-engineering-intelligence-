@@ -29,6 +29,9 @@ require([
       method: "POST",
       contentType: "application/json",
       dataType: "json",
+      headers: {
+        "X-Splunk-Form-Key": Splunk.util.getConfigValue("FORM_KEY")
+      },
       data: JSON.stringify(payload)
     }).then(parsePayload);
   }
@@ -134,6 +137,22 @@ require([
     renderRecommendations(report);
   }
 
+  function errorDetail(xhr) {
+    var response = xhr.responseJSON || {};
+    var payload = response.payload;
+
+    if (typeof payload === "string") {
+      try {
+        response = JSON.parse(payload);
+      } catch (error) {
+        response = {};
+      }
+    }
+
+    return response.detail || response.error ||
+      "Request failed with HTTP " + (xhr.status || "unknown") + ".";
+  }
+
   function analyze() {
     var sources = normalizeSources($("#dei-sources").val() || "");
     var button = $("#dei-analyze");
@@ -157,8 +176,7 @@ require([
       renderReport(report);
       feedback.text("Analysis complete. Recommendations are ranked by readiness and priority.");
     }).fail(function (xhr) {
-      var detail = xhr.responseJSON && xhr.responseJSON.detail;
-      feedback.text(detail || "Unable to complete the analysis.");
+      feedback.text(errorDetail(xhr));
     }).always(function () {
       button.prop("disabled", false).text("Analyze environment");
     });
