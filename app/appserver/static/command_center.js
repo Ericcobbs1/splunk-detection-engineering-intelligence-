@@ -116,7 +116,7 @@ require([
         while (active < fieldDiscoveryConcurrency && cursor < sources.length) {
           (function (source) {
             var fieldSpl = [
-              'search earliest=-7d latest=now sourcetype="' + escapeSearchValue(source) + '"',
+              'search index=* earliest=-7d latest=now sourcetype="' + escapeSearchValue(source) + '"',
               "| head " + fieldSampleEvents,
               "| fieldsummary",
               "| fields field"

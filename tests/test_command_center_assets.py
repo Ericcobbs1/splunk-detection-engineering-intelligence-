@@ -44,6 +44,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
     assert 'NOT match(index, "^_")' in javascript
     assert 'like(index, "_%")' not in javascript
+    assert 'search index=* earliest=-7d latest=now sourcetype=' in javascript
+    assert 'search earliest=-7d latest=now sourcetype=' not in javascript
     assert 'output_mode: "json"' in javascript
     assert "parseExportRows" in javascript
     assert '"#metric-understanding"' in javascript
@@ -56,6 +58,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "Profiling fields..." in javascript
     assert "Analysis stopped rather than assuming field readiness." in javascript
     assert "field_gap_count" in javascript
+    assert "field_unverified_count" in javascript
     assert "Telemetry discovery timed out after 30 seconds." in javascript
     assert "#dei-analyze" in javascript
     assert ".dei-shell" in stylesheet
