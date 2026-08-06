@@ -49,6 +49,13 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert '"#metric-understanding"' in javascript
     assert "understood / observed" in javascript
     assert "telemetry understanding" in javascript
+    assert "fieldSampleEvents = 200" in javascript
+    assert "fieldDiscoveryConcurrency = 4" in javascript
+    assert "| fieldsummary" in javascript
+    assert "fields_by_source" in javascript
+    assert "Profiling fields..." in javascript
+    assert "Analysis stopped rather than assuming field readiness." in javascript
+    assert "field_gap_count" in javascript
     assert "Telemetry discovery timed out after 30 seconds." in javascript
     assert "#dei-analyze" in javascript
     assert ".dei-shell" in stylesheet
