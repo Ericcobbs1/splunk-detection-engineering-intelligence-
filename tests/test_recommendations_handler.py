@@ -42,6 +42,18 @@ def test_handler_parses_raw_splunk_payload() -> None:
     assert response["payload"]["production_ready_count"] == 3
 
 
+def test_handler_unwraps_ui_payload_inside_splunk_payload() -> None:
+    handler = RecommendationsHandler(recommendation_factory=_report)
+    raw_body = json.dumps(
+        {"payload": {"sources": ["aws:cloudtrail"]}}
+    )
+
+    response = handler.handle(json.dumps({"method": "POST", "payload": raw_body}))
+
+    assert response["status"] == 200
+    assert response["payload"]["production_ready_count"] == 3
+
+
 def test_handler_rejects_invalid_sources() -> None:
     handler = RecommendationsHandler(recommendation_factory=_report)
 
