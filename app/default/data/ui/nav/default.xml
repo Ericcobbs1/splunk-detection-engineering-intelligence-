@@ -1,0 +1,9 @@
+<nav search_view="search">
+  <view name="command_center" default="true" />
+  <collection label="Intelligence">
+    <view name="command_center" />
+  </collection>
+  <collection label="Splunk">
+    <view name="search" />
+  </collection>
+</nav>
