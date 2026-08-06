@@ -31,17 +31,29 @@ def _default_factory(
 
 
 def _decode_payload(request_data: dict[str, Any]) -> dict[str, Any] | None:
-    """Decode the raw POST body supplied by restmap passPayload=true."""
-    raw_payload = request_data.get("payload", request_data)
-    if isinstance(raw_payload, dict):
-        return raw_payload
-    if not isinstance(raw_payload, str):
+    """Decode the POST body supplied by Splunk and unwrap legacy UI envelopes."""
+    raw_payload: Any = request_data.get("payload", request_data)
+    if isinstance(raw_payload, str):
+        try:
+            raw_payload = json.loads(raw_payload)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(raw_payload, dict):
         return None
-    try:
-        decoded = json.loads(raw_payload)
-    except json.JSONDecodeError:
-        return None
-    return decoded if isinstance(decoded, dict) else None
+
+    # Splunk wraps the raw POST body in payload. Older DEI UI builds also wrapped
+    # the body in their own payload object, producing payload.payload.sources.
+    nested_payload = raw_payload.get("payload")
+    if isinstance(nested_payload, str):
+        try:
+            nested_payload = json.loads(nested_payload)
+        except json.JSONDecodeError:
+            return None
+    if isinstance(nested_payload, dict):
+        raw_payload = nested_payload
+
+    return raw_payload
 
 
 class RecommendationsHandler:
