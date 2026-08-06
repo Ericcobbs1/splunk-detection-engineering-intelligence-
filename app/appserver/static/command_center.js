@@ -1,10 +1,12 @@
 require([
   "jquery",
+  "splunkjs/mvc/searchmanager",
   "splunkjs/mvc/simplexml/ready!"
-], function ($) {
+], function ($, SearchManager) {
   "use strict";
 
   var appId = "splunk_detection_engineering_intelligence";
+  var pendingAnalysis = false;
 
   function endpoint() {
     var parts = Array.prototype.slice.call(arguments);
@@ -18,6 +20,22 @@ require([
     health: endpoint("dei", "v1", "health"),
     recommendations: endpoint("dei", "v1", "recommendations")
   };
+
+  var discoverySearch = new SearchManager({
+    id: "dei_environment_discovery",
+    search: [
+      "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
+      '| where NOT like(index, "_%") AND isnotnull(sourcetype)',
+      "| sort - count"
+    ].join(" "),
+    preview: false,
+    cache: false,
+    autostart: false
+  });
+  var discoveryResults = discoverySearch.data("results", {
+    count: 0,
+    output_mode: "json"
+  });
 
   function parsePayload(response) {
     if (response && typeof response.payload === "string") {
@@ -45,21 +63,33 @@ require([
     status.css("color", healthy ? "#45e6c1" : "#ff6b7a");
   }
 
-  function normalizeSources(value) {
+  function uniqueValues(values) {
     var seen = {};
-    return value
-      .split(/[\n,]+/)
-      .map(function (source) {
-        return source.trim();
-      })
-      .filter(function (source) {
-        var key = source.toLowerCase();
-        if (!source || seen[key]) {
-          return false;
-        }
-        seen[key] = true;
-        return true;
+    return values.filter(function (value) {
+      var normalized = String(value || "").trim();
+      var key = normalized.toLowerCase();
+      if (!normalized || seen[key]) {
+        return false;
+      }
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function resultRows(data) {
+    if (data && Array.isArray(data.results)) {
+      return data.results;
+    }
+    if (data && Array.isArray(data.fields) && Array.isArray(data.rows)) {
+      return data.rows.map(function (row) {
+        var item = {};
+        data.fields.forEach(function (field, index) {
+          item[field] = row[index];
+        });
+        return item;
       });
+    }
+    return [];
   }
 
   function readinessLabel(value) {
@@ -90,7 +120,9 @@ require([
       })
       .join("");
 
-    $("#coverage-domains").html(html || '<p class="dei-empty">No supported domains found.</p>');
+    $("#coverage-domains").html(
+      html || '<p class="dei-empty">No supported domains found.</p>'
+    );
   }
 
   function renderRecommendations(report) {
@@ -136,7 +168,9 @@ require([
     $("#metric-potential").text(potential + "%");
     $("#coverage-value").text(potential + "%");
     $("#coverage-ring").css("--dei-coverage", potential + "%");
-    $("#coverage-label").text(potential >= 75 ? "Strong" : potential >= 40 ? "Developing" : "Limited");
+    $("#coverage-label").text(
+      potential >= 75 ? "Strong" : potential >= 40 ? "Developing" : "Limited"
+    );
     renderRecommendations(report);
   }
 
@@ -156,28 +190,25 @@ require([
       "Request failed with HTTP " + (xhr.status || "unknown") + ".";
   }
 
-  function analyze() {
-    var sources = normalizeSources($("#dei-sources").val() || "");
+  function runRecommendations(sources, indexCount) {
     var button = $("#dei-analyze");
     var feedback = $("#dei-feedback");
 
-    if (!sources.length) {
-      feedback.text("Enter at least one source type.");
-      return;
-    }
-
-    button.prop("disabled", true).text("Analyzing...");
-    feedback.text("Evaluating telemetry against the detection catalog.");
+    button.text("Analyzing...");
+    feedback.text("Normalizing discovered telemetry and evaluating detection readiness.");
 
     postJson(endpoints.recommendations, {
-      payload: {
-        sources: sources,
-        enterprise_security_enabled: $("#dei-es-enabled").is(":checked"),
-        include_unsupported: true
-      }
+      sources: sources,
+      enterprise_security_enabled: $("#dei-es-enabled").is(":checked"),
+      include_unsupported: true
     }).done(function (report) {
+      var unmapped = report.unmapped_sources || [];
       renderReport(report);
-      feedback.text("Analysis complete. Recommendations are ranked by readiness and priority.");
+      setStatus("API status: healthy", true);
+      feedback.text(
+        "Analysis complete. Discovered " + sources.length + " source types across " +
+        indexCount + " indexes; " + unmapped.length + " unmapped."
+      );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
     }).always(function () {
@@ -185,7 +216,64 @@ require([
     });
   }
 
-  $("#dei-analyze").on("click", analyze);
+  function handleDiscovery(data) {
+    var rows = resultRows(data);
+    if (!rows.length) {
+      return;
+    }
+
+    var sources = uniqueValues(rows.map(function (row) {
+      return row.sourcetype;
+    }));
+    var indexes = uniqueValues(rows.map(function (row) {
+      return row.index;
+    }));
+
+    $("#dei-sources").val(sources.join("\n"));
+
+    if (pendingAnalysis) {
+      pendingAnalysis = false;
+      if (!sources.length) {
+        $("#dei-feedback").text("No searchable source types were discovered.");
+        $("#dei-analyze").prop("disabled", false).text("Analyze environment");
+        return;
+      }
+      runRecommendations(sources, indexes.length);
+    } else {
+      $("#dei-feedback").text(
+        "Discovered " + sources.length + " active source types across " +
+        indexes.length + " indexes."
+      );
+    }
+  }
+
+  function discoverEnvironment(analyzeAfterDiscovery) {
+    var button = $("#dei-analyze");
+    pendingAnalysis = analyzeAfterDiscovery;
+
+    if (analyzeAfterDiscovery) {
+      button.prop("disabled", true).text("Discovering...");
+      $("#dei-feedback").text("Discovering active Splunk telemetry from the last 7 days.");
+    }
+
+    discoverySearch.startSearch();
+  }
+
+  discoveryResults.on("data", function () {
+    handleDiscovery(discoveryResults.data());
+  });
+
+  discoverySearch.on("search:error", function () {
+    if (pendingAnalysis) {
+      pendingAnalysis = false;
+      $("#dei-feedback").text("Unable to discover searchable Splunk telemetry.");
+      $("#dei-analyze").prop("disabled", false).text("Analyze environment");
+    }
+  });
+
+  $("#dei-analyze").on("click", function () {
+    discoverEnvironment(true);
+  });
 
   $.ajax({
     url: endpoints.health,
@@ -194,6 +282,8 @@ require([
   }).then(parsePayload).done(function (health) {
     setStatus("API status: " + (health.status || "healthy"), true);
   }).fail(function () {
-    setStatus("API status: unavailable", false);
+    setStatus("API status: awaiting analysis", false);
   });
+
+  discoverEnvironment(false);
 });
