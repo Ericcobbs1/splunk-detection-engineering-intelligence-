@@ -14,7 +14,7 @@ def test_recommendations_rank_ready_cloud_detections() -> None:
 
     assert report.production_ready_count == 3
     assert report.partial_count == 1
-    assert report.recommendations[0].detection_id == "aws-cloudtrail-disabled"
+    assert report.recommendations[0].detection_id == "aws-iam-policy-escalation"
     assert report.recommendations[0].readiness == "production_ready"
     assert report.recommendations[0].score == 100
     assert report.recommendations[0].missing_sources == ()
