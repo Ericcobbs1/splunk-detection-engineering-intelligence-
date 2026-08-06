@@ -9,6 +9,14 @@ description = "Telemetry-aware detection engineering intelligence for Splunk."
 requires-python = ">=3.11"
 dependencies = ["jsonschema>=4.22,<5"]
 
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.10",
+  "pytest>=8.2",
+  "ruff>=0.5",
+  "types-jsonschema>=4.22",
+]
+
 [tool.setuptools.packages.find]
 where = ["app/bin"]
 include = ["dei*"]
