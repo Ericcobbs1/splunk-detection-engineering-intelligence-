@@ -2,8 +2,9 @@
 
 import json
 
-from dei.api.health_handler import HealthHandler
+from dei.api.health_handler import HealthHandler, _default_report_factory
 from dei.core.health import HealthReport
+from dei.knowledgepacks.loader import KnowledgePackError
 
 
 def _report() -> HealthReport:
@@ -13,6 +14,13 @@ def _report() -> HealthReport:
         knowledge_pack_count=3,
         enterprise_security_enabled=False,
     )
+
+
+def test_default_report_counts_packaged_knowledge_packs() -> None:
+    report = _default_report_factory()
+
+    assert report.knowledge_pack_count == 3
+    assert report.status == "healthy"
 
 
 def test_health_handler_returns_json_payload() -> None:
@@ -27,6 +35,21 @@ def test_health_handler_returns_json_payload() -> None:
         "knowledge_pack_count": 3,
         "status": "healthy",
         "version": "0.1.0",
+    }
+
+
+def test_health_handler_returns_controlled_pack_error() -> None:
+    def invalid_report() -> HealthReport:
+        raise KnowledgePackError("invalid manifest")
+
+    handler = HealthHandler(report_factory=invalid_report)
+
+    response = handler.handle('{"method":"GET"}')
+
+    assert response["status"] == 500
+    assert json.loads(response["payload"]) == {
+        "detail": "invalid manifest",
+        "error": "knowledge pack validation failed",
     }
 
 
