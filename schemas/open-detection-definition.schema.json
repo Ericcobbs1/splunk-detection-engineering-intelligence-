@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dei.example/schemas/open-detection-definition.schema.json",
+  "title": "DEI Open Detection Definition",
+  "description": "Canonical, platform-neutral definition used to determine whether observed telemetry can support a detection and to render implementation-specific content.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "description",
+    "status",
+    "domains",
+    "requirements",
+    "logic",
+    "mappings",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^dei-[a-z0-9][a-z0-9-]{2,80}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20
+    },
+    "status": {
+      "enum": ["draft", "experimental", "production", "deprecated", "retired"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "author": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "severity": {
+      "enum": ["informational", "low", "medium", "high", "critical"]
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "identity",
+          "endpoint",
+          "network",
+          "email",
+          "database",
+          "cloud-control-plane",
+          "cloud-data-access",
+          "container",
+          "ai-usage",
+          "ai-data-protection",
+          "ai-infrastructure",
+          "ai-governance"
+        ]
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_fields", "required_events"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/fieldRequirement"}
+        },
+        "optional_fields": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/fieldRequirement"}
+        },
+        "required_events": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/eventRequirement"}
+        },
+        "required_capabilities": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "minimum_sample_events": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_data_quality": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cim_models": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "logic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "strategy"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 10},
+        "strategy": {
+          "enum": ["threshold", "sequence", "aggregation", "rare", "new-entity", "anomaly", "policy", "configuration-change", "content-indicator"]
+        },
+        "group_by": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "default_window": {"type": "string"},
+        "default_schedule": {"type": "string"},
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "language", "path"],
+        "properties": {
+          "id": {"type": "string"},
+          "language": {"enum": ["spl", "sigma", "eql", "kql"]},
+          "platform": {"type": "string"},
+          "path": {"type": "string"},
+          "requires_es": {"type": "boolean", "default": false}
+        }
+      }
+    },
+    "mappings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mitre_attack"],
+      "properties": {
+        "mitre_attack": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["technique_id"],
+            "properties": {
+              "technique_id": {"type": "string", "pattern": "^T[0-9]{4}(\\.[0-9]{3})?$"},
+              "tactic": {"type": "string"}
+            }
+          }
+        },
+        "sigma_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "compliance": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field_availability_weight": {"$ref": "#/$defs/weight"},
+        "field_population_weight": {"$ref": "#/$defs/weight"},
+        "event_presence_weight": {"$ref": "#/$defs/weight"},
+        "data_quality_weight": {"$ref": "#/$defs/weight"},
+        "normalization_weight": {"$ref": "#/$defs/weight"},
+        "specificity_weight": {"$ref": "#/$defs/weight"}
+      }
+    },
+    "false_positive_guidance": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sensitive_fields": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "content_handling": {
+          "enum": ["metadata-only", "redacted", "restricted", "standard"]
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tests"],
+      "properties": {
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "expected"],
+            "properties": {
+              "name": {"type": "string"},
+              "fixture": {"type": "string"},
+              "expected": {"enum": ["match", "no-match", "partial-support", "unsupported"]}
+            }
+          }
+        },
+        "maximum_expected_runtime_seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "fieldRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical_name"],
+      "properties": {
+        "canonical_name": {"type": "string"},
+        "aliases": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "minimum_population": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "data_type": {
+          "enum": ["string", "number", "boolean", "ip", "timestamp", "array", "object"]
+        }
+      }
+    },
+    "eventRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "field": {"type": "string"},
+        "values": {
+          "type": "array",
+          "items": {"type": ["string", "number", "boolean"]}
+        },
+        "minimum_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
