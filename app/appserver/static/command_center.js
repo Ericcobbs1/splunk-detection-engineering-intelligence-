@@ -7,6 +7,8 @@ require([
 
   var appId = "splunk_detection_engineering_intelligence";
   var pendingAnalysis = false;
+  var discoveryTimer = null;
+  var discoveryHandled = false;
 
   function endpoint() {
     var parts = Array.prototype.slice.call(arguments);
@@ -32,8 +34,9 @@ require([
     cache: false,
     autostart: false
   });
+
   var discoveryResults = discoverySearch.data("results", {
-    count: 0,
+    count: 1000,
     output_mode: "json"
   });
 
@@ -101,25 +104,19 @@ require([
     recommendations.forEach(function (item) {
       counts[item.pack_id] = (counts[item.pack_id] || 0) + 1;
     });
-
     var maximum = Math.max.apply(null, Object.keys(counts).map(function (key) {
       return counts[key];
     }).concat([1]));
-
-    var html = Object.keys(counts)
-      .sort()
-      .map(function (packId) {
-        var percent = Math.round((counts[packId] / maximum) * 100);
-        return [
-          '<div class="dei-domain">',
-          '<div class="dei-domain-row"><span>', packId, "</span><strong>",
-          counts[packId], "</strong></div>",
-          '<div class="dei-bar"><span style="width:', percent, '%"></span></div>',
-          "</div>"
-        ].join("");
-      })
-      .join("");
-
+    var html = Object.keys(counts).sort().map(function (packId) {
+      var percent = Math.round((counts[packId] / maximum) * 100);
+      return [
+        '<div class="dei-domain">',
+        '<div class="dei-domain-row"><span>', packId, "</span><strong>",
+        counts[packId], "</strong></div>",
+        '<div class="dei-bar"><span style="width:', percent, '%"></span></div>',
+        "</div>"
+      ].join("");
+    }).join("");
     $("#coverage-domains").html(
       html || '<p class="dei-empty">No supported domains found.</p>'
     );
@@ -127,12 +124,10 @@ require([
 
   function renderRecommendations(report) {
     var recommendations = report.recommendations || [];
-    var visible = recommendations.slice(0, 8);
-    var html = visible.map(function (item) {
+    var html = recommendations.slice(0, 8).map(function (item) {
       var missing = item.missing_sources && item.missing_sources.length
         ? "Missing: " + item.missing_sources.join(", ")
         : "Telemetry requirements satisfied";
-
       return [
         '<article class="dei-recommendation">',
         '<div class="dei-rec-top"><div>',
@@ -147,7 +142,6 @@ require([
         "</article>"
       ].join("");
     }).join("");
-
     $("#recommendation-count").text(recommendations.length + " results");
     $("#recommendations").html(
       html || '<p class="dei-empty">No recommendations matched the current telemetry.</p>'
@@ -161,7 +155,6 @@ require([
     var unsupported = report.unsupported_count || 0;
     var total = ready + partial + unsupported;
     var potential = total ? Math.round(((ready + partial * 0.5) / total) * 100) : 0;
-
     $("#metric-sources").text(report.observed_source_count || 0);
     $("#metric-ready").text(ready);
     $("#metric-partial").text(partial);
@@ -177,7 +170,6 @@ require([
   function errorDetail(xhr) {
     var response = xhr.responseJSON || {};
     var payload = response.payload;
-
     if (typeof payload === "string") {
       try {
         response = JSON.parse(payload);
@@ -185,18 +177,33 @@ require([
         response = {};
       }
     }
-
     return response.detail || response.error ||
       "Request failed with HTTP " + (xhr.status || "unknown") + ".";
   }
 
+  function clearDiscoveryTimer() {
+    if (discoveryTimer) {
+      window.clearTimeout(discoveryTimer);
+      discoveryTimer = null;
+    }
+  }
+
+  function resetAnalyzeButton() {
+    $("#dei-analyze").prop("disabled", false).text("Analyze environment");
+  }
+
+  function discoveryFailure(message) {
+    clearDiscoveryTimer();
+    discoveryHandled = true;
+    pendingAnalysis = false;
+    $("#dei-feedback").text(message);
+    resetAnalyzeButton();
+  }
+
   function runRecommendations(sources, indexCount) {
-    var button = $("#dei-analyze");
     var feedback = $("#dei-feedback");
-
-    button.text("Analyzing...");
+    $("#dei-analyze").text("Analyzing...");
     feedback.text("Normalizing discovered telemetry and evaluating detection readiness.");
-
     postJson(endpoints.recommendations, {
       sources: sources,
       enterprise_security_enabled: $("#dei-es-enabled").is(":checked"),
@@ -211,32 +218,24 @@ require([
       );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
-    }).always(function () {
-      button.prop("disabled", false).text("Analyze environment");
-    });
+    }).always(resetAnalyzeButton);
   }
 
   function handleDiscovery(data) {
     var rows = resultRows(data);
     if (!rows.length) {
-      return;
+      return false;
     }
-
-    var sources = uniqueValues(rows.map(function (row) {
-      return row.sourcetype;
-    }));
-    var indexes = uniqueValues(rows.map(function (row) {
-      return row.index;
-    }));
-
+    clearDiscoveryTimer();
+    discoveryHandled = true;
+    var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
+    var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
     $("#dei-sources").val(sources.join("\n"));
-
     if (pendingAnalysis) {
       pendingAnalysis = false;
       if (!sources.length) {
-        $("#dei-feedback").text("No searchable source types were discovered.");
-        $("#dei-analyze").prop("disabled", false).text("Analyze environment");
-        return;
+        discoveryFailure("No searchable source types were discovered.");
+        return true;
       }
       runRecommendations(sources, indexes.length);
     } else {
@@ -245,17 +244,22 @@ require([
         indexes.length + " indexes."
       );
     }
+    return true;
   }
 
   function discoverEnvironment(analyzeAfterDiscovery) {
-    var button = $("#dei-analyze");
     pendingAnalysis = analyzeAfterDiscovery;
-
+    discoveryHandled = false;
+    clearDiscoveryTimer();
     if (analyzeAfterDiscovery) {
-      button.prop("disabled", true).text("Discovering...");
+      $("#dei-analyze").prop("disabled", true).text("Discovering...");
       $("#dei-feedback").text("Discovering active Splunk telemetry from the last 7 days.");
     }
-
+    discoveryTimer = window.setTimeout(function () {
+      if (!discoveryHandled) {
+        discoveryFailure("Telemetry discovery timed out after 30 seconds.");
+      }
+    }, 30000);
     discoverySearch.startSearch();
   }
 
@@ -263,12 +267,23 @@ require([
     handleDiscovery(discoveryResults.data());
   });
 
-  discoverySearch.on("search:error", function () {
-    if (pendingAnalysis) {
-      pendingAnalysis = false;
-      $("#dei-feedback").text("Unable to discover searchable Splunk telemetry.");
-      $("#dei-analyze").prop("disabled", false).text("Analyze environment");
+  discoverySearch.on("search:done", function () {
+    if (discoveryHandled) {
+      return;
     }
+    window.setTimeout(function () {
+      if (!discoveryHandled && !handleDiscovery(discoveryResults.data())) {
+        discoveryFailure("Telemetry discovery completed but returned no searchable source types.");
+      }
+    }, 100);
+  });
+
+  discoverySearch.on("search:error", function () {
+    discoveryFailure("Unable to discover searchable Splunk telemetry.");
+  });
+
+  discoverySearch.on("search:cancelled", function () {
+    discoveryFailure("Telemetry discovery was cancelled before completion.");
   });
 
   $("#dei-analyze").on("click", function () {

@@ -44,6 +44,11 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
     assert '"splunkjs/mvc/searchmanager"' in javascript
     assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
+    assert "count: 1000" in javascript
+    assert 'discoverySearch.on("search:done"' in javascript
+    assert 'discoverySearch.on("search:error"' in javascript
+    assert 'discoverySearch.on("search:cancelled"' in javascript
+    assert "Telemetry discovery timed out after 30 seconds." in javascript
     assert "#dei-analyze" in javascript
     assert ".dei-shell" in stylesheet
     assert "--dei-accent" in stylesheet
