@@ -148,9 +148,15 @@ require([
     var ready = report.production_ready_count || 0;
     var partial = report.partial_count || 0;
     var unsupported = report.unsupported_count || 0;
+    var observed = report.observed_source_count || 0;
+    var unmapped = (report.unmapped_sources || []).length;
+    var understood = Math.max(0, observed - unmapped);
+    var understanding = observed ? Math.round((understood / observed) * 100) : 0;
     var total = ready + partial + unsupported;
     var potential = total ? Math.round(((ready + partial * 0.5) / total) * 100) : 0;
-    $("#metric-sources").text(report.observed_source_count || 0);
+
+    $("#metric-sources").text(observed);
+    $("#metric-understanding").text(understanding + "%");
     $("#metric-ready").text(ready);
     $("#metric-partial").text(partial);
     $("#metric-potential").text(potential + "%");
@@ -190,11 +196,15 @@ require([
       include_unsupported: true
     }).done(function (report) {
       var unmapped = report.unmapped_sources || [];
+      var observed = report.observed_source_count || sources.length;
+      var understood = Math.max(0, observed - unmapped.length);
+      var understanding = observed ? Math.round((understood / observed) * 100) : 0;
       renderReport(report);
       setStatus("API status: healthy", true);
       feedback.text(
         "Analysis complete. Discovered " + sources.length + " source types across " +
-        indexCount + " indexes; " + unmapped.length + " unmapped."
+        indexCount + " indexes; " + understood + " mapped, " + unmapped.length +
+        " unmapped (" + understanding + "% telemetry understanding)."
       );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
