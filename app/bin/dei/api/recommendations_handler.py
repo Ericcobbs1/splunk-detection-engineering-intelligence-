@@ -7,7 +7,11 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
-from dei.recommendations.engine import RecommendationEngine, RecommendationError, RecommendationReport
+from dei.recommendations.engine import (
+    RecommendationEngine,
+    RecommendationError,
+    RecommendationReport,
+)
 
 RecommendationFactory = Callable[[list[str], bool, bool], RecommendationReport]
 APP_ROOT = Path(__file__).resolve().parents[3]
