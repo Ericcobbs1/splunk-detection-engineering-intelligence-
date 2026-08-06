@@ -16,11 +16,19 @@ class KnowledgePackError(RuntimeError):
     """Raised when a knowledge pack cannot be discovered or validated."""
 
 
+def _version_tuple(version: str) -> tuple[int, int, int]:
+    """Convert a validated semantic version string into a comparable tuple."""
+    major, minor, patch = version.split(".")
+    return int(major), int(minor), int(patch)
+
+
 class KnowledgePackLoader:
     """Discover manifest files and load validated knowledge packs."""
 
-    def __init__(self, schema_path: Path) -> None:
+    def __init__(self, schema_path: Path, current_dei_version: str = "0.1.0") -> None:
         self._schema_path = schema_path
+        self._current_dei_version = current_dei_version
+        self._current_dei_version_tuple = _version_tuple(current_dei_version)
         schema = self._read_json(schema_path)
         try:
             Draft202012Validator.check_schema(schema)
@@ -61,6 +69,13 @@ class KnowledgePackLoader:
             raise KnowledgePackError(
                 "Knowledge pack directory must match manifest id: "
                 f"{directory_name!r} != {manifest.pack_id!r}"
+            )
+
+        if _version_tuple(manifest.minimum_dei_version) > self._current_dei_version_tuple:
+            raise KnowledgePackError(
+                f"Knowledge pack {manifest.pack_id!r} requires DEI "
+                f"{manifest.minimum_dei_version} or newer; current version is "
+                f"{self._current_dei_version}"
             )
 
         return KnowledgePack(
