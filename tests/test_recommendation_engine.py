@@ -39,6 +39,7 @@ def test_recommendations_are_case_insensitive_and_deduplicated() -> None:
     )
 
     assert report.observed_source_count == 1
+    assert report.normalized_source_count == 1
     assert report.production_ready_count == 3
 
 
@@ -81,6 +82,43 @@ def test_production_like_lab_baseline_has_expected_readiness() -> None:
         item for item in report.recommendations if item.detection_id == "ai-shadow-usage"
     )
     assert shadow_ai.missing_sources == ("proxy",)
+
+
+def test_full_lab_inventory_normalizes_vendor_sources_and_reaches_full_catalog() -> None:
+    observed_sources = [
+        "XmlWinEventLog:Security",
+        "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational",
+        "aws:cloudtrail",
+        "zscaler:web",
+        "OktaIM2:log",
+        "crowdstrike:events:sensor",
+        "linux_secure",
+        "azure:openai:diagnostic",
+        "gcp:audit:vertexai",
+        "ai:gateway",
+        "dlp",
+    ]
+
+    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+        observed_sources,
+        enterprise_security_enabled=True,
+        include_unsupported=True,
+    )
+
+    assert report.observed_source_count == 11
+    assert report.normalized_source_count == 11
+    assert report.production_ready_count == 9
+    assert report.partial_count == 0
+    assert report.unsupported_count == 0
+    assert report.unmapped_sources == ()
+
+    mappings = {
+        item.observed_source: item.canonical_source for item in report.source_mappings
+    }
+    assert mappings["zscaler:web"] == "proxy"
+    assert mappings["OktaIM2:log"] == "identity.authentication"
+    assert mappings["crowdstrike:events:sensor"] == "endpoint.edr"
+    assert mappings["linux_secure"] == "linux.authentication"
 
 
 def test_unsupported_detections_are_hidden_by_default() -> None:

@@ -14,9 +14,12 @@ def _report(
     assert include_unsupported is False
     return RecommendationReport(
         observed_source_count=1,
+        normalized_source_count=1,
         production_ready_count=3,
         partial_count=1,
         unsupported_count=5,
+        source_mappings=(),
+        unmapped_sources=(),
         recommendations=(),
     )
 
@@ -44,9 +47,7 @@ def test_handler_parses_raw_splunk_payload() -> None:
 
 def test_handler_unwraps_ui_payload_inside_splunk_payload() -> None:
     handler = RecommendationsHandler(recommendation_factory=_report)
-    raw_body = json.dumps(
-        {"payload": {"sources": ["aws:cloudtrail"]}}
-    )
+    raw_body = json.dumps({"payload": {"sources": ["aws:cloudtrail"]}})
 
     response = handler.handle(json.dumps({"method": "POST", "payload": raw_body}))
 
@@ -62,9 +63,7 @@ def test_handler_rejects_invalid_sources() -> None:
     )
 
     assert response["status"] == 400
-    assert response["payload"] == {
-        "error": "sources must be an array of strings"
-    }
+    assert response["payload"] == {"error": "sources must be an array of strings"}
 
 
 def test_handler_rejects_non_post_method() -> None:
