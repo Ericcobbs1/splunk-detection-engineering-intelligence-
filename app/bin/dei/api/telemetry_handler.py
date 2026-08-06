@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from dei.api.response import persistent_response
 from dei.core.config import RuntimeConfig
 from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 from dei.telemetry.analyzer import TelemetryAnalyzer
@@ -32,16 +33,20 @@ class TelemetryHandler:
         try:
             request_data = json.loads(request)
         except json.JSONDecodeError:
-            return self._response(400, {"error": "request must be valid JSON"})
+            return persistent_response(400, {"error": "request must be valid JSON"})
 
         if not isinstance(request_data, dict):
-            return self._response(400, {"error": "request must be a JSON object"})
+            return persistent_response(400, {"error": "request must be a JSON object"})
         if str(request_data.get("method", "POST")).upper() != "POST":
-            return self._response(405, {"error": "method not allowed"})
+            return persistent_response(405, {"error": "method not allowed"})
 
-        sources = request_data.get("sources")
+        payload = request_data.get("payload", request_data)
+        if not isinstance(payload, dict):
+            return persistent_response(400, {"error": "payload must be a JSON object"})
+
+        sources = payload.get("sources")
         if not isinstance(sources, list) or not all(isinstance(item, str) for item in sources):
-            return self._response(400, {"error": "sources must be an array of strings"})
+            return persistent_response(400, {"error": "sources must be an array of strings"})
 
         try:
             config = RuntimeConfig()
@@ -50,17 +55,9 @@ class TelemetryHandler:
             ).load_all(PACK_ROOT)
             analysis = TelemetryAnalyzer().analyze(tuple(sources), packs)
         except KnowledgePackError as exc:
-            return self._response(
+            return persistent_response(
                 500,
                 {"error": "knowledge pack validation failed", "detail": str(exc)},
             )
 
-        return self._response(200, analysis.to_mapping())
-
-    @staticmethod
-    def _response(status: int, payload: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "payload": json.dumps(payload, separators=(",", ":"), sort_keys=True),
-            "status": status,
-            "headers": {"Content-Type": "application/json"},
-        }
+        return persistent_response(200, analysis.to_mapping())
