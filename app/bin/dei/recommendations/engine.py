@@ -7,6 +7,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from dei.telemetry.normalization import SourceMapping, normalize_sources
+
 
 class RecommendationError(ValueError):
     """Raised when the detection catalog or request is invalid."""
@@ -103,24 +105,30 @@ class RecommendationReport:
     """Summary and ranked recommendations for one telemetry assessment."""
 
     observed_source_count: int
+    normalized_source_count: int
     production_ready_count: int
     partial_count: int
     unsupported_count: int
+    source_mappings: tuple[SourceMapping, ...]
+    unmapped_sources: tuple[str, ...]
     recommendations: tuple[DetectionRecommendation, ...]
 
     def to_mapping(self) -> dict[str, Any]:
         """Return a JSON-compatible report."""
         return {
             "observed_source_count": self.observed_source_count,
+            "normalized_source_count": self.normalized_source_count,
             "production_ready_count": self.production_ready_count,
             "partial_count": self.partial_count,
             "unsupported_count": self.unsupported_count,
+            "source_mappings": [item.to_mapping() for item in self.source_mappings],
+            "unmapped_sources": list(self.unmapped_sources),
             "recommendations": [item.to_mapping() for item in self.recommendations],
         }
 
 
 class RecommendationEngine:
-    """Rank detection opportunities using observed telemetry and readiness."""
+    """Rank detection opportunities using normalized observed telemetry."""
 
     def __init__(self, opportunities: tuple[DetectionOpportunity, ...]) -> None:
         if not opportunities:
@@ -156,7 +164,8 @@ class RecommendationEngine:
         include_unsupported: bool = False,
     ) -> RecommendationReport:
         """Return ranked detection recommendations for observed source names."""
-        normalized = {source.strip().lower() for source in observed_sources if source.strip()}
+        normalization = normalize_sources(observed_sources)
+        normalized = {source.lower() for source in normalization.canonical_sources}
         recommendations: list[DetectionRecommendation] = []
         ready = partial = unsupported = 0
 
@@ -214,9 +223,12 @@ class RecommendationEngine:
 
         recommendations.sort(key=lambda item: (-item.score, item.name.lower()))
         return RecommendationReport(
-            observed_source_count=len(normalized),
+            observed_source_count=len(normalization.mappings),
+            normalized_source_count=len(normalization.canonical_sources),
             production_ready_count=ready,
             partial_count=partial,
             unsupported_count=unsupported,
+            source_mappings=normalization.mappings,
+            unmapped_sources=normalization.unmapped_sources,
             recommendations=tuple(recommendations),
         )
