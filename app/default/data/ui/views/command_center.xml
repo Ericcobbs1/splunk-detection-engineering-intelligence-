@@ -27,6 +27,7 @@
 
           <section class="dei-metrics" aria-label="Detection intelligence summary">
             <article class="dei-metric"><span>Observed sources</span><strong id="metric-sources">0</strong></article>
+            <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong></article>
             <article class="dei-metric"><span>Production ready</span><strong id="metric-ready">0</strong></article>
             <article class="dei-metric"><span>Partial coverage</span><strong id="metric-partial">0</strong></article>
             <article class="dei-metric"><span>Detection potential</span><strong id="metric-potential">0%</strong></article>

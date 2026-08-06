@@ -11,13 +11,12 @@ STATIC_ROOT = APP_ROOT / "appserver" / "static"
 
 def test_command_center_view_is_valid_and_references_assets() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
-
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == "command_center.js"
     assert root.attrib["stylesheet"] == "command_center.css"
     assert root.find(".//*[@id='dei-command-center']") is not None
-
+    assert root.find(".//*[@id='metric-understanding']") is not None
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
@@ -26,7 +25,6 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
 def test_command_center_is_default_navigation_view() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
     command_center = root.find("./view[@name='command_center']")
-
     assert command_center is not None
     assert command_center.attrib["default"] == "true"
 
@@ -34,7 +32,6 @@ def test_command_center_is_default_navigation_view() -> None:
 def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center.css").read_text(encoding="utf-8")
-
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -49,6 +46,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'like(index, "_%")' not in javascript
     assert 'output_mode: "json"' in javascript
     assert "parseExportRows" in javascript
+    assert '"#metric-understanding"' in javascript
+    assert "understood / observed" in javascript
+    assert "telemetry understanding" in javascript
     assert "Telemetry discovery timed out after 30 seconds." in javascript
     assert "#dei-analyze" in javascript
     assert ".dei-shell" in stylesheet
