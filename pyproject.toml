@@ -6,15 +6,14 @@ build-backend = "setuptools.build_meta"
 name = "splunk-detection-engineering-intelligence"
 version = "0.1.0"
 description = "Telemetry-aware detection engineering intelligence for Splunk."
-requires-python = ">=3.11"
-dependencies = ["jsonschema>=4.22,<5"]
+requires-python = ">=3.9"
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
   "mypy>=1.10",
   "pytest>=8.2",
   "ruff>=0.5",
-  "types-jsonschema>=4.22",
 ]
 
 [tool.setuptools.packages.find]
@@ -27,7 +26,7 @@ testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py39"
 line-length = 100
 src = ["app/bin", "tests"]
 
@@ -35,6 +34,6 @@ src = ["app/bin", "tests"]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.9"
 strict = true
 mypy_path = "app/bin"
