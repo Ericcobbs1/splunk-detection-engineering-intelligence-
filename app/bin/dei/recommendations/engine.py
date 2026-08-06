@@ -91,6 +91,7 @@ class DetectionRecommendation:
     missing_sources: tuple[str, ...]
     field_validation: str
     missing_fields: dict[str, tuple[str, ...]]
+    unverified_field_sources: tuple[str, ...]
     mitre_techniques: tuple[str, ...]
     why: str
     implementation: str
@@ -108,6 +109,7 @@ class RecommendationReport:
     partial_count: int
     unsupported_count: int
     field_gap_count: int
+    field_unverified_count: int
     source_mappings: tuple[SourceMapping, ...]
     unmapped_sources: tuple[str, ...]
     recommendations: tuple[DetectionRecommendation, ...]
@@ -120,6 +122,7 @@ class RecommendationReport:
             "partial_count": self.partial_count,
             "unsupported_count": self.unsupported_count,
             "field_gap_count": self.field_gap_count,
+            "field_unverified_count": self.field_unverified_count,
             "source_mappings": [item.to_mapping() for item in self.source_mappings],
             "unmapped_sources": list(self.unmapped_sources),
             "recommendations": [item.to_mapping() for item in self.recommendations],
@@ -143,7 +146,9 @@ class RecommendationEngine:
             raise RecommendationError(f"Unable to load detection catalog: {exc}") from exc
         if not isinstance(raw, list):
             raise RecommendationError("Detection catalog must be a JSON array")
-        opportunities = tuple(DetectionOpportunity.from_mapping(item) for item in raw if isinstance(item, dict))
+        opportunities = tuple(
+            DetectionOpportunity.from_mapping(item) for item in raw if isinstance(item, dict)
+        )
         if len(opportunities) != len(raw):
             raise RecommendationError("Every detection catalog entry must be an object")
         return cls(opportunities)
@@ -172,29 +177,43 @@ class RecommendationEngine:
                 )
 
         recommendations: list[DetectionRecommendation] = []
-        ready = partial = unsupported = field_gaps = 0
+        ready = partial = unsupported = field_gaps = field_unverified = 0
 
         for opportunity in self._opportunities:
             required = {source.lower() for source in opportunity.required_sources}
-            observed = tuple(source for source in opportunity.required_sources if source.lower() in normalized)
-            missing = tuple(source for source in opportunity.required_sources if source.lower() not in normalized)
+            observed = tuple(
+                source for source in opportunity.required_sources if source.lower() in normalized
+            )
+            missing = tuple(
+                source for source in opportunity.required_sources if source.lower() not in normalized
+            )
             matched_count = len(observed)
 
             field_validation = "not_evaluated"
             missing_fields: dict[str, tuple[str, ...]] = {}
+            unverified_field_sources: tuple[str, ...] = ()
             if fields_by_source is not None and matched_count == len(required):
-                field_validation = "passed"
-                for source, groups in opportunity.required_fields.items():
-                    available = canonical_fields.get(source.lower(), set())
-                    missing_groups = tuple(
-                        " OR ".join(group)
-                        for group in groups
-                        if not any(candidate.lower() in available for candidate in group)
-                    )
-                    if missing_groups:
-                        missing_fields[source] = missing_groups
-                if missing_fields:
-                    field_validation = "failed"
+                unverified = tuple(
+                    source
+                    for source in opportunity.required_fields
+                    if source.lower() not in canonical_fields
+                )
+                if unverified:
+                    field_validation = "unverified"
+                    unverified_field_sources = unverified
+                else:
+                    field_validation = "passed"
+                    for source, groups in opportunity.required_fields.items():
+                        available = canonical_fields[source.lower()]
+                        missing_groups = tuple(
+                            " OR ".join(group)
+                            for group in groups
+                            if not any(candidate.lower() in available for candidate in group)
+                        )
+                        if missing_groups:
+                            missing_fields[source] = missing_groups
+                    if missing_fields:
+                        field_validation = "failed"
 
             if matched_count == len(required):
                 if field_validation == "failed":
@@ -202,6 +221,11 @@ class RecommendationEngine:
                     readiness_points = 0
                     partial += 1
                     field_gaps += 1
+                elif field_validation == "unverified":
+                    readiness = "field_unverified"
+                    readiness_points = 0
+                    partial += 1
+                    field_unverified += 1
                 else:
                     readiness = "production_ready"
                     readiness_points = 20
@@ -218,7 +242,7 @@ class RecommendationEngine:
             if opportunity.requires_enterprise_security and not enterprise_security_enabled:
                 if readiness == "production_ready":
                     ready -= 1
-                elif readiness in {"partial", "field_gap"}:
+                elif readiness in {"partial", "field_gap", "field_unverified"}:
                     partial -= 1
                 readiness = "requires_enterprise_security"
                 readiness_points = -10
@@ -233,6 +257,7 @@ class RecommendationEngine:
                 readiness=readiness, score=score, severity=opportunity.severity,
                 observed_sources=observed, missing_sources=missing,
                 field_validation=field_validation, missing_fields=missing_fields,
+                unverified_field_sources=unverified_field_sources,
                 mitre_techniques=opportunity.mitre_techniques, why=opportunity.why,
                 implementation=opportunity.implementation,
                 requires_enterprise_security=opportunity.requires_enterprise_security,
@@ -244,6 +269,7 @@ class RecommendationEngine:
             normalized_source_count=len(normalization.canonical_sources),
             production_ready_count=ready, partial_count=partial,
             unsupported_count=unsupported, field_gap_count=field_gaps,
+            field_unverified_count=field_unverified,
             source_mappings=normalization.mappings,
             unmapped_sources=normalization.unmapped_sources,
             recommendations=tuple(recommendations),
