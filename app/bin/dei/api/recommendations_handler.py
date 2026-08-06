@@ -7,6 +7,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
+from dei.api.response import persistent_response
 from dei.recommendations.engine import (
     RecommendationEngine,
     RecommendationError,
@@ -47,42 +48,36 @@ class RecommendationsHandler:
         try:
             request_data = json.loads(request)
         except json.JSONDecodeError:
-            return self._response(400, {"error": "request must be valid JSON"})
+            return persistent_response(400, {"error": "request must be valid JSON"})
 
         if not isinstance(request_data, dict):
-            return self._response(400, {"error": "request must be a JSON object"})
+            return persistent_response(400, {"error": "request must be a JSON object"})
         if str(request_data.get("method", "POST")).upper() != "POST":
-            return self._response(405, {"error": "method not allowed"})
+            return persistent_response(405, {"error": "method not allowed"})
 
         payload = request_data.get("payload", request_data)
         if not isinstance(payload, dict):
-            return self._response(400, {"error": "payload must be a JSON object"})
+            return persistent_response(400, {"error": "payload must be a JSON object"})
         sources = payload.get("sources")
         if not isinstance(sources, list) or not all(isinstance(item, str) for item in sources):
-            return self._response(400, {"error": "sources must be an array of strings"})
+            return persistent_response(400, {"error": "sources must be an array of strings"})
 
         enterprise_security_enabled = payload.get("enterprise_security_enabled", False)
         include_unsupported = payload.get("include_unsupported", False)
         if not isinstance(enterprise_security_enabled, bool):
-            return self._response(400, {"error": "enterprise_security_enabled must be boolean"})
+            return persistent_response(
+                400, {"error": "enterprise_security_enabled must be boolean"}
+            )
         if not isinstance(include_unsupported, bool):
-            return self._response(400, {"error": "include_unsupported must be boolean"})
+            return persistent_response(400, {"error": "include_unsupported must be boolean"})
 
         try:
             report = self._recommendation_factory(
                 sources, enterprise_security_enabled, include_unsupported
             )
         except RecommendationError as exc:
-            return self._response(
+            return persistent_response(
                 500,
                 {"error": "recommendation engine failed", "detail": str(exc)},
             )
-        return self._response(200, report.to_mapping())
-
-    @staticmethod
-    def _response(status: int, payload: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "payload": json.dumps(payload, separators=(",", ":"), sort_keys=True),
-            "status": status,
-            "headers": {"Content-Type": "application/json"},
-        }
+        return persistent_response(200, report.to_mapping())
