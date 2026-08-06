@@ -36,3 +36,33 @@ def test_invalid_manifest_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(KnowledgePackError, match="Invalid knowledge pack manifest"):
         loader.load(manifest_path)
+
+
+def test_invalid_schema_is_rejected(tmp_path: Path) -> None:
+    schema_path = tmp_path / "invalid-schema.json"
+    schema_path.write_text('{"type": 42}', encoding="utf-8")
+
+    with pytest.raises(KnowledgePackError, match="Invalid knowledge pack schema"):
+        KnowledgePackLoader(schema_path)
+
+
+def test_pack_directory_must_match_manifest_id(tmp_path: Path) -> None:
+    pack_root = tmp_path / "wrong-directory"
+    pack_root.mkdir()
+    manifest_path = pack_root / "manifest.json"
+    manifest_path.write_text(
+        """{
+          "id": "expected-directory",
+          "name": "Expected Directory",
+          "version": "0.1.0",
+          "minimum_dei_version": "0.1.0",
+          "domains": ["endpoint"],
+          "supported_sources": ["example"],
+          "capabilities": ["example.capability"]
+        }""",
+        encoding="utf-8",
+    )
+    loader = KnowledgePackLoader(SCHEMA_PATH)
+
+    with pytest.raises(KnowledgePackError, match="directory must match manifest id"):
+        loader.load(manifest_path)

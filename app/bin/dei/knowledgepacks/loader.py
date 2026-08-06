@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator
-from jsonschema.exceptions import ValidationError
+from jsonschema.exceptions import SchemaError, ValidationError
 
 from dei.knowledgepacks.models import KnowledgePack, KnowledgePackManifest
 
@@ -21,7 +21,12 @@ class KnowledgePackLoader:
 
     def __init__(self, schema_path: Path) -> None:
         self._schema_path = schema_path
-        self._validator = Draft202012Validator(self._read_json(schema_path))
+        schema = self._read_json(schema_path)
+        try:
+            Draft202012Validator.check_schema(schema)
+        except SchemaError as exc:
+            raise KnowledgePackError(f"Invalid knowledge pack schema: {schema_path}") from exc
+        self._validator = Draft202012Validator(schema)
 
     @staticmethod
     def _read_json(path: Path) -> dict[str, Any]:
@@ -51,6 +56,13 @@ class KnowledgePackLoader:
             ) from exc
 
         manifest = KnowledgePackManifest.from_mapping(data)
+        directory_name = manifest_path.parent.name
+        if directory_name != manifest.pack_id:
+            raise KnowledgePackError(
+                "Knowledge pack directory must match manifest id: "
+                f"{directory_name!r} != {manifest.pack_id!r}"
+            )
+
         return KnowledgePack(
             root=manifest_path.parent,
             manifest_path=manifest_path,
