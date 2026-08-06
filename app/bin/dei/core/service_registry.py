@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generic, Iterable, Type, TypeVar
+from typing import Any, Iterable, TypeVar, cast
 
 
 T = TypeVar("T")
@@ -17,13 +17,13 @@ class ServiceRegistryError(RuntimeError):
 class ServiceRegistry:
     """Store services by interface type without coupling callers to implementations."""
 
-    _services: Dict[Type[Any], Any] = field(default_factory=dict)
+    _services: dict[type[Any], Any] = field(default_factory=dict)
 
-    def register(self, interface: Type[T], implementation: T, *, replace: bool = False) -> None:
+    def register(self, interface: type[T], implementation: T, *, replace: bool = False) -> None:
         """Register an implementation for an interface.
 
         Args:
-            interface: Abstract class or protocol used as the lookup key.
+            interface: Abstract class used as the lookup key.
             implementation: Concrete service instance.
             replace: Allow replacement of an existing registration.
         """
@@ -35,13 +35,13 @@ class ServiceRegistry:
             )
         self._services[interface] = implementation
 
-    def resolve(self, interface: Type[T]) -> T:
+    def resolve(self, interface: type[T]) -> T:
         """Return the registered implementation for an interface."""
         try:
-            return self._services[interface]
+            return cast(T, self._services[interface])
         except KeyError as exc:
             raise ServiceRegistryError(f"Service not registered: {interface.__name__}") from exc
 
-    def registered_interfaces(self) -> Iterable[Type[Any]]:
+    def registered_interfaces(self) -> Iterable[type[Any]]:
         """Return an immutable view of registered interface types."""
         return tuple(self._services.keys())
