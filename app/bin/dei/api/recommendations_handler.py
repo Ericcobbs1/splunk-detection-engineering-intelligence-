@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dei.api.response import persistent_response
-from dei.recommendations.engine import RecommendationEngine, RecommendationError, RecommendationReport
+from dei.recommendations.engine import (
+    RecommendationEngine,
+    RecommendationError,
+    RecommendationReport,
+)
 
 RecommendationFactory = Callable[
     [list[str], bool, bool, Optional[dict[str, list[str]]]], RecommendationReport
