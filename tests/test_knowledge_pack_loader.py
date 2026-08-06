@@ -27,6 +27,23 @@ def test_discover_requires_existing_directory(tmp_path: Path) -> None:
         loader.discover(tmp_path / "missing")
 
 
+def test_discover_rejects_pack_directory_without_manifest(tmp_path: Path) -> None:
+    incomplete_pack = tmp_path / "incomplete-pack"
+    incomplete_pack.mkdir()
+    loader = KnowledgePackLoader(SCHEMA_PATH)
+
+    with pytest.raises(KnowledgePackError, match="missing manifest.json"):
+        loader.discover(tmp_path)
+
+
+def test_discover_ignores_hidden_directories_and_files(tmp_path: Path) -> None:
+    (tmp_path / ".cache").mkdir()
+    (tmp_path / "README.md").write_text("metadata", encoding="utf-8")
+    loader = KnowledgePackLoader(SCHEMA_PATH)
+
+    assert loader.discover(tmp_path) == ()
+
+
 def test_invalid_manifest_is_rejected(tmp_path: Path) -> None:
     pack_root = tmp_path / "invalid"
     pack_root.mkdir()
