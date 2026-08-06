@@ -47,7 +47,7 @@ def test_telemetry_handler_returns_analysis() -> None:
     response = handler.handle(
         json.dumps({"method": "POST", "sources": ["aws:cloudtrail"]})
     )
-    payload = json.loads(response["payload"])
+    payload = response["payload"]
 
     assert response["status"] == 200
     assert payload["matched_sources"] == ["aws:cloudtrail"]
@@ -60,7 +60,7 @@ def test_telemetry_handler_validates_sources() -> None:
     )
 
     assert response["status"] == 400
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "error": "sources must be an array of strings"
     }
 

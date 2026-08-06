@@ -1,7 +1,5 @@
 """Tests for the DEI capabilities service and REST adapter."""
 
-import json
-
 from dei.api.capabilities_handler import CapabilitiesHandler, _default_inventory_factory
 from dei.core.capabilities import CapabilityInventory
 from dei.knowledgepacks.loader import KnowledgePackError
@@ -21,7 +19,7 @@ def test_capabilities_handler_returns_inventory() -> None:
     handler = CapabilitiesHandler()
 
     response = handler.handle('{"method":"GET"}')
-    payload = json.loads(response["payload"])
+    payload = response["payload"]
 
     assert response["status"] == 200
     assert payload["knowledge_pack_count"] == 3
@@ -35,7 +33,7 @@ def test_capabilities_handler_rejects_non_get_method() -> None:
     response = handler.handle('{"method":"POST"}')
 
     assert response["status"] == 405
-    assert json.loads(response["payload"]) == {"error": "method not allowed"}
+    assert response["payload"] == {"error": "method not allowed"}
 
 
 def test_capabilities_handler_reports_pack_validation_failure() -> None:
@@ -47,7 +45,7 @@ def test_capabilities_handler_reports_pack_validation_failure() -> None:
     response = handler.handle('{"method":"GET"}')
 
     assert response["status"] == 500
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "detail": "broken pack",
         "error": "knowledge pack validation failed",
     }

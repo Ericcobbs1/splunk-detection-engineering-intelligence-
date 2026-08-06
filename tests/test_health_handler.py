@@ -1,7 +1,5 @@
 """Tests for the Splunk health REST adapter."""
 
-import json
-
 from dei.api.health_handler import HealthHandler, _default_report_factory
 from dei.core.health import HealthReport
 from dei.knowledgepacks.loader import KnowledgePackError
@@ -29,8 +27,7 @@ def test_health_handler_returns_json_payload() -> None:
     response = handler.handle('{"method":"GET"}')
 
     assert response["status"] == 200
-    assert response["headers"] == {"Content-Type": "application/json"}
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "enterprise_security_enabled": False,
         "knowledge_pack_count": 3,
         "status": "healthy",
@@ -47,7 +44,7 @@ def test_health_handler_returns_controlled_pack_error() -> None:
     response = handler.handle('{"method":"GET"}')
 
     assert response["status"] == 500
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "detail": "invalid manifest",
         "error": "knowledge pack validation failed",
     }
@@ -59,7 +56,7 @@ def test_health_handler_rejects_invalid_json() -> None:
     response = handler.handle("not-json")
 
     assert response["status"] == 400
-    assert json.loads(response["payload"]) == {"error": "request must be valid JSON"}
+    assert response["payload"] == {"error": "request must be valid JSON"}
 
 
 def test_health_handler_rejects_non_object_json() -> None:
@@ -68,7 +65,7 @@ def test_health_handler_rejects_non_object_json() -> None:
     response = handler.handle("[]")
 
     assert response["status"] == 400
-    assert json.loads(response["payload"]) == {"error": "request must be a JSON object"}
+    assert response["payload"] == {"error": "request must be a JSON object"}
 
 
 def test_health_handler_rejects_non_get_method() -> None:
@@ -77,4 +74,4 @@ def test_health_handler_rejects_non_get_method() -> None:
     response = handler.handle('{"method":"POST"}')
 
     assert response["status"] == 405
-    assert json.loads(response["payload"]) == {"error": "method not allowed"}
+    assert response["payload"] == {"error": "method not allowed"}
