@@ -5,19 +5,21 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from dei.api.response import persistent_response
 from dei.recommendations.engine import RecommendationEngine, RecommendationError, RecommendationReport
 
-RecommendationFactory = Callable[[list[str], bool, bool, dict[str, list[str]] | None], RecommendationReport]
+RecommendationFactory = Callable[
+    [list[str], bool, bool, Optional[dict[str, list[str]]]], RecommendationReport
+]
 APP_ROOT = Path(__file__).resolve().parents[3]
 CATALOG_PATH = APP_ROOT / "detections" / "catalog.json"
 
 
 def _default_factory(
     sources: list[str], enterprise_security_enabled: bool,
-    include_unsupported: bool, fields_by_source: dict[str, list[str]] | None,
+    include_unsupported: bool, fields_by_source: Optional[dict[str, list[str]]],
 ) -> RecommendationReport:
     return RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
         sources,
@@ -27,7 +29,7 @@ def _default_factory(
     )
 
 
-def _decode_payload(request_data: dict[str, Any]) -> dict[str, Any] | None:
+def _decode_payload(request_data: dict[str, Any]) -> Optional[dict[str, Any]]:
     raw_payload: Any = request_data.get("payload", request_data)
     if isinstance(raw_payload, str):
         try:
@@ -52,8 +54,8 @@ class RecommendationsHandler:
 
     def __init__(
         self,
-        command_line: Sequence[str] | None = None,
-        command_arg: Sequence[str] | None = None,
+        command_line: Optional[Sequence[str]] = None,
+        command_arg: Optional[Sequence[str]] = None,
         recommendation_factory: RecommendationFactory = _default_factory,
     ) -> None:
         self._command_line = tuple(command_line or ())
