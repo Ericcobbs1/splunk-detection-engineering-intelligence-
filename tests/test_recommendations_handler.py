@@ -29,7 +29,7 @@ def test_handler_returns_recommendation_report() -> None:
     )
 
     assert response["status"] == 200
-    assert json.loads(response["payload"])["production_ready_count"] == 3
+    assert response["payload"]["production_ready_count"] == 3
 
 
 def test_handler_parses_raw_splunk_payload() -> None:
@@ -39,7 +39,7 @@ def test_handler_parses_raw_splunk_payload() -> None:
     response = handler.handle(json.dumps({"method": "POST", "payload": raw_body}))
 
     assert response["status"] == 200
-    assert response["headers"]["Content-Type"] == "application/json"
+    assert response["payload"]["production_ready_count"] == 3
 
 
 def test_handler_rejects_invalid_sources() -> None:
@@ -50,7 +50,7 @@ def test_handler_rejects_invalid_sources() -> None:
     )
 
     assert response["status"] == 400
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "error": "sources must be an array of strings"
     }
 
@@ -73,7 +73,7 @@ def test_handler_reports_engine_failure() -> None:
     response = handler.handle(json.dumps({"method": "POST", "sources": []}))
 
     assert response["status"] == 500
-    assert json.loads(response["payload"]) == {
+    assert response["payload"] == {
         "detail": "catalog failed",
         "error": "recommendation engine failed",
     }
