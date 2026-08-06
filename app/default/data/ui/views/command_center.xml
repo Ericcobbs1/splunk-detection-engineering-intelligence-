@@ -1,0 +1,67 @@
+<form version="1.1" theme="dark" script="command_center.js" stylesheet="command_center.css">
+  <label>DEI Command Center</label>
+  <description>Telemetry intelligence and explainable detection recommendations.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <div id="dei-command-center" class="dei-shell">
+          <section class="dei-hero">
+            <div>
+              <p class="dei-eyebrow">Detection Engineering Intelligence</p>
+              <h1>Security Operations Command Center</h1>
+              <p class="dei-subtitle">Measure telemetry readiness, surface detection potential, and prioritize the next use cases to build.</p>
+            </div>
+            <div id="dei-api-status" class="dei-status">API status: checking</div>
+          </section>
+
+          <section class="dei-control-panel">
+            <label for="dei-sources">Observed source types</label>
+            <textarea id="dei-sources" rows="4" placeholder="aws:cloudtrail&#10;XmlWinEventLog:Security&#10;ai:gateway"></textarea>
+            <div class="dei-actions">
+              <label class="dei-toggle"><input id="dei-es-enabled" type="checkbox" /> Enterprise Security enabled</label>
+              <button id="dei-analyze" type="button">Analyze environment</button>
+            </div>
+            <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
+          </section>
+
+          <section class="dei-metrics" aria-label="Detection intelligence summary">
+            <article class="dei-metric"><span>Observed sources</span><strong id="metric-sources">0</strong></article>
+            <article class="dei-metric"><span>Production ready</span><strong id="metric-ready">0</strong></article>
+            <article class="dei-metric"><span>Partial coverage</span><strong id="metric-partial">0</strong></article>
+            <article class="dei-metric"><span>Detection potential</span><strong id="metric-potential">0%</strong></article>
+          </section>
+
+          <section class="dei-grid">
+            <article class="dei-panel dei-coverage-panel">
+              <div class="dei-section-heading">
+                <div>
+                  <p class="dei-eyebrow">Telemetry DNA</p>
+                  <h2>Coverage profile</h2>
+                </div>
+                <span id="coverage-label" class="dei-chip">Not analyzed</span>
+              </div>
+              <div class="dei-ring-wrap">
+                <div id="coverage-ring" class="dei-ring"><span id="coverage-value">0%</span></div>
+                <div id="coverage-domains" class="dei-domain-list"></div>
+              </div>
+            </article>
+
+            <article class="dei-panel">
+              <div class="dei-section-heading">
+                <div>
+                  <p class="dei-eyebrow">Detection Advisor</p>
+                  <h2>Prioritized opportunities</h2>
+                </div>
+                <span id="recommendation-count" class="dei-chip">0 results</span>
+              </div>
+              <div id="recommendations" class="dei-recommendations">
+                <p class="dei-empty">Run an analysis to generate recommendations.</p>
+              </div>
+            </article>
+          </section>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
