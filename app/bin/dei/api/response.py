@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 
 def persistent_response(status: int, payload: dict[str, Any]) -> dict[str, Any]:
-    """Return the response shape expected by Splunk persistconn."""
+    """Return Splunk's documented persistent-handler response shape."""
     return {
-        "payload": json.dumps(payload, separators=(",", ":"), sort_keys=True),
+        "payload": payload,
         "status": status,
-        "headers": {"Content-Type": "application/json"},
     }
