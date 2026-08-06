@@ -7,6 +7,7 @@ name = "splunk-detection-engineering-intelligence"
 version = "0.1.0"
 description = "Telemetry-aware detection engineering intelligence for Splunk."
 requires-python = ">=3.11"
+dependencies = ["jsonschema>=4.22,<5"]
 
 [tool.pytest.ini_options]
 pythonpath = ["app/bin"]
