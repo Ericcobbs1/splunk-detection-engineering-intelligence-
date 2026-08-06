@@ -16,7 +16,6 @@ class SourceMapping:
     reason: str
 
     def to_mapping(self) -> dict[str, object]:
-        """Return a JSON-compatible representation."""
         return asdict(self)
 
 
@@ -29,43 +28,27 @@ class NormalizationResult:
     unmapped_sources: tuple[str, ...]
 
 
-# Exact aliases are intentionally conservative. Pattern/field/CIM inference can be
-# layered on later without changing the recommendation-engine contract.
+# Exact aliases stay conservative: ambiguous generic sourcetypes are intentionally
+# left unmapped until field/CIM-aware inference is available.
 _EXACT_ALIASES: dict[str, tuple[str, int, str]] = {
-    "wineventlog:security": (
-        "XmlWinEventLog:Security",
-        100,
-        "Windows Security event-log alias",
-    ),
-    "zscaler:web": (
-        "proxy",
-        100,
-        "Zscaler web telemetry satisfies the proxy capability",
-    ),
-    "oktaim2:log": (
-        "identity.authentication",
-        100,
-        "Okta System Log provides identity and authentication telemetry",
-    ),
-    "crowdstrike:events:sensor": (
-        "endpoint.edr",
-        100,
-        "CrowdStrike sensor events provide endpoint/EDR telemetry",
-    ),
-    "linux_secure": (
-        "linux.authentication",
-        100,
-        "Linux secure/auth logs provide authentication and privilege telemetry",
-    ),
+    "wineventlog:security": ("XmlWinEventLog:Security", 100, "Windows Security event-log alias"),
+    "zscaler:web": ("proxy", 100, "Zscaler web telemetry satisfies the proxy capability"),
+    "oktaim2:log": ("identity.authentication", 100, "Okta System Log provides identity and authentication telemetry"),
+    "crowdstrike:events:sensor": ("endpoint.edr", 100, "CrowdStrike sensor events provide endpoint/EDR telemetry"),
+    "linux_secure": ("linux.authentication", 100, "Linux secure/auth logs provide authentication and privilege telemetry"),
+    "cisco:asa": ("network.firewall", 100, "Cisco ASA telemetry provides firewall and network-security events"),
+    "cisco:ios": ("network.infrastructure", 100, "Cisco IOS telemetry provides network infrastructure events"),
+    "stream:dns": ("network.dns", 100, "Splunk Stream DNS telemetry provides DNS activity"),
+    "cdcc:edr": ("endpoint.edr", 90, "Known lab EDR sourcetype provides endpoint security telemetry"),
+    "otx:indicator": ("threat_intelligence", 100, "OTX indicator telemetry provides threat-intelligence observables"),
+    "otx:pulse": ("threat_intelligence", 100, "OTX pulse telemetry provides threat-intelligence context"),
+    "modular_alerts:risk": ("es.risk", 100, "Enterprise Security risk events provide risk-based alerting telemetry"),
+    "access_combined": ("web.http", 95, "Combined web access logs provide HTTP request telemetry"),
 }
 
-# These are already canonical tokens used by current detection content or by the
-# capability model being introduced for future knowledge packs.
 _CANONICAL_SOURCES = {
     "xmlwineventlog:security": "XmlWinEventLog:Security",
-    "xmlwineventlog:microsoft-windows-powershell/operational": (
-        "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"
-    ),
+    "xmlwineventlog:microsoft-windows-powershell/operational": "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational",
     "aws:cloudtrail": "aws:cloudtrail",
     "proxy": "proxy",
     "ai:gateway": "ai:gateway",
@@ -75,15 +58,17 @@ _CANONICAL_SOURCES = {
     "identity.authentication": "identity.authentication",
     "endpoint.edr": "endpoint.edr",
     "linux.authentication": "linux.authentication",
+    "network.firewall": "network.firewall",
+    "network.infrastructure": "network.infrastructure",
+    "network.dns": "network.dns",
+    "threat_intelligence": "threat_intelligence",
+    "es.risk": "es.risk",
+    "web.http": "web.http",
 }
 
 
 def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
-    """Normalize discovered sourcetypes while retaining explainability.
-
-    Unknown sourcetypes remain visible to DEI and are explicitly marked as
-    unmapped. They are not silently discarded.
-    """
+    """Normalize discovered sourcetypes while retaining explainability."""
     seen_observed: set[str] = set()
     canonical: list[str] = []
     canonical_seen: set[str] = set()
@@ -102,31 +87,13 @@ def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
         alias = _EXACT_ALIASES.get(key)
         if alias is not None:
             canonical_source, confidence, reason = alias
-            mapping = SourceMapping(
-                observed_source=source,
-                canonical_source=canonical_source,
-                status="mapped_alias",
-                confidence=confidence,
-                reason=reason,
-            )
+            mapping = SourceMapping(source, canonical_source, "mapped_alias", confidence, reason)
         elif key in _CANONICAL_SOURCES:
             canonical_source = _CANONICAL_SOURCES[key]
-            mapping = SourceMapping(
-                observed_source=source,
-                canonical_source=canonical_source,
-                status="canonical",
-                confidence=100,
-                reason="Source already matches a DEI canonical telemetry token",
-            )
+            mapping = SourceMapping(source, canonical_source, "canonical", 100, "Source already matches a DEI canonical telemetry token")
         else:
             canonical_source = source
-            mapping = SourceMapping(
-                observed_source=source,
-                canonical_source=source,
-                status="unmapped",
-                confidence=0,
-                reason="No DEI telemetry mapping is currently defined",
-            )
+            mapping = SourceMapping(source, source, "unmapped", 0, "No DEI telemetry mapping is currently defined")
             unmapped.append(source)
 
         canonical_key = canonical_source.lower()
@@ -135,8 +102,4 @@ def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
             canonical.append(canonical_source)
         mappings.append(mapping)
 
-    return NormalizationResult(
-        canonical_sources=tuple(canonical),
-        mappings=tuple(mappings),
-        unmapped_sources=tuple(unmapped),
-    )
+    return NormalizationResult(tuple(canonical), tuple(mappings), tuple(unmapped))
