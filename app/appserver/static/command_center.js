@@ -24,7 +24,7 @@ require([
 
   var discoverySpl = [
     "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
-    '| where NOT like(index, "_%") AND isnotnull(sourcetype)',
+    '| where NOT match(index, "^_") AND isnotnull(sourcetype)',
     "| sort - count"
   ].join(" ");
 
