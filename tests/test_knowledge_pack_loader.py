@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
