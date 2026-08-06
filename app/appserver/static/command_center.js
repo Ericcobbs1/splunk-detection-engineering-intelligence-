@@ -1,14 +1,10 @@
 require([
   "jquery",
-  "splunkjs/mvc/searchmanager",
   "splunkjs/mvc/simplexml/ready!"
-], function ($, SearchManager) {
+], function ($) {
   "use strict";
 
   var appId = "splunk_detection_engineering_intelligence";
-  var pendingAnalysis = false;
-  var discoveryTimer = null;
-  var discoveryHandled = false;
 
   function endpoint() {
     var parts = Array.prototype.slice.call(arguments);
@@ -20,25 +16,17 @@ require([
 
   var endpoints = {
     health: endpoint("dei", "v1", "health"),
-    recommendations: endpoint("dei", "v1", "recommendations")
+    recommendations: endpoint("dei", "v1", "recommendations"),
+    discovery: Splunk.util.make_url(
+      "splunkd", "__raw", "services", "search", "jobs", "export"
+    )
   };
 
-  var discoverySearch = new SearchManager({
-    id: "dei_environment_discovery",
-    search: [
-      "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
-      '| where NOT like(index, "_%") AND isnotnull(sourcetype)',
-      "| sort - count"
-    ].join(" "),
-    preview: false,
-    cache: false,
-    autostart: false
-  });
-
-  var discoveryResults = discoverySearch.data("results", {
-    count: 1000,
-    output_mode: "json"
-  });
+  var discoverySpl = [
+    "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
+    '| where NOT like(index, "_%") AND isnotnull(sourcetype)',
+    "| sort - count"
+  ].join(" ");
 
   function parsePayload(response) {
     if (response && typeof response.payload === "string") {
@@ -53,6 +41,7 @@ require([
       method: "POST",
       contentType: "application/json",
       dataType: "json",
+      timeout: 30000,
       headers: {
         "X-Splunk-Form-Key": Splunk.util.getConfigValue("FORM_KEY")
       },
@@ -79,20 +68,26 @@ require([
     });
   }
 
-  function resultRows(data) {
-    if (data && Array.isArray(data.results)) {
-      return data.results;
-    }
-    if (data && Array.isArray(data.fields) && Array.isArray(data.rows)) {
-      return data.rows.map(function (row) {
-        var item = {};
-        data.fields.forEach(function (field, index) {
-          item[field] = row[index];
-        });
-        return item;
-      });
-    }
-    return [];
+  function parseExportRows(text) {
+    var rows = [];
+    String(text || "").split(/\r?\n/).forEach(function (line) {
+      var trimmed = line.trim();
+      var parsed;
+      if (!trimmed) {
+        return;
+      }
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch (error) {
+        return;
+      }
+      if (parsed && parsed.result) {
+        rows.push(parsed.result);
+      } else if (parsed && parsed.sourcetype) {
+        rows.push(parsed);
+      }
+    });
+    return rows;
   }
 
   function readinessLabel(value) {
@@ -181,23 +176,8 @@ require([
       "Request failed with HTTP " + (xhr.status || "unknown") + ".";
   }
 
-  function clearDiscoveryTimer() {
-    if (discoveryTimer) {
-      window.clearTimeout(discoveryTimer);
-      discoveryTimer = null;
-    }
-  }
-
   function resetAnalyzeButton() {
     $("#dei-analyze").prop("disabled", false).text("Analyze environment");
-  }
-
-  function discoveryFailure(message) {
-    clearDiscoveryTimer();
-    discoveryHandled = true;
-    pendingAnalysis = false;
-    $("#dei-feedback").text(message);
-    resetAnalyzeButton();
   }
 
   function runRecommendations(sources, indexCount) {
@@ -221,70 +201,59 @@ require([
     }).always(resetAnalyzeButton);
   }
 
-  function handleDiscovery(data) {
-    var rows = resultRows(data);
-    if (!rows.length) {
-      return false;
-    }
-    clearDiscoveryTimer();
-    discoveryHandled = true;
-    var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
-    var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
-    $("#dei-sources").val(sources.join("\n"));
-    if (pendingAnalysis) {
-      pendingAnalysis = false;
-      if (!sources.length) {
-        discoveryFailure("No searchable source types were discovered.");
-        return true;
-      }
-      runRecommendations(sources, indexes.length);
-    } else {
-      $("#dei-feedback").text(
-        "Discovered " + sources.length + " active source types across " +
-        indexes.length + " indexes."
-      );
-    }
-    return true;
-  }
-
   function discoverEnvironment(analyzeAfterDiscovery) {
-    pendingAnalysis = analyzeAfterDiscovery;
-    discoveryHandled = false;
-    clearDiscoveryTimer();
+    var button = $("#dei-analyze");
+    var feedback = $("#dei-feedback");
+
     if (analyzeAfterDiscovery) {
-      $("#dei-analyze").prop("disabled", true).text("Discovering...");
-      $("#dei-feedback").text("Discovering active Splunk telemetry from the last 7 days.");
+      button.prop("disabled", true).text("Discovering...");
     }
-    discoveryTimer = window.setTimeout(function () {
-      if (!discoveryHandled) {
-        discoveryFailure("Telemetry discovery timed out after 30 seconds.");
+    feedback.text("Discovering active Splunk telemetry from the last 7 days.");
+
+    $.ajax({
+      url: endpoints.discovery,
+      method: "POST",
+      dataType: "text",
+      timeout: 30000,
+      headers: {
+        "X-Splunk-Form-Key": Splunk.util.getConfigValue("FORM_KEY")
+      },
+      data: {
+        search: discoverySpl,
+        output_mode: "json",
+        preview: "0"
       }
-    }, 30000);
-    discoverySearch.startSearch();
+    }).done(function (text) {
+      var rows = parseExportRows(text);
+      var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
+      var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
+
+      $("#dei-sources").val(sources.join("\n"));
+
+      if (!sources.length) {
+        feedback.text("Telemetry discovery completed but returned no searchable source types.");
+        resetAnalyzeButton();
+        return;
+      }
+
+      if (analyzeAfterDiscovery) {
+        runRecommendations(sources, indexes.length);
+      } else {
+        feedback.text(
+          "Discovered " + sources.length + " active source types across " +
+          indexes.length + " indexes."
+        );
+        resetAnalyzeButton();
+      }
+    }).fail(function (xhr, statusText) {
+      if (statusText === "timeout") {
+        feedback.text("Telemetry discovery timed out after 30 seconds.");
+      } else {
+        feedback.text("Telemetry discovery failed: " + errorDetail(xhr));
+      }
+      resetAnalyzeButton();
+    });
   }
-
-  discoveryResults.on("data", function () {
-    handleDiscovery(discoveryResults.data());
-  });
-
-  discoverySearch.on("search:done", function () {
-    if (discoveryHandled) {
-      return;
-    }
-    window.setTimeout(function () {
-      if (!discoveryHandled && !handleDiscovery(discoveryResults.data())) {
-        discoveryFailure("Telemetry discovery completed but returned no searchable source types.");
-      }
-    }, 100);
-  });
-
-  discoverySearch.on("search:error", function () {
-    discoveryFailure("Unable to discover searchable Splunk telemetry.");
-  });
-
-  discoverySearch.on("search:cancelled", function () {
-    discoveryFailure("Telemetry discovery was cancelled before completion.");
-  });
 
   $("#dei-analyze").on("click", function () {
     discoverEnvironment(true);
@@ -293,7 +262,8 @@ require([
   $.ajax({
     url: endpoints.health,
     method: "GET",
-    dataType: "json"
+    dataType: "json",
+    timeout: 10000
   }).then(parsePayload).done(function (health) {
     setStatus("API status: " + (health.status || "healthy"), true);
   }).fail(function () {
