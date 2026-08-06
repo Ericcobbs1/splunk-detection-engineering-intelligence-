@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable, TypeVar, cast
-
+from typing import Any, TypeVar, cast
 
 T = TypeVar("T")
 
@@ -31,7 +31,8 @@ class ServiceRegistry:
             raise ServiceRegistryError(f"Service already registered: {interface.__name__}")
         if not isinstance(implementation, interface):
             raise ServiceRegistryError(
-                f"Implementation {type(implementation).__name__} does not implement {interface.__name__}"
+                "Implementation "
+                f"{type(implementation).__name__} does not implement {interface.__name__}"
             )
         self._services[interface] = implementation
 
