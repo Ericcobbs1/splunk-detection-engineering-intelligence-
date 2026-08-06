@@ -47,10 +47,21 @@ class KnowledgePackLoader:
         return data
 
     def discover(self, root: Path) -> tuple[Path, ...]:
-        """Return manifest files found directly beneath knowledge-pack directories."""
+        """Return manifests for every visible knowledge-pack directory."""
         if not root.is_dir():
             raise KnowledgePackError(f"Knowledge pack root does not exist: {root}")
-        return tuple(sorted(root.glob("*/manifest.json")))
+
+        manifests: list[Path] = []
+        for pack_directory in sorted(root.iterdir()):
+            if not pack_directory.is_dir() or pack_directory.name.startswith("."):
+                continue
+            manifest_path = pack_directory / "manifest.json"
+            if not manifest_path.is_file():
+                raise KnowledgePackError(
+                    f"Knowledge pack directory is missing manifest.json: {pack_directory}"
+                )
+            manifests.append(manifest_path)
+        return tuple(manifests)
 
     def load(self, manifest_path: Path) -> KnowledgePack:
         """Validate and load a single knowledge pack manifest."""
