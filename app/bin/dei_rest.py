@@ -9,12 +9,14 @@ BIN_DIR = Path(__file__).resolve().parent
 if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
-from splunk.persistconn.application import PersistentServerConnectionApplication
+from splunk.persistconn.application import (  # noqa: E402
+    PersistentServerConnectionApplication,
+)
 
-from dei.api.capabilities_handler import CapabilitiesHandler
-from dei.api.health_handler import HealthHandler
-from dei.api.recommendations_handler import RecommendationsHandler
-from dei.api.telemetry_handler import TelemetryHandler
+from dei.api.capabilities_handler import CapabilitiesHandler  # noqa: E402
+from dei.api.health_handler import HealthHandler  # noqa: E402
+from dei.api.recommendations_handler import RecommendationsHandler  # noqa: E402
+from dei.api.telemetry_handler import TelemetryHandler  # noqa: E402
 
 
 class _DelegatingApplication(PersistentServerConnectionApplication):
