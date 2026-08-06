@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+BIN_DIR = Path(__file__).resolve().parent
+if str(BIN_DIR) not in sys.path:
+    sys.path.insert(0, str(BIN_DIR))
+
 from splunk.persistconn.application import PersistentServerConnectionApplication
 
 from dei.api.capabilities_handler import CapabilitiesHandler
