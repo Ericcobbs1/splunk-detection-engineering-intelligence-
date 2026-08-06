@@ -3,6 +3,7 @@
 import json
 
 from dei.api.capabilities_handler import CapabilitiesHandler, _default_inventory_factory
+from dei.core.capabilities import CapabilityInventory
 from dei.knowledgepacks.loader import KnowledgePackError
 
 
@@ -38,7 +39,7 @@ def test_capabilities_handler_rejects_non_get_method() -> None:
 
 
 def test_capabilities_handler_reports_pack_validation_failure() -> None:
-    def fail_inventory():
+    def fail_inventory() -> CapabilityInventory:
         raise KnowledgePackError("broken pack")
 
     handler = CapabilitiesHandler(inventory_factory=fail_inventory)
