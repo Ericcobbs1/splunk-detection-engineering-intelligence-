@@ -23,7 +23,7 @@ class KnowledgePackManifest:
     requires_enterprise_security: bool = False
 
     @classmethod
-    def from_mapping(cls, data: dict[str, Any]) -> "KnowledgePackManifest":
+    def from_mapping(cls, data: dict[str, Any]) -> KnowledgePackManifest:
         """Build an immutable manifest from validated JSON data."""
         return cls(
             pack_id=str(data["id"]),
