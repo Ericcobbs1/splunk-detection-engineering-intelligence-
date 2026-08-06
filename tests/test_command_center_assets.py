@@ -45,6 +45,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert '"search", "jobs", "export"' in javascript
     assert '"splunkjs/mvc/searchmanager"' not in javascript
     assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
+    assert 'NOT match(index, "^_")' in javascript
+    assert 'like(index, "_%")' not in javascript
     assert 'output_mode: "json"' in javascript
     assert "parseExportRows" in javascript
     assert "Telemetry discovery timed out after 30 seconds." in javascript
