@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
 import sys
 from pathlib import Path
+from typing import Any
 
 BIN_DIR = Path(__file__).resolve().parent
 if str(BIN_DIR) not in sys.path:
@@ -13,36 +15,61 @@ from splunk.persistconn.application import (  # noqa: E402
     PersistentServerConnectionApplication,
 )
 
-from dei.api.capabilities_handler import CapabilitiesHandler  # noqa: E402
-from dei.api.health_handler import HealthHandler  # noqa: E402
-from dei.api.recommendations_handler import RecommendationsHandler  # noqa: E402
-from dei.api.telemetry_handler import TelemetryHandler  # noqa: E402
-
 
 class _DelegatingApplication(PersistentServerConnectionApplication):
-    """Delegate Splunk persistent-connection requests to a DEI handler."""
+    """Lazy-load and delegate requests to a DEI handler.
 
-    handler_class: type
+    Splunk resolves this application class before processing a request. Keeping
+    project imports out of module scope prevents a DEI dependency error from
+    breaking the persistconn loader and corrupting the reply-size protocol.
+    """
+
+    handler_module = ""
+    handler_name = ""
 
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        self._handler = self.handler_class(command_line, command_arg)
+        self._command_line = command_line
+        self._command_arg = command_arg
+        self._handler: Any | None = None
+
+    def _load_handler(self) -> Any:
+        if self._handler is None:
+            module = importlib.import_module(self.handler_module)
+            handler_class = getattr(module, self.handler_name)
+            self._handler = handler_class(self._command_line, self._command_arg)
+        return self._handler
 
     def handle(self, in_string: str) -> dict[str, object]:
-        return self._handler.handle(in_string)
+        try:
+            return self._load_handler().handle(in_string)
+        except Exception as exc:  # Splunk must receive a valid response frame.
+            return {
+                "payload": {
+                    "error": "DEI handler load or execution failed",
+                    "detail": str(exc),
+                    "exception_type": type(exc).__name__,
+                    "handler": f"{self.handler_module}.{self.handler_name}",
+                },
+                "status": 500,
+            }
 
 
 class HealthApplication(_DelegatingApplication):
-    handler_class = HealthHandler
+    handler_module = "dei.api.health_handler"
+    handler_name = "HealthHandler"
 
 
 class CapabilitiesApplication(_DelegatingApplication):
-    handler_class = CapabilitiesHandler
+    handler_module = "dei.api.capabilities_handler"
+    handler_name = "CapabilitiesHandler"
 
 
 class TelemetryApplication(_DelegatingApplication):
-    handler_class = TelemetryHandler
+    handler_module = "dei.api.telemetry_handler"
+    handler_name = "TelemetryHandler"
 
 
 class RecommendationsApplication(_DelegatingApplication):
-    handler_class = RecommendationsHandler
+    handler_module = "dei.api.recommendations_handler"
+    handler_name = "RecommendationsHandler"
