@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 
 def persistent_response(status: int, payload: dict[str, Any]) -> dict[str, Any]:
-    """Return a response object for Splunk's persistent REST framework.
-
-    Splunk owns JSON serialization and persistent-connection framing. Returning a
-    pre-serialized JSON string can corrupt the reply-size protocol used between
-    splunkd and the persistent Python process.
-    """
+    """Return the response shape expected by Splunk persistconn."""
     return {
-        "payload": payload,
+        "payload": json.dumps(payload, separators=(",", ":"), sort_keys=True),
         "status": status,
+        "headers": {"Content-Type": "application/json"},
     }

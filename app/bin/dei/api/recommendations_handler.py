@@ -30,6 +30,20 @@ def _default_factory(
     )
 
 
+def _decode_payload(request_data: dict[str, Any]) -> dict[str, Any] | None:
+    """Decode the raw POST body supplied by restmap passPayload=true."""
+    raw_payload = request_data.get("payload", request_data)
+    if isinstance(raw_payload, dict):
+        return raw_payload
+    if not isinstance(raw_payload, str):
+        return None
+    try:
+        decoded = json.loads(raw_payload)
+    except json.JSONDecodeError:
+        return None
+    return decoded if isinstance(decoded, dict) else None
+
+
 class RecommendationsHandler:
     """Expose detection recommendations through Splunk persistent REST."""
 
@@ -55,9 +69,10 @@ class RecommendationsHandler:
         if str(request_data.get("method", "POST")).upper() != "POST":
             return persistent_response(405, {"error": "method not allowed"})
 
-        payload = request_data.get("payload", request_data)
-        if not isinstance(payload, dict):
-            return persistent_response(400, {"error": "payload must be a JSON object"})
+        payload = _decode_payload(request_data)
+        if payload is None:
+            return persistent_response(400, {"error": "payload must be valid JSON"})
+
         sources = payload.get("sources")
         if not isinstance(sources, list) or not all(isinstance(item, str) for item in sources):
             return persistent_response(400, {"error": "sources must be an array of strings"})
@@ -79,5 +94,10 @@ class RecommendationsHandler:
             return persistent_response(
                 500,
                 {"error": "recommendation engine failed", "detail": str(exc)},
+            )
+        except Exception as exc:  # noqa: BLE001 - surface runtime failures to Splunk Web
+            return persistent_response(
+                500,
+                {"error": "unexpected recommendation failure", "detail": str(exc)},
             )
         return persistent_response(200, report.to_mapping())
