@@ -1,5 +1,7 @@
 """Tests for the recommendation REST adapter."""
 
+from __future__ import annotations
+
 import json
 
 from dei.api.recommendations_handler import RecommendationsHandler
@@ -21,6 +23,7 @@ def _report(
         partial_count=1,
         unsupported_count=5,
         field_gap_count=0,
+        field_unverified_count=0,
         source_mappings=(),
         unmapped_sources=(),
         recommendations=(),

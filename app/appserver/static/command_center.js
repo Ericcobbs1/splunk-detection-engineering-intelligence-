@@ -123,9 +123,12 @@ require([
             ].join(" ");
             active += 1;
             exportSearch(fieldSpl, 30000).done(function (text) {
-              inventory[source] = uniqueValues(parseExportRows(text).map(function (row) {
-                return row.field;
-              }));
+              var fieldRows = parseExportRows(text);
+              if (fieldRows.length) {
+                inventory[source] = uniqueValues(fieldRows.map(function (row) {
+                  return row.field;
+                }));
+              }
             }).fail(function () {
               failures.push(source);
             }).always(function () {
@@ -185,6 +188,9 @@ require([
         detail = "Missing telemetry: " + item.missing_sources.join(", ");
       } else if (item.field_validation === "failed") {
         detail = fieldGapText(item);
+      } else if (item.field_validation === "unverified") {
+        detail = "Field validation unavailable; no recent sample for: " +
+          (item.unverified_field_sources || []).join(", ");
       } else if (item.field_validation === "passed") {
         detail = "Telemetry and field requirements satisfied";
       } else {
@@ -257,12 +263,14 @@ require([
       var understood = Math.max(0, observed - unmapped.length);
       var understanding = observed ? Math.round((understood / observed) * 100) : 0;
       var fieldGaps = report.field_gap_count || 0;
+      var unverified = report.field_unverified_count || 0;
       renderReport(report);
       setStatus("API status: healthy", true);
       feedback.text(
         "Analysis complete. Discovered " + sources.length + " source types across " + indexCount +
         " indexes; " + understood + " mapped, " + unmapped.length + " unmapped (" + understanding +
-        "% telemetry understanding); " + fieldGaps + " detections have field gaps."
+        "% telemetry understanding); " + fieldGaps + " detections have confirmed field gaps; " +
+        unverified + " are field-unverified because no recent sample was available."
       );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
