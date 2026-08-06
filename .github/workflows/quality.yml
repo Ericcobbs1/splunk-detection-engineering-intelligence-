@@ -22,8 +22,8 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: Install quality tools
-        run: python -m pip install --upgrade pip pytest ruff mypy
+      - name: Install project and quality tools
+        run: python -m pip install --upgrade pip pytest ruff mypy -e .
 
       - name: Lint
         run: ruff check app/bin tests
