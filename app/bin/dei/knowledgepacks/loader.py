@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,14 +12,19 @@ from jsonschema.exceptions import SchemaError, ValidationError
 
 from dei.knowledgepacks.models import KnowledgePack, KnowledgePackManifest
 
+_SEMVER_PATTERN = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+
 
 class KnowledgePackError(RuntimeError):
     """Raised when a knowledge pack cannot be discovered or validated."""
 
 
 def _version_tuple(version: str) -> tuple[int, int, int]:
-    """Convert a validated semantic version string into a comparable tuple."""
-    major, minor, patch = version.split(".")
+    """Convert a semantic version string into a comparable tuple."""
+    match = _SEMVER_PATTERN.fullmatch(version)
+    if match is None:
+        raise KnowledgePackError(f"Invalid DEI version: {version!r}")
+    major, minor, patch = match.groups()
     return int(major), int(minor), int(patch)
 
 

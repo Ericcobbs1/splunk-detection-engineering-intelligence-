@@ -44,6 +44,17 @@ def test_discover_ignores_hidden_directories_and_files(tmp_path: Path) -> None:
     assert loader.discover(tmp_path) == ()
 
 
+def test_empty_pack_root_loads_no_packs(tmp_path: Path) -> None:
+    loader = KnowledgePackLoader(SCHEMA_PATH)
+
+    assert loader.load_all(tmp_path) == ()
+
+
+def test_invalid_runtime_dei_version_is_rejected() -> None:
+    with pytest.raises(KnowledgePackError, match="Invalid DEI version"):
+        KnowledgePackLoader(SCHEMA_PATH, current_dei_version="0.1")
+
+
 def test_invalid_manifest_is_rejected(tmp_path: Path) -> None:
     pack_root = tmp_path / "invalid"
     pack_root.mkdir()
