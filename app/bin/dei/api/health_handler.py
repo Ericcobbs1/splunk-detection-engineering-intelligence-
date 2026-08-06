@@ -4,17 +4,26 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any
 
 from dei.core.config import RuntimeConfig
 from dei.core.health import HealthReport, HealthService
+from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 
 HealthReportFactory = Callable[[], HealthReport]
+APP_ROOT = Path(__file__).resolve().parents[3]
+SCHEMA_PATH = APP_ROOT / "schemas" / "knowledge-pack.schema.json"
+PACK_ROOT = APP_ROOT / "knowledgepacks"
 
 
 def _default_report_factory() -> HealthReport:
-    """Build the baseline health report used by the Splunk REST endpoint."""
-    return HealthService(RuntimeConfig()).report(knowledge_pack_count=0)
+    """Build health from the Knowledge Packs installed with the Splunk app."""
+    config = RuntimeConfig()
+    packs = KnowledgePackLoader(
+        SCHEMA_PATH, current_dei_version=config.app_version
+    ).load_all(PACK_ROOT)
+    return HealthService(config).report(knowledge_pack_count=len(packs))
 
 
 class HealthHandler:
@@ -44,7 +53,15 @@ class HealthHandler:
         if method != "GET":
             return self._response(405, {"error": "method not allowed"})
 
-        return self._response(200, self._report_factory().to_mapping())
+        try:
+            report = self._report_factory()
+        except KnowledgePackError as exc:
+            return self._response(
+                500,
+                {"error": "knowledge pack validation failed", "detail": str(exc)},
+            )
+
+        return self._response(200, report.to_mapping())
 
     @staticmethod
     def _response(status: int, payload: dict[str, Any]) -> dict[str, Any]:
