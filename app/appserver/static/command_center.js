@@ -4,16 +4,19 @@ require([
 ], function ($) {
   "use strict";
 
+  var appId = "splunk_detection_engineering_intelligence";
+
+  function endpoint() {
+    var parts = Array.prototype.slice.call(arguments);
+    return Splunk.util.make_url.apply(
+      Splunk.util,
+      ["splunkd", "__raw", "servicesNS", "-", appId].concat(parts)
+    );
+  }
+
   var endpoints = {
-    health: Splunk.util.make_url("splunkd", "__raw", "services", "dei", "v1", "health"),
-    recommendations: Splunk.util.make_url(
-      "splunkd",
-      "__raw",
-      "services",
-      "dei",
-      "v1",
-      "recommendations"
-    )
+    health: endpoint("dei", "v1", "health"),
+    recommendations: endpoint("dei", "v1", "recommendations")
   };
 
   function parsePayload(response) {
