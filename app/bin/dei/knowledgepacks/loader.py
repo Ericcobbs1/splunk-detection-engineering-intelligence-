@@ -24,7 +24,8 @@ def _version_tuple(version: str) -> tuple[int, int, int]:
     match = _SEMVER_PATTERN.fullmatch(version)
     if match is None:
         raise KnowledgePackError(f"Invalid DEI version: {version!r}")
-    return tuple(int(part) for part in match.groups())
+    major, minor, patch = match.groups()
+    return int(major), int(minor), int(patch)
 
 
 class KnowledgePackLoader:
