@@ -163,10 +163,14 @@ class RecommendationEngine:
         for opportunity in self._opportunities:
             required = {source.lower() for source in opportunity.required_sources}
             observed = tuple(
-                source for source in opportunity.required_sources if source.lower() in normalized
+                source
+                for source in opportunity.required_sources
+                if source.lower() in normalized
             )
             missing = tuple(
-                source for source in opportunity.required_sources if source.lower() not in normalized
+                source
+                for source in opportunity.required_sources
+                if source.lower() not in normalized
             )
             matched_count = len(observed)
             if matched_count == len(required):
