@@ -42,6 +42,47 @@ def test_recommendations_are_case_insensitive_and_deduplicated() -> None:
     assert report.production_ready_count == 3
 
 
+def test_production_like_lab_baseline_has_expected_readiness() -> None:
+    observed_sources = [
+        "XmlWinEventLog:Security",
+        "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational",
+        "aws:cloudtrail",
+        "ai:gateway",
+        "dlp",
+        "azure:openai:diagnostic",
+        "gcp:audit:vertexai",
+    ]
+
+    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+        observed_sources,
+        enterprise_security_enabled=True,
+        include_unsupported=True,
+    )
+
+    assert report.observed_source_count == 7
+    assert report.production_ready_count == 8
+    assert report.partial_count == 0
+    assert report.unsupported_count == 1
+
+    readiness = {item.detection_id: item.readiness for item in report.recommendations}
+    assert readiness == {
+        "ai-sensitive-data-exposure": "production_ready",
+        "aws-cloudtrail-disabled": "production_ready",
+        "aws-iam-policy-escalation": "production_ready",
+        "windows-password-spray": "production_ready",
+        "windows-kerberoasting": "production_ready",
+        "aws-s3-public-access": "production_ready",
+        "windows-powershell-encoded": "production_ready",
+        "ai-model-admin-change": "production_ready",
+        "ai-shadow-usage": "unsupported",
+    }
+
+    shadow_ai = next(
+        item for item in report.recommendations if item.detection_id == "ai-shadow-usage"
+    )
+    assert shadow_ai.missing_sources == ("proxy",)
+
+
 def test_unsupported_detections_are_hidden_by_default() -> None:
     report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend([])
 
