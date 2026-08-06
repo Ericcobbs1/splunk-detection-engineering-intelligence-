@@ -66,3 +66,48 @@ def test_pack_directory_must_match_manifest_id(tmp_path: Path) -> None:
 
     with pytest.raises(KnowledgePackError, match="directory must match manifest id"):
         loader.load(manifest_path)
+
+
+def test_pack_requiring_newer_dei_version_is_rejected(tmp_path: Path) -> None:
+    pack_root = tmp_path / "future-pack"
+    pack_root.mkdir()
+    manifest_path = pack_root / "manifest.json"
+    manifest_path.write_text(
+        """{
+          "id": "future-pack",
+          "name": "Future Pack",
+          "version": "1.0.0",
+          "minimum_dei_version": "0.2.0",
+          "domains": ["cloud"],
+          "supported_sources": ["example"],
+          "capabilities": ["example.future"]
+        }""",
+        encoding="utf-8",
+    )
+    loader = KnowledgePackLoader(SCHEMA_PATH, current_dei_version="0.1.0")
+
+    with pytest.raises(KnowledgePackError, match="requires DEI 0.2.0 or newer"):
+        loader.load(manifest_path)
+
+
+def test_pack_supporting_current_dei_version_loads(tmp_path: Path) -> None:
+    pack_root = tmp_path / "compatible-pack"
+    pack_root.mkdir()
+    manifest_path = pack_root / "manifest.json"
+    manifest_path.write_text(
+        """{
+          "id": "compatible-pack",
+          "name": "Compatible Pack",
+          "version": "1.0.0",
+          "minimum_dei_version": "0.1.0",
+          "domains": ["cloud"],
+          "supported_sources": ["example"],
+          "capabilities": ["example.compatible"]
+        }""",
+        encoding="utf-8",
+    )
+    loader = KnowledgePackLoader(SCHEMA_PATH, current_dei_version="0.1.0")
+
+    pack = loader.load(manifest_path)
+
+    assert pack.manifest.pack_id == "compatible-pack"
