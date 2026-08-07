@@ -15,8 +15,10 @@ V2_PATH = ROOT / "generate_corpus_v2.py"
 WINDOWS_PATH = ROOT / "windows_event_contracts.py"
 AZURE_PATH = ROOT / "azure_event_contracts.py"
 AWS_PATH = ROOT / "aws_event_contracts.py"
+MICROSOFT_PATH = ROOT / "microsoft_event_contracts.py"
 RECORD_FORMAT = "ta_faithful_contract_v1"
 AWS_IDS = {"aws_cloudtrail", "aws_guardduty", "aws_vpc_flow", "aws_route53_dns", "aws_security_hub"}
+MICROSOFT_IDS = {"m365_management_activity", "m365_message_trace", "microsoft_defender_endpoint"}
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -32,6 +34,7 @@ v2 = _load_module("dei_generate_corpus_v2", V2_PATH)
 windows = _load_module("dei_windows_event_contracts", WINDOWS_PATH)
 azure = _load_module("dei_azure_event_contracts", AZURE_PATH)
 aws = _load_module("dei_aws_event_contracts", AWS_PATH)
+microsoft = _load_module("dei_microsoft_event_contracts", MICROSOFT_PATH)
 
 
 def load_profiles() -> List[Dict[str, Any]]:
@@ -48,12 +51,16 @@ def make_event(profile: Dict[str, Any], ts: str, contracts: Dict[str, Dict[str, 
         return azure.azure_activity_event(v2.base, ts)
     if profile_id in AWS_IDS:
         return aws.make_aws_event(profile_id, v2.base, ts)
+    if profile_id in MICROSOFT_IDS:
+        return microsoft.make_microsoft_event(profile_id, v2.base, ts)
     return v2.make_event(profile, ts, contracts)
 
 
 def serialize_event(profile_id: str, event: Any) -> str:
     if profile_id in AWS_IDS:
         return aws.serialize(profile_id, event)
+    if profile_id in MICROSOFT_IDS:
+        return microsoft.serialize(event)
     return json.dumps(event, separators=(",", ":"))
 
 
@@ -109,6 +116,7 @@ def main() -> None:
                     "windows": windows.contract_metadata(),
                     "azure": azure.contract_metadata(),
                     "aws": aws.contract_metadata(),
+                    "microsoft": microsoft.contract_metadata(),
                 },
                 "sources": manifest,
             },
