@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Set
+from typing import Any, Dict, List, Sequence, Set, Tuple
 
 ROOT = Path(__file__).resolve().parents[2]
 TELEMETRY = ROOT / "lab" / "telemetry"
@@ -21,6 +21,8 @@ CONTRACTS = TELEMETRY / "runtime_validation_contracts.json"
 REPORT = OUT / "runtime_validation_report.json"
 SPLUNK = Path(os.environ.get("SPLUNK_CLI", "/Applications/Splunk/bin/splunk"))
 SPLUNK_AUTH = os.environ.get("SPLUNK_AUTH")
+INDEX_TIMEOUT_SECONDS = int(os.environ.get("DEI_CANARY_INDEX_TIMEOUT", "120"))
+INDEX_POLL_SECONDS = int(os.environ.get("DEI_CANARY_INDEX_POLL", "5"))
 
 
 def run(cmd: Sequence[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -61,6 +63,24 @@ def event_count(index: str, source: str) -> int:
     if not rows:
         return 0
     return int(rows[0].get("count", "0") or 0)
+
+
+def wait_for_expected_count(index: str, source: str, expected: int) -> Tuple[int, bool, float]:
+    """Wait for the current canary source to become fully searchable."""
+    started = time.monotonic()
+    count = 0
+    while True:
+        count = event_count(index, source)
+        elapsed = time.monotonic() - started
+        if count >= expected:
+            return count, True, elapsed
+        if elapsed >= INDEX_TIMEOUT_SECONDS:
+            return count, False, elapsed
+        print(
+            f"  waiting for indexing: {index} source={source} "
+            f"events={count}/{expected}"
+        )
+        time.sleep(INDEX_POLL_SECONDS)
 
 
 def cim_count(model_dataset: str, index: str, source: str) -> int:
@@ -130,13 +150,13 @@ def main() -> int:
             "sourcetype": route["sourcetype"],
             "source": canary_source,
             "file": str(path),
+            "expected_events": int(item["events"]),
             "ingest_ok": proc.returncode == 0,
             "ingest_stdout": proc.stdout.strip(),
             "ingest_stderr": proc.stderr.strip(),
         }
 
-    print("Waiting for Splunk indexing/search-time knowledge...")
-    time.sleep(10)
+    print("Waiting for each canary source to become searchable...")
 
     overall = True
     for dataset, result in results.items():
@@ -144,6 +164,7 @@ def main() -> int:
             result.update(
                 {
                     "event_count": 0,
+                    "indexing_complete": False,
                     "field_groups_ok": False,
                     "cim_ok": False,
                     "status": "FAIL",
@@ -152,7 +173,9 @@ def main() -> int:
             overall = False
             continue
 
-        count = event_count(result["index"], result["source"])
+        count, indexing_complete, wait_seconds = wait_for_expected_count(
+            result["index"], result["source"], result["expected_events"]
+        )
         fields = inventory(result["index"], result["source"])
         spec = contracts[dataset]
         group_results = []
@@ -167,11 +190,13 @@ def main() -> int:
             probes.append({"model_dataset": probe, "count": n, "ok": n > 0})
         cim_required = bool(spec.get("cim_probes"))
         cim_ok = (not cim_required) or any(x["ok"] for x in probes)
-        status = "PASS" if fields_ok and cim_ok else "FAIL"
+        status = "PASS" if indexing_complete and fields_ok and cim_ok else "FAIL"
         overall = overall and status == "PASS"
         result.update(
             {
                 "event_count": count,
+                "indexing_complete": indexing_complete,
+                "index_wait_seconds": round(wait_seconds, 2),
                 "extracted_fields": sorted(fields),
                 "required_groups": group_results,
                 "field_groups_ok": fields_ok,
@@ -180,11 +205,15 @@ def main() -> int:
                 "status": status,
             }
         )
-        print(f"{dataset:30} {status} events={count} fields={len(fields)} cim={cim_ok}")
+        print(
+            f"{dataset:30} {status} events={count}/{result['expected_events']} "
+            f"fields={len(fields)} cim={cim_ok} indexing={indexing_complete}"
+        )
 
     payload = {
         "runtime_verified": overall,
         "run_id": run_id,
+        "index_timeout_seconds": INDEX_TIMEOUT_SECONDS,
         "datasets_total": len(results),
         "datasets_passed": sum(1 for r in results.values() if r.get("status") == "PASS"),
         "datasets_failed": [k for k, r in results.items() if r.get("status") != "PASS"],
