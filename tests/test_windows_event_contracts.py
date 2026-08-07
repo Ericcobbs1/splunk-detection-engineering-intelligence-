@@ -2,7 +2,6 @@ import importlib.util
 import random
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 TELEMETRY = ROOT / "lab" / "telemetry"
 
@@ -24,7 +23,6 @@ def test_windows_security_contracts_are_event_specific():
     events = [windows.security_event(base) for _ in range(3000)]
     observed = {event["EventCode"] for event in events}
     assert observed == set(windows.SECURITY_EVENT_CODES)
-
     logon_only = {
         "LogonType",
         "LogonProcessName",
@@ -35,13 +33,11 @@ def test_windows_security_contracts_are_event_specific():
         "IpAddress",
         "IpPort",
     }
-
     for event in events:
         code = event["EventCode"]
         assert event["Computer"].endswith(".corp.example")
         assert event["SubjectUserSid"].startswith("S-1-5-21-")
         assert event["SubjectUserName"]
-
         if code in {4624, 4625}:
             assert logon_only <= event.keys()
             assert event["LogonType"] in windows.LOGON_TYPES
@@ -59,15 +55,17 @@ def test_windows_security_contracts_are_event_specific():
             assert not (logon_only & event.keys())
             assert event["TargetUserName"]
             assert event["TargetSid"].startswith("S-1-5-21-")
-
         if code == 4720:
             assert event["SamAccountName"] == event["TargetUserName"]
             assert event["UserPrincipalName"].endswith("@corp.example")
             assert event["PrimaryGroupId"] == 513
             assert event["OldUacValue"] == "0x0"
-
         if code in {4728, 4729, 4756, 4757}:
-            assert event["TargetUserName"] in {"Domain Admins", "SOC Analysts", "Server Operators"}
+            assert event["TargetUserName"] in {
+                "Domain Admins",
+                "SOC Analysts",
+                "Server Operators",
+            }
             assert event["MemberName"].startswith("CN=")
             assert event["MemberId"].startswith("S-1-5-21-")
 
@@ -76,12 +74,10 @@ def test_powershell_contracts_are_event_specific():
     random.seed(20260807)
     events = [windows.powershell_event(base) for _ in range(1000)]
     assert {event["EventCode"] for event in events} == {4103, 4104}
-
     for event in events:
         assert event["Computer"].endswith(".corp.example")
         assert event["UserId"].startswith("S-1-5-21-")
         assert event["Message"]
-
         if event["EventCode"] == 4104:
             assert event["ScriptBlockText"]
             assert event["ScriptBlockId"]
