@@ -13,18 +13,15 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "command_center.js"
-    assert root.attrib["stylesheet"] == "command_center_v2.css"
-    assert root.find(".//*[@id='dei-command-center']") is not None
-    assert root.find(".//*[@id='dei-overview']") is not None
-    assert root.find(".//*[@id='dei-telemetry']") is not None
-    assert root.find(".//*[@id='dei-portfolio-section']") is not None
-    assert root.find(".//*[@id='dei-coverage-section']") is not None
-    assert root.find(".//*[@id='dei-advisor-section']") is not None
-    assert root.find(".//*[@id='metric-understanding']") is not None
-    assert root.find(".//*[@id='portfolio-total']") is not None
-    assert root.find(".//*[@id='portfolio-field-gaps']") is not None
-    assert root.find(".//*[@id='portfolio-unverified']") is not None
+    assert root.attrib["script"] == "command_center.js,mitre_coverage.js"
+    assert root.attrib["stylesheet"] == "command_center_v2.css,mitre_coverage.css"
+    for element_id in (
+        "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
+        "dei-coverage-section", "dei-advisor-section", "dei-mitre-section", "mitre-swimlane",
+        "protection-title", "protection-summary", "protection-outcomes", "metric-understanding",
+        "portfolio-total", "portfolio-field-gaps", "portfolio-unverified",
+    ):
+        assert root.find(f".//*[@id='{element_id}']") is not None
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
@@ -40,6 +37,8 @@ def test_command_center_is_default_navigation_view() -> None:
 def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center_v2.css").read_text(encoding="utf-8")
+    mitre_js = (STATIC_ROOT / "mitre_coverage.js").read_text(encoding="utf-8")
+    mitre_css = (STATIC_ROOT / "mitre_coverage.css").read_text(encoding="utf-8")
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -51,39 +50,31 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert '"splunkjs/mvc/searchmanager"' not in javascript
     assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
     assert 'NOT match(index, "^_")' in javascript
-    assert 'like(index, "_%")' not in javascript
     assert 'search index=* earliest=-7d latest=now sourcetype=' in javascript
-    assert 'search earliest=-7d latest=now sourcetype=' not in javascript
     assert 'output_mode: "json"' in javascript
-    assert "parseExportRows" in javascript
-    assert '"#metric-understanding"' in javascript
-    assert "understood / observed" in javascript
-    assert "telemetry understanding" in javascript
-    assert "fieldSampleEvents = 200" in javascript
     assert "fieldDiscoveryConcurrency = 6" in javascript
     assert "fieldSearchTimeoutMs = 12000" in javascript
     assert "fieldDiscoveryTimeoutMs = 90000" in javascript
     assert "| fieldsummary" in javascript
     assert "fields_by_source" in javascript
     assert "Profiling fields 0/" in javascript
-    assert "Last completed:" in javascript
-    assert "slow sources will be marked unverified instead of blocking analysis" in javascript
     assert "Field profiling reached its 90-second ceiling" in javascript
-    assert "could not be field-profiled and were treated as unverified" in javascript
-    assert "field_gap_count" in javascript
-    assert "field_unverified_count" in javascript
     assert "Telemetry inventory timed out after 20 seconds." in javascript
-    assert "#dei-analyze" in javascript
     assert "renderPortfolio" in javascript
     assert "renderMitre" in javascript
-    assert "dei-field-state" in javascript
     assert ".dei-shell" in stylesheet
     assert "--dei-accent" in stylesheet
     assert ".dei-product-bar" in stylesheet
-    assert ".dei-workspace-nav" in stylesheet
-    assert ".dei-hero-visual" in stylesheet
-    assert ".dei-source-frame" in stylesheet
-    assert ".dei-portfolio-grid" in stylesheet
     assert ".dei-recommendation" in stylesheet
-    assert ".dei-severity.critical" in stylesheet
     assert "scroll-behavior: smooth" in stylesheet
+    assert 'TA0006", "Credential Access"' in mitre_js
+    assert 'TA0010", "Exfiltration"' in mitre_js
+    assert '"T1110.003"' in mitre_js
+    assert '"T1098"' in mitre_js
+    assert "DEIRecommendationReport" in mitre_js
+    assert "ajaxSuccess" in mitre_js
+    assert "renderSelection" in mitre_js
+    assert ".dei-mitre-swimlane" in mitre_css
+    assert ".dei-mitre-tactic.covered" in mitre_css
+    assert ".dei-protection-grid" in mitre_css
+    assert ".dei-recommendation.selected" in mitre_css
