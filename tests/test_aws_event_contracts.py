@@ -1,7 +1,6 @@
 import importlib.util
-import json
-import random
 from pathlib import Path
+import random
 
 ROOT = Path(__file__).resolve().parents[1]
 TELEMETRY = ROOT / "lab" / "telemetry"
@@ -24,7 +23,15 @@ def test_cloudtrail_event_action_fields_are_coherent():
     random.seed(20260807)
     events = [aws.cloudtrail_event(base, TS) for _ in range(1000)]
     names = {e["eventName"] for e in events}
-    assert {"ConsoleLogin", "CreateUser", "AttachUserPolicy", "PutBucketPublicAccessBlock", "StopLogging", "CreateAccessKey"} <= names
+    expected = {
+        "ConsoleLogin",
+        "CreateUser",
+        "AttachUserPolicy",
+        "PutBucketPublicAccessBlock",
+        "StopLogging",
+        "CreateAccessKey",
+    }
+    assert expected <= names
     for event in events:
         assert event["userIdentity"]["arn"].startswith("arn:aws:iam::")
         assert event["sourceIPAddress"]
@@ -71,7 +78,20 @@ def test_route53_resolver_schema_and_values():
 
 def test_security_hub_asff_required_fields():
     event = aws.security_hub_event(base, TS)
-    for field in ("AwsAccountId", "CreatedAt", "Description", "GeneratorId", "Id", "ProductArn", "Resources", "SchemaVersion", "Severity", "Title", "UpdatedAt"):
+    required = (
+        "AwsAccountId",
+        "CreatedAt",
+        "Description",
+        "GeneratorId",
+        "Id",
+        "ProductArn",
+        "Resources",
+        "SchemaVersion",
+        "Severity",
+        "Title",
+        "UpdatedAt",
+    )
+    for field in required:
         assert field in event
     assert event["SchemaVersion"] == "2018-10-08"
     assert event["RecordState"] in {"ACTIVE", "ARCHIVED"}
