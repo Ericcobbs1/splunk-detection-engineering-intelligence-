@@ -13,12 +13,13 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "command_center.js,analysis_bridge.js"
-    assert root.attrib["stylesheet"] == "command_center_v2.css"
+    assert root.attrib["script"] == "persistent_environment.js,command_center.js,analysis_bridge.js"
+    assert root.attrib["stylesheet"] == "command_center_v2.css,environment_intelligence.css"
     for element_id in (
         "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
         "dei-coverage-section", "metric-understanding", "portfolio-total",
-        "portfolio-field-gaps", "portfolio-unverified",
+        "portfolio-field-gaps", "portfolio-unverified", "dei-refresh-environment",
+        "environment-snapshot-age", "coverage-ring", "coverage-domains",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     assert root.find(".//*[@id='dei-mitre-section']") is None
@@ -40,6 +41,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center_v2.css").read_text(encoding="utf-8")
     bridge = (STATIC_ROOT / "analysis_bridge.js").read_text(encoding="utf-8")
+    persistence = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
+    environment_css = (STATIC_ROOT / "environment_intelligence.css").read_text(encoding="utf-8")
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -68,3 +71,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "scroll-behavior: smooth" in stylesheet
     assert "ajaxSuccess" in bridge
     assert "dei.latestRecommendationReport" in bridge
+    assert "dei.latestDiscoveryExport" in persistence
+    assert "forceRefresh" in persistence
+    assert "renderSavedReport" in persistence
+    assert "Data remains unchanged until Refresh environment" in persistence
+    assert ".dei-environment-grid" in environment_css
+    assert ".dei-refresh-button" in environment_css
