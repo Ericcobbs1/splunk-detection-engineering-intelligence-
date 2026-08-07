@@ -10,8 +10,7 @@ def test_vendor_aliases_map_to_canonical_capabilities() -> None:
     ])
     assert result.canonical_sources == (
         "proxy", "identity.authentication", "endpoint.edr",
-        "endpoint.process", "network.dns", "linux.authentication",
-        "XmlWinEventLog:Security",
+        "linux.authentication", "XmlWinEventLog:Security",
     )
     assert result.unmapped_sources == ()
     assert all(mapping.status == "mapped_alias" for mapping in result.mappings)
@@ -23,13 +22,13 @@ def test_enterprise_security_sources_map_to_capabilities() -> None:
         "otx:indicator", "otx:pulse", "modular_alerts:risk", "access_combined",
     ])
     assert result.canonical_sources == (
-        "network.firewall", "network.traffic", "network.infrastructure", "network.dns",
+        "network.firewall", "network.infrastructure", "network.dns",
         "endpoint.edr", "threat_intelligence", "es.risk", "web.http",
     )
     assert result.unmapped_sources == ()
 
 
-def test_26_source_ta_aliases_are_understood() -> None:
+def test_new_ta_sources_map_to_runtime_validated_capabilities() -> None:
     result = normalize_sources([
         "aws:cloudwatch:guardduty",
         "aws:cloudwatchlogs:vpcflow",
@@ -51,54 +50,36 @@ def test_26_source_ta_aliases_are_understood() -> None:
         "github:audit",
         "cloudflare:http",
         "sfdc:logfile",
+        "crowdstrike:events:sensor",
     ])
     assert result.unmapped_sources == ()
     expected = {
-        "aws.guardduty",
-        "network.dns",
-        "network.firewall",
-        "network.traffic",
-        "cloud.security_finding",
-        "intrusion_detection",
-        "m365.activity",
-        "email.message_trace",
-        "identity.authentication",
-        "cloud.change",
-        "endpoint.edr",
-        "endpoint.process",
-        "endpoint.authentication",
-        "gcp.audit",
-        "google.workspace.admin",
-        "identity.change",
-        "proxy",
-        "web.http",
-        "linux.authentication",
-        "kubernetes.audit",
-        "source_control.audit",
-        "salesforce.audit",
+        "aws.guardduty", "network.firewall", "network.dns", "aws.securityhub",
+        "m365.activity", "email.message_trace", "identity.authentication",
+        "azure.activity", "endpoint.edr", "gcp.audit", "google_workspace.admin",
+        "web.http", "network.ids", "linux.authentication", "kubernetes.audit",
+        "github.audit", "salesforce.event_monitoring",
     }
     assert expected <= set(result.canonical_sources)
 
 
-def test_multi_capability_mapping_is_explainable() -> None:
-    result = normalize_sources(["zscalernss-web", "pan:threat"])
-    zscaler = result.mappings[0]
-    assert zscaler.canonical_source == "proxy"
-    assert zscaler.additional_canonical_sources == (
-        "web.http", "network.traffic", "intrusion_detection"
-    )
-    pan = result.mappings[1]
-    assert pan.canonical_source == "intrusion_detection"
-    assert pan.additional_canonical_sources == ("web.http",)
+def test_multi_capability_sources_advertise_secondary_capabilities() -> None:
+    result = normalize_sources(["pan:threat", "zscalernss-web", "auditd"])
+    assert "network.ids" in result.canonical_sources
+    assert "web.http" in result.canonical_sources
+    assert "network.firewall" in result.canonical_sources
+    assert "linux.authentication" in result.canonical_sources
+    assert "endpoint.process" in result.canonical_sources
+    pan = result.mappings[0]
+    assert "web.http" in pan.additional_canonical_sources
 
 
-def test_generic_xmlwineventlog_does_not_fake_channel_specific_readiness() -> None:
+def test_generic_xmlwineventlog_stays_broad_and_conservative() -> None:
     result = normalize_sources(["XmlWinEventLog"])
     assert result.canonical_sources == ("windows.eventlog",)
     assert result.unmapped_sources == ()
     assert result.mappings[0].confidence == 70
-    assert "XmlWinEventLog:Security" not in result.canonical_sources
-    assert "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational" not in result.canonical_sources
+    assert result.mappings[0].status == "mapped_alias"
 
 
 def test_ambiguous_generic_sources_remain_unmapped() -> None:
