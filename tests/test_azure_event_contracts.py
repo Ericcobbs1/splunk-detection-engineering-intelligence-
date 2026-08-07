@@ -2,7 +2,6 @@ import importlib.util
 import random
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 TELEMETRY = ROOT / "lab" / "telemetry"
 
@@ -22,14 +21,12 @@ azure = _load("dei_test_azure_contracts", TELEMETRY / "azure_event_contracts.py"
 def test_entra_signin_is_azure_monitor_aad_envelope():
     random.seed(20260807)
     event = azure.entra_signin_event(base, "2026-08-07T12:00:00Z")
-
     assert event["category"] in azure.ENTRA_CATEGORIES
     assert event["operationName"] == "Sign-in activity"
     assert event["resourceId"].endswith("/providers/Microsoft.aadiam")
     assert event["tenantId"] == azure.TENANT_ID
     assert event["callerIpAddress"] == event["properties"]["ipAddress"]
     assert event["correlationId"] == event["properties"]["correlationId"]
-
     props = event["properties"]
     assert props["userPrincipalName"].endswith("@corp.example")
     assert props["conditionalAccessStatus"] in azure.CA_STATUS
@@ -37,9 +34,6 @@ def test_entra_signin_is_azure_monitor_aad_envelope():
     assert props["riskState"] in azure.RISK_STATE
     assert isinstance(props["deviceDetail"], dict)
     assert isinstance(props["status"]["errorCode"], int)
-
-    # Sign-in report fields belong inside Azure Monitor properties, not as a
-    # fabricated flattened Log Analytics table row at the raw-event root.
     for flattened in (
         "UserPrincipalName",
         "IPAddress",
@@ -55,7 +49,6 @@ def test_entra_categories_cover_interactive_and_noninteractive_sources():
     events = [azure.entra_signin_event(base, "2026-08-07T12:00:00Z") for _ in range(1000)]
     categories = {event["category"] for event in events}
     assert categories == set(azure.ENTRA_CATEGORIES)
-
     for event in events:
         expected_interactive = event["category"] == "SignInLogs"
         assert event["properties"]["isInteractive"] is expected_interactive
