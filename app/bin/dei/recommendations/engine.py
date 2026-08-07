@@ -219,33 +219,34 @@ class RecommendationEngine:
                 if field_validation == "failed":
                     readiness = "field_gap"
                     readiness_points = 0
-                    partial += 1
-                    field_gaps += 1
                 elif field_validation == "unverified":
                     readiness = "field_unverified"
                     readiness_points = 0
-                    partial += 1
-                    field_unverified += 1
                 else:
                     readiness = "production_ready"
                     readiness_points = 20
-                    ready += 1
             elif matched_count:
                 readiness = "partial"
                 readiness_points = 5
-                partial += 1
             else:
                 readiness = "unsupported"
                 readiness_points = -25
-                unsupported += 1
 
             if opportunity.requires_enterprise_security and not enterprise_security_enabled:
-                if readiness == "production_ready":
-                    ready -= 1
-                elif readiness in {"partial", "field_gap", "field_unverified"}:
-                    partial -= 1
                 readiness = "requires_enterprise_security"
                 readiness_points = -10
+
+            if readiness == "production_ready":
+                ready += 1
+            elif readiness in {"partial", "field_gap", "field_unverified"}:
+                partial += 1
+            elif readiness in {"unsupported", "requires_enterprise_security"}:
+                unsupported += 1
+
+            if readiness == "field_gap":
+                field_gaps += 1
+            elif readiness == "field_unverified":
+                field_unverified += 1
 
             if readiness in {"unsupported", "requires_enterprise_security"} and not include_unsupported:
                 continue

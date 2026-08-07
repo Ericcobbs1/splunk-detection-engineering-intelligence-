@@ -42,6 +42,16 @@
       "authority": "splunk_cim",
       "publisher": "Splunk",
       "reference": "https://help.splunk.com/splunk-cloud-platform/common-information-model/6.1/data-models/data-loss-prevention"
+    },
+    "es.risk.event": {
+      "fields": [
+        "risk_object",
+        "risk_object_type",
+        "calculated_risk_score"
+      ],
+      "authority": "vendor_splunk_addon",
+      "publisher": "Splunk Enterprise Security",
+      "reference": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.4/detections/guidelines-to-create-a-custom-finding-based-detection"
     }
   },
   "rejected_lab_shortcuts": {

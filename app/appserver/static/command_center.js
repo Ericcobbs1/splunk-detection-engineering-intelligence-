@@ -30,6 +30,14 @@ require([
     "| sort - count"
   ].join(" ");
 
+  var riskDataModelSpl = [
+    "| from datamodel:Risk.All_Risk",
+    '| where _time >= relative_time(now(), "-7d")',
+    "| head " + fieldSampleEvents,
+    "| fieldsummary",
+    "| fields field"
+  ].join(" ");
+
   function parsePayload(response) {
     if (response && typeof response.payload === "string") {
       return JSON.parse(response.payload);
@@ -115,7 +123,8 @@ require([
         }
         while (active < fieldDiscoveryConcurrency && cursor < sources.length) {
           (function (source) {
-            var fieldSpl = [
+            var isEsRisk = source.toLowerCase() === "modular_alerts:risk";
+            var fieldSpl = isEsRisk ? riskDataModelSpl : [
               'search index=* earliest=-7d latest=now sourcetype="' + escapeSearchValue(source) + '"',
               "| head " + fieldSampleEvents,
               "| fieldsummary",
@@ -124,6 +133,9 @@ require([
             active += 1;
             exportSearch(fieldSpl, 30000).done(function (text) {
               var fieldRows = parseExportRows(text);
+              if (isEsRisk) {
+                $("#dei-es-enabled").prop("checked", true);
+              }
               if (fieldRows.length) {
                 inventory[source] = uniqueValues(fieldRows.map(function (row) {
                   return row.field;
@@ -250,12 +262,13 @@ require([
 
   function runRecommendations(sources, indexCount, fieldsBySource) {
     var feedback = $("#dei-feedback");
+    var esEnabled = $("#dei-es-enabled").is(":checked");
     $("#dei-analyze").text("Analyzing...");
     feedback.text("Evaluating telemetry and field-level detection readiness.");
     postJson(endpoints.recommendations, {
       sources: sources,
       fields_by_source: fieldsBySource,
-      enterprise_security_enabled: $("#dei-es-enabled").is(":checked"),
+      enterprise_security_enabled: esEnabled,
       include_unsupported: true
     }).done(function (report) {
       var unmapped = report.unmapped_sources || [];
@@ -269,8 +282,9 @@ require([
       feedback.text(
         "Analysis complete. Discovered " + sources.length + " source types across " + indexCount +
         " indexes; " + understood + " mapped, " + unmapped.length + " unmapped (" + understanding +
-        "% telemetry understanding); " + fieldGaps + " detections have confirmed field gaps; " +
-        unverified + " are field-unverified because no recent sample was available."
+        "% telemetry understanding); Enterprise Security " + (esEnabled ? "enabled" : "not enabled") +
+        "; " + fieldGaps + " detections have confirmed field gaps; " + unverified +
+        " are field-unverified because no recent sample was available."
       );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
