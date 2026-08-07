@@ -17,10 +17,13 @@ AZURE_PATH = ROOT / "azure_event_contracts.py"
 AWS_PATH = ROOT / "aws_event_contracts.py"
 MICROSOFT_PATH = ROOT / "microsoft_event_contracts.py"
 NETWORK_PATH = ROOT / "network_event_contracts.py"
+CLOUD_SAAS_PATH = ROOT / "cloud_saas_event_contracts.py"
 RECORD_FORMAT = "ta_faithful_contract_v1"
+WINDOWS_IDS = {"windows_security", "windows_powershell"}
 AWS_IDS = {"aws_cloudtrail", "aws_guardduty", "aws_vpc_flow", "aws_route53_dns", "aws_security_hub"}
 MICROSOFT_IDS = {"m365_management_activity", "m365_message_trace", "microsoft_defender_endpoint"}
 NETWORK_IDS = {"palo_alto_traffic", "palo_alto_threat", "zscaler_zia_web", "suricata_eve_alert", "linux_auditd", "cisco_asa"}
+CLOUD_SAAS_IDS = {"okta_system_log", "gcp_audit", "google_workspace", "kubernetes_audit", "github_audit", "cloudflare_http", "salesforce_event_monitoring", "crowdstrike_fdr_sensor"}
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -38,6 +41,7 @@ azure = _load_module("dei_azure_event_contracts", AZURE_PATH)
 aws = _load_module("dei_aws_event_contracts", AWS_PATH)
 microsoft = _load_module("dei_microsoft_event_contracts", MICROSOFT_PATH)
 network = _load_module("dei_network_event_contracts", NETWORK_PATH)
+cloud_saas = _load_module("dei_cloud_saas_event_contracts", CLOUD_SAAS_PATH)
 
 
 def load_profiles() -> List[Dict[str, Any]]:
@@ -46,7 +50,7 @@ def load_profiles() -> List[Dict[str, Any]]:
 
 def make_event(profile: Dict[str, Any], ts: str, contracts: Dict[str, Dict[str, Any]]) -> Any:
     profile_id = profile["id"]
-    if profile_id in {"windows_security", "windows_powershell"}:
+    if profile_id in WINDOWS_IDS:
         return windows.make_windows_event(profile_id, v2.base)
     if profile_id == "entra_signin":
         return azure.entra_signin_event(v2.base, ts)
@@ -58,25 +62,41 @@ def make_event(profile: Dict[str, Any], ts: str, contracts: Dict[str, Dict[str, 
         return microsoft.make_microsoft_event(profile_id, v2.base, ts)
     if profile_id in NETWORK_IDS:
         return network.make_network_event(profile_id, v2.base, ts)
+    if profile_id in CLOUD_SAAS_IDS:
+        return cloud_saas.make_cloud_saas_event(profile_id, v2.base, ts)
     return v2.make_event(profile, ts, contracts)
 
 
-def serialize_event(profile_id: str, event: Any) -> str:
+def serialize_event(profile_id: str, event: Any, ts: str) -> str:
+    if profile_id in WINDOWS_IDS:
+        return windows.serialize_windows_event(profile_id, event, ts)
     if profile_id in AWS_IDS:
         return aws.serialize(profile_id, event)
     if profile_id in MICROSOFT_IDS:
         return microsoft.serialize(event)
     if profile_id in NETWORK_IDS:
         return network.serialize(profile_id, event)
+    if profile_id in CLOUD_SAAS_IDS:
+        return cloud_saas.serialize(profile_id, event)
     return json.dumps(event, separators=(",", ":"))
 
 
 def source_extension(profile_id: str) -> str:
+    if profile_id in WINDOWS_IDS:
+        return ".xml"
     if profile_id == "aws_vpc_flow":
         return ".log"
     if profile_id in NETWORK_IDS:
         return network.extension(profile_id)
+    if profile_id in CLOUD_SAAS_IDS:
+        return cloud_saas.extension(profile_id)
     return ".ndjson"
+
+
+def source_header(profile_id: str) -> str:
+    if profile_id in CLOUD_SAAS_IDS:
+        return cloud_saas.header(profile_id)
+    return ""
 
 
 def write_source(profile: Dict[str, Any], out: Path, count: int, start: datetime, span: int, contracts: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
@@ -86,9 +106,12 @@ def write_source(profile: Dict[str, Any], out: Path, count: int, start: datetime
     profile_id = profile["id"]
     path = target / f"{profile_id}{source_extension(profile_id)}"
     with path.open("w", encoding="utf-8") as handle:
+        header = source_header(profile_id)
+        if header:
+            handle.write(header + "\n")
         for _ in range(count):
             ts = v2.base.timestamp(start, span)
-            handle.write(serialize_event(profile_id, make_event(profile, ts, contracts)) + "\n")
+            handle.write(serialize_event(profile_id, make_event(profile, ts, contracts), ts) + "\n")
     return {
         "id": profile_id,
         "index": profile["target_index"],
@@ -106,7 +129,6 @@ def main() -> None:
     parser.add_argument("--days", type=int, default=7)
     parser.add_argument("--seed", type=int, default=20260807)
     args = parser.parse_args()
-
     random.seed(args.seed)
     profiles = load_profiles()
     contracts = v2.base.load_value_contracts()
@@ -117,21 +139,15 @@ def main() -> None:
     span = args.days * 86400
     manifest = [write_source(profile, out, args.events_per_source, start, span, contracts) for profile in profiles]
     (out / "manifest.json").write_text(
-        json.dumps(
-            {
-                "generated_at": now.isoformat(),
-                "record_format": RECORD_FORMAT,
-                "telemetry_contracts": {
-                    "windows": windows.contract_metadata(),
-                    "azure": azure.contract_metadata(),
-                    "aws": aws.contract_metadata(),
-                    "microsoft": microsoft.contract_metadata(),
-                    "network": network.contract_metadata(),
-                },
-                "sources": manifest,
+        json.dumps({
+            "generated_at": now.isoformat(),
+            "record_format": RECORD_FORMAT,
+            "telemetry_contracts": {
+                "windows": windows.contract_metadata(), "azure": azure.contract_metadata(), "aws": aws.contract_metadata(),
+                "microsoft": microsoft.contract_metadata(), "network": network.contract_metadata(), "cloud_saas": cloud_saas.contract_metadata(),
             },
-            indent=2,
-        ) + "\n",
+            "sources": manifest,
+        }, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"Generated {len(manifest)} verified TA-contract datasets / {len(manifest) * args.events_per_source:,} events")
