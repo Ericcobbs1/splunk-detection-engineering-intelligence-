@@ -43,36 +43,32 @@ def search_csv(spl: str) -> List[Dict[str, str]]:
     return list(csv.DictReader(proc.stdout.splitlines()))
 
 
-def scoped_search(index: str, ingest_start: int) -> str:
-    """Scope validation to the current canary ingestion in one dedicated index."""
-    return (
-        f'search index="{index}" earliest=-2d latest=now '
-        f'| where _indextime >= {ingest_start}'
-    )
+def scoped_search(index: str, source: str) -> str:
+    escaped_source = source.replace('"', '\\"')
+    return f'search index="{index}" source="{escaped_source}" earliest=-2d latest=now'
 
 
-def inventory(index: str, ingest_start: int) -> Set[str]:
-    spl = (
-        scoped_search(index, ingest_start)
+def inventory(index: str, source: str) -> Set[str]:
+    rows = search_csv(
+        scoped_search(index, source)
         + " | head 200 | fieldsummary | fields field count distinct_count"
     )
-    rows = search_csv(spl)
     return {row.get("field", "") for row in rows if row.get("field")}
 
 
-def event_count(index: str, ingest_start: int) -> int:
-    rows = search_csv(scoped_search(index, ingest_start) + " | stats count")
+def event_count(index: str, source: str) -> int:
+    rows = search_csv(scoped_search(index, source) + " | stats count")
     if not rows:
         return 0
     return int(rows[0].get("count", "0") or 0)
 
 
-def cim_count(model_dataset: str, index: str, ingest_start: int) -> int:
+def cim_count(model_dataset: str, index: str, source: str) -> int:
     model, dataset = model_dataset.split(".", 1)
+    escaped_source = source.replace('"', '\\"')
     spl = (
         f'| datamodel {model} {dataset} search '
-        f'| search index="{index}" earliest=-2d latest=now '
-        f'| where _indextime >= {ingest_start} '
+        f'| search index="{index}" source="{escaped_source}" earliest=-2d latest=now '
         "| stats count"
     )
     try:
@@ -89,17 +85,16 @@ def main() -> int:
         print(f"Splunk CLI not found: {SPLUNK}", file=sys.stderr)
         return 2
 
-    if OUT.exists():
-        import shutil
-
-        shutil.rmtree(OUT)
+    OUT.mkdir(parents=True, exist_ok=True)
+    run_id = str(int(time.time()))
+    run_out = OUT / run_id
 
     run(
         [
             sys.executable,
             str(GENERATOR),
             "--out",
-            str(OUT),
+            str(run_out),
             "--events-per-source",
             "25",
             "--days",
@@ -107,21 +102,16 @@ def main() -> int:
         ]
     )
 
-    manifest = json.loads((OUT / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((run_out / "manifest.json").read_text(encoding="utf-8"))
     routing = json.loads(ROUTING.read_text(encoding="utf-8"))["datasets"]
     contracts = json.loads(CONTRACTS.read_text(encoding="utf-8"))["datasets"]
-
-    # Scope validation to events indexed by this run. Synthetic event _time is
-    # intentionally distributed across --days. Each dataset has its own index,
-    # so index + _indextime uniquely identifies the current runtime canary and
-    # avoids brittle source-path matching that TAs/ingestion can rewrite.
-    ingest_start = int(time.time()) - 2
     results: Dict[str, Any] = {}
 
     for item in manifest["sources"]:
         dataset = item["id"]
         route = routing[dataset]
         path = Path(item["file"]).resolve()
+        canary_source = f"dei_runtime_canary:{run_id}:{dataset}"
         cmd = [
             str(SPLUNK),
             "add",
@@ -131,12 +121,15 @@ def main() -> int:
             route["index"],
             "-sourcetype",
             route["sourcetype"],
+            "-rename-source",
+            canary_source,
         ] + splunk_args()
         proc = run(cmd, check=False)
         results[dataset] = {
             "index": route["index"],
             "sourcetype": route["sourcetype"],
-            "source": str(path),
+            "source": canary_source,
+            "file": str(path),
             "ingest_ok": proc.returncode == 0,
             "ingest_stdout": proc.stdout.strip(),
             "ingest_stderr": proc.stderr.strip(),
@@ -159,8 +152,8 @@ def main() -> int:
             overall = False
             continue
 
-        count = event_count(result["index"], ingest_start)
-        fields = inventory(result["index"], ingest_start)
+        count = event_count(result["index"], result["source"])
+        fields = inventory(result["index"], result["source"])
         spec = contracts[dataset]
         group_results = []
         for group in spec["required_any_groups"]:
@@ -170,7 +163,7 @@ def main() -> int:
 
         probes = []
         for probe in spec.get("cim_probes", []):
-            n = cim_count(probe, result["index"], ingest_start)
+            n = cim_count(probe, result["index"], result["source"])
             probes.append({"model_dataset": probe, "count": n, "ok": n > 0})
         cim_required = bool(spec.get("cim_probes"))
         cim_ok = (not cim_required) or any(x["ok"] for x in probes)
@@ -191,7 +184,7 @@ def main() -> int:
 
     payload = {
         "runtime_verified": overall,
-        "ingest_start_epoch": ingest_start,
+        "run_id": run_id,
         "datasets_total": len(results),
         "datasets_passed": sum(1 for r in results.values() if r.get("status") == "PASS"),
         "datasets_failed": [k for k, r in results.items() if r.get("status") != "PASS"],
