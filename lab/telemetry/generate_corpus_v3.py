@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Generate DEI telemetry with event-specific semantic contracts.
-
-V3 keeps verified v2 profiles but routes sources with known event-level semantics
-through dedicated contract builders. The goal is TA-facing fidelity rather than
-merely producing plausible searchable JSON.
-"""
+"""Generate DEI telemetry with TA-facing semantic and format contracts."""
 from __future__ import annotations
 
 import argparse
@@ -19,7 +14,9 @@ ROOT = Path(__file__).resolve().parent
 V2_PATH = ROOT / "generate_corpus_v2.py"
 WINDOWS_PATH = ROOT / "windows_event_contracts.py"
 AZURE_PATH = ROOT / "azure_event_contracts.py"
+AWS_PATH = ROOT / "aws_event_contracts.py"
 RECORD_FORMAT = "ta_faithful_contract_v1"
+AWS_IDS = {"aws_cloudtrail", "aws_guardduty", "aws_vpc_flow", "aws_route53_dns", "aws_security_hub"}
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -34,17 +31,14 @@ def _load_module(name: str, path: Path) -> Any:
 v2 = _load_module("dei_generate_corpus_v2", V2_PATH)
 windows = _load_module("dei_windows_event_contracts", WINDOWS_PATH)
 azure = _load_module("dei_azure_event_contracts", AZURE_PATH)
+aws = _load_module("dei_aws_event_contracts", AWS_PATH)
 
 
 def load_profiles() -> List[Dict[str, Any]]:
     return v2.load_profiles()
 
 
-def make_event(
-    profile: Dict[str, Any],
-    ts: str,
-    contracts: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+def make_event(profile: Dict[str, Any], ts: str, contracts: Dict[str, Dict[str, Any]]) -> Any:
     profile_id = profile["id"]
     if profile_id in {"windows_security", "windows_powershell"}:
         return windows.make_windows_event(profile_id, v2.base)
@@ -52,27 +46,35 @@ def make_event(
         return azure.entra_signin_event(v2.base, ts)
     if profile_id == "azure_activity":
         return azure.azure_activity_event(v2.base, ts)
+    if profile_id in AWS_IDS:
+        return aws.make_aws_event(profile_id, v2.base, ts)
     return v2.make_event(profile, ts, contracts)
 
 
-def write_source(
-    profile: Dict[str, Any],
-    out: Path,
-    count: int,
-    start: datetime,
-    span: int,
-    contracts: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+def serialize_event(profile_id: str, event: Any) -> str:
+    if profile_id in AWS_IDS:
+        return aws.serialize(profile_id, event)
+    return json.dumps(event, separators=(",", ":"))
+
+
+def source_extension(profile_id: str) -> str:
+    if profile_id == "aws_vpc_flow":
+        return ".log"
+    return ".ndjson"
+
+
+def write_source(profile: Dict[str, Any], out: Path, count: int, start: datetime, span: int, contracts: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     sourcetype = profile["sourcetypes"][0]
     target = out / profile["target_index"]
     target.mkdir(parents=True, exist_ok=True)
-    path = target / f"{profile['id']}.ndjson"
+    profile_id = profile["id"]
+    path = target / f"{profile_id}{source_extension(profile_id)}"
     with path.open("w", encoding="utf-8") as handle:
         for _ in range(count):
             ts = v2.base.timestamp(start, span)
-            handle.write(json.dumps(make_event(profile, ts, contracts), separators=(",", ":")) + "\n")
+            handle.write(serialize_event(profile_id, make_event(profile, ts, contracts)) + "\n")
     return {
-        "id": profile["id"],
+        "id": profile_id,
         "index": profile["target_index"],
         "sourcetype": sourcetype,
         "events": count,
@@ -97,10 +99,7 @@ def main() -> None:
     now = datetime.now(timezone.utc)
     start = now - timedelta(days=args.days)
     span = args.days * 86400
-    manifest = [
-        write_source(profile, out, args.events_per_source, start, span, contracts)
-        for profile in profiles
-    ]
+    manifest = [write_source(profile, out, args.events_per_source, start, span, contracts) for profile in profiles]
     (out / "manifest.json").write_text(
         json.dumps(
             {
@@ -109,6 +108,7 @@ def main() -> None:
                 "telemetry_contracts": {
                     "windows": windows.contract_metadata(),
                     "azure": azure.contract_metadata(),
+                    "aws": aws.contract_metadata(),
                 },
                 "sources": manifest,
             },
@@ -116,10 +116,7 @@ def main() -> None:
         ) + "\n",
         encoding="utf-8",
     )
-    print(
-        f"Generated {len(manifest)} verified TA-contract datasets / "
-        f"{len(manifest) * args.events_per_source:,} events"
-    )
+    print(f"Generated {len(manifest)} verified TA-contract datasets / {len(manifest) * args.events_per_source:,} events")
 
 
 if __name__ == "__main__":
