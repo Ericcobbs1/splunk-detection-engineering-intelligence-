@@ -1,0 +1,94 @@
+{
+  "registry_version": 1,
+  "batch": 2,
+  "policy": {
+    "generator_requires_status": "verified",
+    "lab_only_fields_allowed_as_production_truth": false,
+    "notes": "Batch 2 profiles are additive to source_registry.json and must be consolidated before generator release."
+  },
+  "sources": [
+    {
+      "id": "crowdstrike_fdr_sensor",
+      "vendor": "CrowdStrike",
+      "product": "Falcon Data Replicator sensor events",
+      "status": "verified",
+      "sourcetypes": ["crowdstrike:events:sensor"],
+      "target_index": "crowdstrike",
+      "ta": {"name": "Splunk Add-on for CrowdStrike FDR / Splunk Data Inputs CrowdStrike", "required": true},
+      "raw_fields": ["event_simpleName", "event_platform", "aid", "aip", "cid", "timestamp", "id", "name", "ContextProcessId", "ContextThreadId", "TargetProcessId", "RawProcessId", "RawThreadId"],
+      "value_contracts": {
+        "event_platform": ["Win", "Lin", "Mac"],
+        "event_simpleName": {"type": "string", "examples": ["InjectedThread", "ProcessRollup2", "NetworkConnectIP4", "DnsRequest"]}
+      },
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-enterprise/get-data-in/integrate-data-with-splunk-supported-add-ons/crowdstrike-fdr"},
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/data-management/ingest-data-from-cloud-sources/use-data-inputs/1.17/getting-data-in-gdi/overview-of-source-types-for-data-inputs"}
+      ]
+    },
+    {
+      "id": "aws_security_hub",
+      "vendor": "Amazon Web Services",
+      "product": "AWS Security Hub findings",
+      "status": "verified",
+      "sourcetypes": ["aws:securityhub:finding"],
+      "target_index": "aws",
+      "ta": {"name": "Splunk AWS Data Inputs / Splunk Add-on for AWS", "required": true},
+      "raw_fields": ["AwsAccountId", "CreatedAt", "Description", "FirstObservedAt", "GeneratorId", "Id", "LastObservedAt", "ProductArn", "ProductFields", "RecordState", "Resources", "SchemaVersion", "Severity", "SourceUrl", "Title", "Types", "UpdatedAt", "Workflow", "WorkflowState"],
+      "value_contracts": {
+        "RecordState": ["ACTIVE", "ARCHIVED"],
+        "WorkflowState": ["NEW", "NOTIFIED", "RESOLVED", "SUPPRESSED"]
+      },
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/ingest-data-from-cloud-services/data-inputs-user-manual/1.16/getting-data-in-gdi/overview-of-source-types-for-data-manager"}
+      ]
+    },
+    {
+      "id": "azure_activity",
+      "vendor": "Microsoft",
+      "product": "Azure Activity Logs",
+      "status": "verified",
+      "sourcetypes": ["azure:monitor:activity"],
+      "target_index": "azure",
+      "ta": {"name": "Splunk Microsoft Azure / Data Inputs integration", "required": true},
+      "raw_fields": ["time", "category", "operationName", "resourceId", "callerIpAddress", "correlationId", "durationMs", "identity", "level", "properties", "resultSignature", "resultType", "tenantId"],
+      "value_contracts": {
+        "category": ["Administrative", "Security", "ServiceHealth", "Alert", "Recommendation", "Policy", "Autoscale", "ResourceHealth"],
+        "resultType": ["Success", "Failure", "Started", "Accepted"]
+      },
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/ingest-data-from-cloud-services/data-inputs-user-manual/1.17/getting-data-in-gdi/overview-of-source-types-for-data-inputs"},
+        {"type": "vendor_schema", "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log-schema"}
+      ]
+    },
+    {
+      "id": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Adaptive Security Appliance / Firepower Threat Defense syslog",
+      "status": "verified",
+      "sourcetypes": ["cisco:asa"],
+      "target_index": "network",
+      "ta": {"name": "Splunk Add-on for Cisco ASA", "required": true},
+      "raw_fields": ["message_id", "src_ip", "dest_ip", "src_port", "dest_port", "protocol", "action", "user", "duration", "bytes_in", "bytes_out"],
+      "value_contracts": {
+        "message_id": {"type": "string", "examples": ["113019", "113039", "602303", "602304", "611101", "611103", "716001", "722022", "723001"]}
+      },
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/supported-add-ons/splunk-supported-add-ons/cisco-asa"},
+        {"type": "splunk_cim", "url": "https://help.splunk.com/en/splunk-cloud-platform/process-data-at-ingest-time/use-ingest-processors/process-data-using-pipelines/convert-data-to-ocsf-format-using-ingest-processor/supported-source-types-and-event-types"},
+        {"type": "splunk_cim", "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.5/user-and-entity-behavior-analytics/ueba-detections-in-splunk-enterprise-security/required-sourcetypes-for-ueba-detections"}
+      ]
+    }
+  ],
+  "still_pending": [
+    "microsoft_defender_endpoint",
+    "gcp_audit",
+    "google_workspace",
+    "aws_vpc_flow",
+    "linux_auditd",
+    "cisco_ios",
+    "vulnerability_scanners",
+    "kubernetes_audit",
+    "github_audit",
+    "salesforce_event_monitoring"
+  ]
+}
