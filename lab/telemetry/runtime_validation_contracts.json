@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "policy": {
+    "sample_events_per_source": 25,
+    "field_sample_limit": 200,
+    "require_native_fields": true,
+    "require_at_least_one_cim_probe_when_declared": true
+  },
+  "datasets": {
+    "windows_security": {"required_any_groups":[["EventCode","EventID"],["TargetUserName","user"],["IpAddress","src_ip"]],"cim_probes":["Authentication.Authentication","Change.All_Changes"]},
+    "windows_powershell": {"required_any_groups":[["EventCode","EventID"],["ScriptBlockText","Message"]],"cim_probes":["Endpoint.Processes"]},
+    "aws_cloudtrail": {"required_any_groups":[["eventName","event_name"],["eventSource","event_source"],["userIdentity.arn","userIdentity.userName","user_arn","user"],["sourceIPAddress","src_ip"]],"cim_probes":["Authentication.Authentication","Change.All_Changes"]},
+    "aws_guardduty": {"required_any_groups":[["type"],["severity"],["resource.resourceType","resource"],["service.action","service.action.actionType"]],"cim_probes":["Intrusion_Detection.IDS_Attacks"]},
+    "aws_vpc_flow": {"required_any_groups":[["srcaddr","src_ip"],["dstaddr","dest_ip"],["srcport","src_port"],["dstport","dest_port"],["action"]],"cim_probes":["Network_Traffic.All_Traffic"]},
+    "aws_route53_dns": {"required_any_groups":[["query_name","query"],["query_type","record_type"],["rcode"],["srcaddr","src_ip"]],"cim_probes":["Network_Resolution.DNS"]},
+    "aws_security_hub": {"required_any_groups":[["Severity.Label","Severity.Normalized","severity"],["Workflow.Status","workflow_status"],["Resources","resources"],["ProductArn","product_arn"]],"cim_probes":[]},
+    "okta_system_log": {"required_any_groups":[["eventType","event_type","action"],["actor.alternateId","user","src_user"],["target","target{}.alternateId","target_user"],["outcome.result","result","status"],["client.ipAddress","src_ip"]],"cim_probes":["Authentication.Authentication","Change.All_Changes"]},
+    "m365_management_activity": {"required_any_groups":[["CreationTime","_time"],["Operation","action"],["UserId","user"],["Workload"],["ClientIP","src_ip"]],"cim_probes":["Change.All_Changes"]},
+    "m365_message_trace": {"required_any_groups":[["SenderAddress","src_user"],["RecipientAddress","recipient"],["Subject","subject"],["Status","status"],["MessageId","MessageTraceId","message_id"]],"cim_probes":["Email.All_Email"]},
+    "entra_signin": {"required_any_groups":[["properties.userPrincipalName","userPrincipalName","user"],["properties.ipAddress","callerIpAddress","src_ip"],["properties.appDisplayName","appDisplayName","app"],["properties.conditionalAccessStatus","conditionalAccessStatus"],["properties.status.errorCode","resultType"]],"cim_probes":["Authentication.Authentication"]},
+    "azure_activity": {"required_any_groups":[["operationName","action"],["callerIpAddress","src_ip"],["resourceId","object"],["identity","user"],["properties","resultType"]],"cim_probes":["Change.All_Changes"]},
+    "microsoft_defender_endpoint": {"required_any_groups":[["Timestamp","_time"],["DeviceId","dest"],["DeviceName","dest"],["ActionType","action"],["FileName","process_name","file_name"]],"cim_probes":["Endpoint.Processes","Network_Traffic.All_Traffic","Authentication.Authentication"]},
+    "gcp_audit": {"required_any_groups":[["protoPayload.methodName","methodName","action"],["protoPayload.serviceName","serviceName"],["protoPayload.authenticationInfo.principalEmail","user"],["protoPayload.requestMetadata.callerIp","src_ip"],["resource.type","resource_type"]],"cim_probes":["Change.All_Changes"]},
+    "google_workspace": {"required_any_groups":[["actor.email","user"],["ipAddress","src_ip"],["events{}.name","events.name","action"],["events{}.type","events.type"],["id.time","_time"]],"cim_probes":["Authentication.Authentication","Change.All_Changes"]},
+    "palo_alto_traffic": {"required_any_groups":[["src","src_ip"],["dst","dest_ip"],["sport","src_port"],["dport","dest_port"],["app"],["action"]],"cim_probes":["Network_Traffic.All_Traffic"]},
+    "palo_alto_threat": {"required_any_groups":[["src","src_ip"],["dst","dest_ip"],["threatid","signature"],["severity"],["action"]],"cim_probes":["Intrusion_Detection.IDS_Attacks"]},
+    "zscaler_zia_web": {"required_any_groups":[["url","dest_url"],["user","src_user"],["action"],["ClientIP","src","src_ip"],["status"]],"cim_probes":["Web.Web"]},
+    "suricata_eve_alert": {"required_any_groups":[["event_type"],["src_ip"],["dest_ip"],["alert.signature","signature"],["alert.severity","severity"]],"cim_probes":["Intrusion_Detection.IDS_Attacks","Network_Traffic.All_Traffic"]},
+    "linux_auditd": {"required_any_groups":[["type"],["syscall"],["success"],["auid","uid","user"],["comm","process_name"],["exe","process_path"]],"cim_probes":["Endpoint.Processes","Authentication.Authentication","Change.All_Changes"]},
+    "kubernetes_audit": {"required_any_groups":[["verb","action"],["user.username","user"],["sourceIPs{}","sourceIPs","src_ip"],["objectRef.resource","object"],["responseStatus.code","status"]],"cim_probes":["Change.All_Changes","Authentication.Authentication"]},
+    "github_audit": {"required_any_groups":[["action"],["actor","user"],["org"],["repo"],["created_at","_time"]],"cim_probes":["Change.All_Changes","Authentication.Authentication"]},
+    "cloudflare_http": {"required_any_groups":[["ClientIP","src_ip"],["ClientRequestHost","dest"],["ClientRequestMethod","http_method"],["ClientRequestURI","url"],["EdgeResponseStatus","status"]],"cim_probes":["Web.Web"]},
+    "salesforce_event_monitoring": {"required_any_groups":[["EVENT_TYPE","event_type"],["TIMESTAMP","_time"],["USER_ID","user"],["CLIENT_IP","src_ip"],["URI","url"]],"cim_probes":["Authentication.Authentication","Web.Web","Change.All_Changes"]},
+    "crowdstrike_fdr_sensor": {"required_any_groups":[["event_simpleName"],["aid"],["cid"],["event_platform"],["ComputerName","dest"]],"cim_probes":["Endpoint.Processes","Network_Traffic.All_Traffic"]},
+    "cisco_asa": {"required_any_groups":[["message_id","Cisco_ASA_message_id"],["src_ip","src"],["dest_ip","dest"],["src_port"],["dest_port"],["action"]],"cim_probes":["Network_Traffic.All_Traffic","Authentication.Authentication"]}
+  }
+}
