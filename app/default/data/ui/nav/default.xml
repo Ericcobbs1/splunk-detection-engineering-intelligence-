@@ -2,6 +2,7 @@
   <view name="command_center" default="true" />
   <collection label="Intelligence">
     <view name="command_center" />
+    <view name="mitre_coverage" />
   </collection>
   <collection label="Splunk">
     <view name="search" />
