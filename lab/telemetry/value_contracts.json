@@ -1,0 +1,142 @@
+{
+  "windows_security": {
+    "SubjectUserName": ["SYSTEM", "svc_backup", "administrator"],
+    "TargetUserName": ["alice", "bob", "svc_sql", "administrator"],
+    "LogonType": [2,3,7,10],
+    "ProcessName": ["C:\\Windows\\System32\\winlogon.exe", "C:\\Windows\\System32\\svchost.exe", "C:\\Windows\\System32\\lsass.exe"]
+  },
+  "windows_powershell": {
+    "UserId": ["CORP\\alice", "CORP\\bob", "CORP\\svc_admin"],
+    "ScriptBlockText": ["Get-Process", "Get-ChildItem Env:", "Invoke-WebRequest https://example.org/health", "Get-LocalGroupMember Administrators"],
+    "Message": ["Creating Scriptblock text", "PowerShell operational event"]
+  },
+  "aws_cloudtrail": {
+    "userIdentity.type": ["IAMUser", "AssumedRole", "Root", "AWSService"],
+    "eventSource": ["iam.amazonaws.com", "s3.amazonaws.com", "ec2.amazonaws.com", "cloudtrail.amazonaws.com", "sts.amazonaws.com"],
+    "eventName": ["ConsoleLogin", "CreateUser", "AttachUserPolicy", "PutBucketPolicy", "StopLogging", "RunInstances", "AssumeRole"],
+    "awsRegion": ["us-east-1", "us-east-2", "us-west-2"],
+    "userAgent": ["aws-cli/2.17.0", "signin.amazonaws.com", "Boto3/1.35.0 md/Botocore#1.35.0"],
+    "eventType": ["AwsApiCall", "AwsConsoleSignIn"],
+    "managementEvent": [true, false],
+    "readOnly": [true, false]
+  },
+  "aws_guardduty": {
+    "region": ["us-east-1", "us-east-2", "us-west-2"],
+    "schemaVersion": ["2.0"],
+    "title": ["EC2 instance is communicating with a known command and control server", "IAM principal invoked an API commonly used to discover AWS resources", "EC2 instance is performing outbound port scans"],
+    "type": ["Backdoor:EC2/C&CActivity.B!DNS", "Discovery:IAMUser/AnomalousBehavior", "Recon:EC2/PortProbeUnprotectedPort"]
+  },
+  "okta_system_log": {
+    "severity": ["INFO", "WARN", "ERROR"],
+    "eventType": ["user.session.start", "user.authentication.auth_via_mfa", "user.account.privilege.grant", "group.user_membership.add"],
+    "version": ["0"],
+    "actor.type": ["User", "PublicClientApp"],
+    "outcome.result": ["SUCCESS", "FAILURE"],
+    "target.type": ["User", "UserGroup"]
+  },
+  "m365_management_activity": {
+    "RecordType": [1,2,4,6,9,15],
+    "Operation": ["UserLoggedIn", "FileDownloaded", "MailItemsAccessed", "Add-MailboxPermission", "New-InboxRule"],
+    "Workload": ["AzureActiveDirectory", "Exchange", "SharePoint", "OneDrive"],
+    "ResultStatus": ["Succeeded", "Failed"]
+  },
+  "m365_message_trace": {
+    "Status": ["Delivered", "Failed", "Pending", "Expanded", "Quarantined"]
+  },
+  "entra_signin": {
+    "AppDisplayName": ["Microsoft Office", "Azure Portal", "Microsoft Graph", "Exchange Online"],
+    "ConditionalAccessStatus": ["success", "failure", "notApplied"],
+    "ResultType": ["0", "50053", "50126", "50074"],
+    "RiskLevelAggregated": ["none", "low", "medium", "high"],
+    "RiskLevelDuringSignIn": ["none", "low", "medium", "high"],
+    "RiskState": ["none", "atRisk", "confirmedCompromised", "remediated"]
+  },
+  "palo_alto_traffic": {
+    "app": ["ssl", "web-browsing", "dns", "ssh", "ms-rdp"],
+    "proto": ["tcp", "udp"],
+    "action": ["allow", "deny", "drop"],
+    "category": ["business-and-economy", "computer-and-internet-info", "unknown"]
+  },
+  "zscaler_zia_web": {
+    "action": ["Allowed", "Blocked"],
+    "requestmethod": ["GET", "POST", "PUT", "DELETE"],
+    "status": ["200", "302", "403", "404"],
+    "urlclass": ["Business Use", "Bandwidth Loss", "Security Risk"],
+    "urlsupercat": ["Business", "Technology", "Security"]
+  },
+  "suricata_eve_alert": {
+    "event_type": ["alert", "flow", "dns", "http", "tls"],
+    "proto": ["TCP", "UDP"],
+    "app_proto": ["http", "tls", "dns", "ssh"],
+    "alert.action": ["allowed", "blocked"],
+    "alert.category": ["Attempted Administrator Privilege Gain", "Potentially Bad Traffic", "Web Application Attack"],
+    "alert.severity": [1,2,3]
+  },
+  "linux_auditd": {
+    "type": ["SYSCALL", "EXECVE", "USER_AUTH", "USER_CMD"],
+    "success": ["yes", "no"],
+    "tty": ["pts0", "pts1", "(none)"],
+    "comm": ["sudo", "sshd", "bash", "curl"],
+    "exe": ["/usr/bin/sudo", "/usr/sbin/sshd", "/usr/bin/bash", "/usr/bin/curl"]
+  },
+  "microsoft_defender_endpoint": {
+    "ActionType": ["ProcessCreated", "ConnectionSuccess", "ConnectionFailed", "FileCreated", "PowerShellCommand"],
+    "FileName": ["powershell.exe", "cmd.exe", "rundll32.exe", "chrome.exe", "svchost.exe"],
+    "Protocol": ["Tcp", "Udp"]
+  },
+  "gcp_audit": {
+    "resource.type": ["gce_instance", "gcs_bucket", "service_account", "aiplatform_endpoint"],
+    "protoPayload.methodName": ["v1.compute.instances.insert", "storage.buckets.update", "google.iam.admin.v1.CreateServiceAccount", "google.cloud.aiplatform.v1.EndpointService.UpdateEndpoint"],
+    "protoPayload.serviceName": ["compute.googleapis.com", "storage.googleapis.com", "iam.googleapis.com", "aiplatform.googleapis.com"],
+    "severity": ["DEFAULT", "INFO", "NOTICE", "WARNING", "ERROR"]
+  },
+  "google_workspace": {
+    "id.applicationName": ["admin", "login", "drive", "token"],
+    "events.type": ["USER_SETTINGS", "GROUP_SETTINGS", "login", "access"],
+    "events.name": ["CREATE_USER", "ADD_GROUP_MEMBER", "login_success", "login_failure", "grant" ]
+  },
+  "aws_vpc_flow": {
+    "version": [2,3,5],
+    "protocol": [6,17],
+    "action": ["ACCEPT", "REJECT"],
+    "log-status": ["OK", "NODATA"]
+  },
+  "kubernetes_audit": {
+    "apiVersion": ["audit.k8s.io/v1"],
+    "kind": ["Event"],
+    "level": ["Metadata", "Request", "RequestResponse"],
+    "stage": ["RequestReceived", "ResponseStarted", "ResponseComplete"],
+    "verb": ["get", "list", "create", "update", "patch", "delete"],
+    "objectRef.resource": ["pods", "secrets", "configmaps", "clusterrolebindings"],
+    "responseStatus.code": [200,201,403,404]
+  },
+  "github_audit": {
+    "action": ["repo.create", "repo.destroy", "org.add_member", "org.remove_member", "team.add_member", "oauth_application.create", "hook.create"],
+    "operation_type": ["create", "modify", "remove", "access"]
+  },
+  "palo_alto_threat": {
+    "app": ["ssl", "web-browsing", "dns", "ssh"],
+    "proto": ["tcp", "udp"],
+    "action": ["alert", "allow", "block-ip", "drop", "reset-both"],
+    "category": ["malware", "spyware", "vulnerability", "url-filtering"],
+    "severity": ["informational", "low", "medium", "high", "critical"],
+    "direction": ["client-to-server", "server-to-client"]
+  },
+  "cloudflare_http": {
+    "ClientRequestMethod": ["GET", "POST", "PUT", "DELETE"],
+    "ClientRequestProtocol": ["HTTP/1.1", "HTTP/2", "HTTP/3"],
+    "EdgeResponseStatus": [200,301,403,404,429],
+    "SecurityAction": ["allow", "block", "challenge", "managed_challenge"]
+  },
+  "salesforce_event_monitoring": {
+    "EVENT_TYPE": ["Login", "Logout", "API", "Report", "URI"],
+    "URI": ["/services/data/v61.0/query", "/lightning/page/home", "/services/data/v61.0/sobjects/Account"]
+  },
+  "aws_route53_dns": {
+    "region": ["us-east-1", "us-east-2", "us-west-2"],
+    "query_type": ["A", "AAAA", "CNAME", "TXT", "MX"],
+    "query_class": ["IN"],
+    "rcode": ["NOERROR", "NXDOMAIN", "SERVFAIL"],
+    "transport": ["UDP", "TCP"]
+  }
+}
