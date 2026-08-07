@@ -1,7 +1,6 @@
 import csv
 import importlib.util
 import io
-import json
 import random
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -17,6 +16,7 @@ def _load(name, path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
 
 base = _load("tf_base", T / "generate_corpus.py")
 windows = _load("tf_windows", T / "windows_event_contracts.py")
@@ -34,7 +34,12 @@ def test_windows_serializes_real_event_xml():
         ns = {"e": "http://schemas.microsoft.com/win/2004/08/events/event"}
         assert root.find("e:System/e:EventID", ns).text == str(event["EventCode"])
         channel = root.find("e:System/e:Channel", ns).text
-        assert channel == ("Security" if profile == "windows_security" else "Microsoft-Windows-PowerShell/Operational")
+        expected = (
+            "Security"
+            if profile == "windows_security"
+            else "Microsoft-Windows-PowerShell/Operational"
+        )
+        assert channel == expected
         names = {x.attrib.get("Name") for x in root.findall("e:EventData/e:Data", ns)}
         assert "Computer" not in names
         if event["EventCode"] == 4104:
@@ -44,77 +49,120 @@ def test_windows_serializes_real_event_xml():
 def test_m365_management_workload_operations_are_coherent():
     random.seed(2)
     for _ in range(500):
-        e = microsoft.management_activity_event(base, TS)
-        assert e["UserId"].endswith("@corp.example")
-        assert e["ResultStatus"] in {"Succeeded", "Failed"}
-        if e["Workload"] == "Exchange": assert e["Operation"] in {"Set-Mailbox", "New-InboxRule", "UpdateInboxRules", "MailItemsAccessed"}
-        if e["Workload"] in {"SharePoint", "OneDrive"}: assert "SiteUrl" in e
+        event = microsoft.management_activity_event(base, TS)
+        assert event["UserId"].endswith("@corp.example")
+        assert event["ResultStatus"] in {"Succeeded", "Failed"}
+        if event["Workload"] == "Exchange":
+            assert event["Operation"] in {
+                "Set-Mailbox",
+                "New-InboxRule",
+                "UpdateInboxRules",
+                "MailItemsAccessed",
+            }
+        if event["Workload"] in {"SharePoint", "OneDrive"}:
+            assert "SiteUrl" in event
 
 
 def test_message_trace_and_defender_are_family_specific():
     trace = microsoft.message_trace_event(base, TS)
-    assert trace["Received"] == TS and trace["MessageTraceId"] and trace["SenderAddress"] and trace["RecipientAddress"]
+    assert trace["Received"] == TS
+    assert trace["MessageTraceId"]
+    assert trace["SenderAddress"]
+    assert trace["RecipientAddress"]
     random.seed(3)
     rows = [microsoft.defender_advanced_hunting_event(base, TS) for _ in range(500)]
-    actions = {r["ActionType"] for r in rows}
+    actions = {row["ActionType"] for row in rows}
     assert "ProcessCreated" in actions
-    assert any(a.startswith("Connection") or a.startswith("Inbound") for a in actions)
-    assert any(a.startswith("Logon") for a in actions)
-    for r in rows:
-        if r["ActionType"] == "ProcessCreated": assert "ProcessCommandLine" in r and "RemotePort" not in r
-        if r["ActionType"].startswith("Connection") or r["ActionType"].startswith("Inbound"): assert "RemoteIP" in r and "ProcessCommandLine" not in r
+    assert any(action.startswith(("Connection", "Inbound")) for action in actions)
+    assert any(action.startswith("Logon") for action in actions)
+    for row in rows:
+        if row["ActionType"] == "ProcessCreated":
+            assert "ProcessCommandLine" in row
+            assert "RemotePort" not in row
+        if row["ActionType"].startswith(("Connection", "Inbound")):
+            assert "RemoteIP" in row
+            assert "ProcessCommandLine" not in row
 
 
 def test_pan_zscaler_suricata_auditd_and_asa_formats():
     assert len(network.pan_traffic_record(base, TS).split(",")) >= 45
     assert len(network.pan_threat_record(base, TS).split(",")) >= 50
-    z = network.zscaler_web_event(base, TS)
-    for field in ("ClientIP", "user", "url", "action", "status", "hostname", "urlclass"): assert field in z
-    s = network.suricata_alert_event(base, TS)
-    assert s["event_type"] == "alert" and "signature" in s["alert"]
-    a = network.auditd_record(base, TS)
-    assert a.startswith("type=") and "msg=audit(" in a
-    c = network.cisco_asa_record(base, TS)
-    assert "%ASA-6-30201" in c
+    zscaler = network.zscaler_web_event(base, TS)
+    for field in ("ClientIP", "user", "url", "action", "status", "hostname", "urlclass"):
+        assert field in zscaler
+    suricata = network.suricata_alert_event(base, TS)
+    assert suricata["event_type"] == "alert"
+    assert "signature" in suricata["alert"]
+    audit = network.auditd_record(base, TS)
+    assert audit.startswith("type=")
+    assert "msg=audit(" in audit
+    asa = network.cisco_asa_record(base, TS)
+    assert "%ASA-6-30201" in asa
 
 
 def test_okta_target_semantics_are_not_actor_aliases():
     random.seed(4)
     events = [cloud.okta_event(base, TS) for _ in range(1000)]
-    grants = [e for e in events if e["eventType"] in {"user.account.privilege.grant", "group.user_membership.add", "application.user_membership.add"}]
+    grant_types = {
+        "user.account.privilege.grant",
+        "group.user_membership.add",
+        "application.user_membership.add",
+    }
+    grants = [event for event in events if event["eventType"] in grant_types]
     assert grants
-    for e in grants:
-        assert e["target"]
-        user_targets = [t for t in e["target"] if t["type"] == "User"]
-        assert user_targets and user_targets[0]["alternateId"]
-        assert e["actor"]["alternateId"]
+    for event in grants:
+        assert event["target"]
+        user_targets = [target for target in event["target"] if target["type"] == "User"]
+        assert user_targets
+        assert user_targets[0]["alternateId"]
+        assert event["actor"]["alternateId"]
 
 
 def test_gcp_workspace_kubernetes_github_cloudflare_shapes():
-    g = cloud.gcp_admin_audit_event(base, TS)
-    assert g["logName"].endswith("activity") and g["protoPayload"]["authenticationInfo"]["principalEmail"]
-    assert g["protoPayload"]["methodName"]
-    w = cloud.workspace_admin_event(base, TS)
-    assert w["id"]["applicationName"] == "admin" and w["events"][0]["name"]
-    k = cloud.kubernetes_audit_event(base, TS)
-    assert k["apiVersion"] == "audit.k8s.io/v1" and k["kind"] == "Event" and k["sourceIPs"]
-    gh = cloud.github_audit_event(base, TS)
-    assert gh["action"] and gh["actor"] and gh["org"] and gh["created_at"] == TS
-    cf = cloud.cloudflare_http_event(base, TS)
-    assert cf["ClientRequestURI"].startswith("https://" + cf["ClientRequestHost"])
-    assert cf["RayID"]
+    gcp = cloud.gcp_admin_audit_event(base, TS)
+    assert gcp["logName"].endswith("activity")
+    assert gcp["protoPayload"]["authenticationInfo"]["principalEmail"]
+    assert gcp["protoPayload"]["methodName"]
+    workspace = cloud.workspace_admin_event(base, TS)
+    assert workspace["id"]["applicationName"] == "admin"
+    assert workspace["events"][0]["name"]
+    kubernetes = cloud.kubernetes_audit_event(base, TS)
+    assert kubernetes["apiVersion"] == "audit.k8s.io/v1"
+    assert kubernetes["kind"] == "Event"
+    assert kubernetes["sourceIPs"]
+    github = cloud.github_audit_event(base, TS)
+    assert github["action"]
+    assert github["actor"]
+    assert github["org"]
+    assert github["created_at"] == TS
+    cloudflare = cloud.cloudflare_http_event(base, TS)
+    assert cloudflare["ClientRequestURI"].startswith(
+        "https://" + cloudflare["ClientRequestHost"]
+    )
+    assert cloudflare["RayID"]
 
 
 def test_salesforce_is_csv_and_crowdstrike_fields_follow_event_family():
     row = cloud.salesforce_event(base, TS)
-    raw = cloud.header("salesforce_event_monitoring") + "\n" + cloud.serialize("salesforce_event_monitoring", row)
+    raw = (
+        cloud.header("salesforce_event_monitoring")
+        + "\n"
+        + cloud.serialize("salesforce_event_monitoring", row)
+    )
     parsed = list(csv.DictReader(io.StringIO(raw)))
-    assert len(parsed) == 1 and parsed[0]["EVENT_TYPE"] == row["EVENT_TYPE"]
+    assert len(parsed) == 1
+    assert parsed[0]["EVENT_TYPE"] == row["EVENT_TYPE"]
     random.seed(5)
     events = [cloud.crowdstrike_event(base, TS) for _ in range(1000)]
-    families = {e["event_simpleName"] for e in events}
+    families = {event["event_simpleName"] for event in events}
     assert families == {"InjectedThread", "ProcessRollup2", "NetworkConnectIP4", "DnsRequest"}
-    for e in events:
-        if e["event_simpleName"] == "DnsRequest": assert "DomainName" in e and "RemotePort" not in e
-        if e["event_simpleName"] == "NetworkConnectIP4": assert "RemoteAddressIP4" in e and "RemotePort" in e
-        if e["event_simpleName"] == "ProcessRollup2": assert "CommandLine" in e and "SHA256HashData" in e
+    for event in events:
+        if event["event_simpleName"] == "DnsRequest":
+            assert "DomainName" in event
+            assert "RemotePort" not in event
+        if event["event_simpleName"] == "NetworkConnectIP4":
+            assert "RemoteAddressIP4" in event
+            assert "RemotePort" in event
+        if event["event_simpleName"] == "ProcessRollup2":
+            assert "CommandLine" in event
+            assert "SHA256HashData" in event
