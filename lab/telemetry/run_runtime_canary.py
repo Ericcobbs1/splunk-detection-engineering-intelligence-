@@ -43,32 +43,37 @@ def search_csv(spl: str) -> List[Dict[str, str]]:
     return list(csv.DictReader(proc.stdout.splitlines()))
 
 
-def inventory(index: str, source: str) -> Set[str]:
+def scoped_search(index: str, source: str, ingest_start: int) -> str:
     escaped_source = source.replace('"', '\\"')
+    return (
+        f'search index="{index}" source="{escaped_source}" earliest=-2d latest=now '
+        f'| where _indextime >= {ingest_start}'
+    )
+
+
+def inventory(index: str, source: str, ingest_start: int) -> Set[str]:
     spl = (
-        f'search index="{index}" source="{escaped_source}" earliest=-30m latest=now '
-        "| head 200 | fieldsummary | fields field count distinct_count"
+        scoped_search(index, source, ingest_start)
+        + " | head 200 | fieldsummary | fields field count distinct_count"
     )
     rows = search_csv(spl)
     return {row.get("field", "") for row in rows if row.get("field")}
 
 
-def event_count(index: str, source: str) -> int:
-    escaped_source = source.replace('"', '\\"')
-    rows = search_csv(
-        f'search index="{index}" source="{escaped_source}" earliest=-30m latest=now | stats count'
-    )
+def event_count(index: str, source: str, ingest_start: int) -> int:
+    rows = search_csv(scoped_search(index, source, ingest_start) + " | stats count")
     if not rows:
         return 0
     return int(rows[0].get("count", "0") or 0)
 
 
-def cim_count(model_dataset: str, index: str, source: str) -> int:
+def cim_count(model_dataset: str, index: str, source: str, ingest_start: int) -> int:
     model, dataset = model_dataset.split(".", 1)
     escaped_source = source.replace('"', '\\"')
     spl = (
         f'| datamodel {model} {dataset} search '
-        f'| search index="{index}" source="{escaped_source}" '
+        f'| search index="{index}" source="{escaped_source}" earliest=-2d latest=now '
+        f'| where _indextime >= {ingest_start} '
         "| stats count"
     )
     try:
@@ -90,12 +95,27 @@ def main() -> int:
 
         shutil.rmtree(OUT)
 
-    run([sys.executable, str(GENERATOR), "--out", str(OUT), "--events-per-source", "25", "--days", "1"])
+    run(
+        [
+            sys.executable,
+            str(GENERATOR),
+            "--out",
+            str(OUT),
+            "--events-per-source",
+            "25",
+            "--days",
+            "1",
+        ]
+    )
 
     manifest = json.loads((OUT / "manifest.json").read_text(encoding="utf-8"))
     routing = json.loads(ROUTING.read_text(encoding="utf-8"))["datasets"]
     contracts = json.loads(CONTRACTS.read_text(encoding="utf-8"))["datasets"]
 
+    # Scope validation to events indexed by this run. Synthetic event _time is
+    # intentionally distributed across --days and must not be used to identify
+    # the current runtime canary.
+    ingest_start = int(time.time()) - 2
     results: Dict[str, Any] = {}
 
     for item in manifest["sources"]:
@@ -128,12 +148,19 @@ def main() -> int:
     overall = True
     for dataset, result in results.items():
         if not result["ingest_ok"]:
-            result.update({"event_count": 0, "field_groups_ok": False, "cim_ok": False, "status": "FAIL"})
+            result.update(
+                {
+                    "event_count": 0,
+                    "field_groups_ok": False,
+                    "cim_ok": False,
+                    "status": "FAIL",
+                }
+            )
             overall = False
             continue
 
-        count = event_count(result["index"], result["source"])
-        fields = inventory(result["index"], result["source"])
+        count = event_count(result["index"], result["source"], ingest_start)
+        fields = inventory(result["index"], result["source"], ingest_start)
         spec = contracts[dataset]
         group_results = []
         for group in spec["required_any_groups"]:
@@ -143,7 +170,7 @@ def main() -> int:
 
         probes = []
         for probe in spec.get("cim_probes", []):
-            n = cim_count(probe, result["index"], result["source"])
+            n = cim_count(probe, result["index"], result["source"], ingest_start)
             probes.append({"model_dataset": probe, "count": n, "ok": n > 0})
         cim_required = bool(spec.get("cim_probes"))
         cim_ok = (not cim_required) or any(x["ok"] for x in probes)
@@ -164,6 +191,7 @@ def main() -> int:
 
     payload = {
         "runtime_verified": overall,
+        "ingest_start_epoch": ingest_start,
         "datasets_total": len(results),
         "datasets_passed": sum(1 for r in results.values() if r.get("status") == "PASS"),
         "datasets_failed": [k for k, r in results.items() if r.get("status") != "PASS"],
