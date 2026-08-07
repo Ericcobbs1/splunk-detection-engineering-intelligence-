@@ -13,32 +13,33 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "command_center.js,mitre_coverage.js"
-    assert root.attrib["stylesheet"] == "command_center_v2.css,mitre_coverage.css"
+    assert root.attrib["script"] == "command_center.js,analysis_bridge.js"
+    assert root.attrib["stylesheet"] == "command_center_v2.css"
     for element_id in (
         "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
-        "dei-coverage-section", "dei-advisor-section", "dei-mitre-section", "mitre-swimlane",
-        "protection-title", "protection-summary", "protection-outcomes", "metric-understanding",
-        "portfolio-total", "portfolio-field-gaps", "portfolio-unverified",
+        "dei-coverage-section", "metric-understanding", "portfolio-total",
+        "portfolio-field-gaps", "portfolio-unverified",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
+    assert root.find(".//*[@id='dei-mitre-section']") is None
+    assert root.find(".//*[@id='dei-advisor-section']") is None
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
 
 
-def test_command_center_is_default_navigation_view() -> None:
+def test_command_center_is_default_navigation_view_and_mitre_is_registered() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
     command_center = root.find("./view[@name='command_center']")
     assert command_center is not None
     assert command_center.attrib["default"] == "true"
+    assert root.find(".//view[@name='mitre_coverage']") is not None
 
 
 def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center_v2.css").read_text(encoding="utf-8")
-    mitre_js = (STATIC_ROOT / "mitre_coverage.js").read_text(encoding="utf-8")
-    mitre_css = (STATIC_ROOT / "mitre_coverage.css").read_text(encoding="utf-8")
+    bridge = (STATIC_ROOT / "analysis_bridge.js").read_text(encoding="utf-8")
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -61,20 +62,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "Field profiling reached its 90-second ceiling" in javascript
     assert "Telemetry inventory timed out after 20 seconds." in javascript
     assert "renderPortfolio" in javascript
-    assert "renderMitre" in javascript
     assert ".dei-shell" in stylesheet
     assert "--dei-accent" in stylesheet
     assert ".dei-product-bar" in stylesheet
-    assert ".dei-recommendation" in stylesheet
     assert "scroll-behavior: smooth" in stylesheet
-    assert 'TA0006", "Credential Access"' in mitre_js
-    assert 'TA0010", "Exfiltration"' in mitre_js
-    assert '"T1110.003"' in mitre_js
-    assert '"T1098"' in mitre_js
-    assert "DEIRecommendationReport" in mitre_js
-    assert "ajaxSuccess" in mitre_js
-    assert "renderSelection" in mitre_js
-    assert ".dei-mitre-swimlane" in mitre_css
-    assert ".dei-mitre-tactic.covered" in mitre_css
-    assert ".dei-protection-grid" in mitre_css
-    assert ".dei-recommendation.selected" in mitre_css
+    assert "ajaxSuccess" in bridge
+    assert "dei.latestRecommendationReport" in bridge
