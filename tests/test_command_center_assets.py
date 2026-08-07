@@ -60,14 +60,19 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "understood / observed" in javascript
     assert "telemetry understanding" in javascript
     assert "fieldSampleEvents = 200" in javascript
-    assert "fieldDiscoveryConcurrency = 4" in javascript
+    assert "fieldDiscoveryConcurrency = 6" in javascript
+    assert "fieldSearchTimeoutMs = 12000" in javascript
+    assert "fieldDiscoveryTimeoutMs = 90000" in javascript
     assert "| fieldsummary" in javascript
     assert "fields_by_source" in javascript
-    assert "Profiling fields..." in javascript
-    assert "Analysis stopped rather than assuming field readiness." in javascript
+    assert "Profiling fields 0/" in javascript
+    assert "Last completed:" in javascript
+    assert "slow sources will be marked unverified instead of blocking analysis" in javascript
+    assert "Field profiling reached its 90-second ceiling" in javascript
+    assert "could not be field-profiled and were treated as unverified" in javascript
     assert "field_gap_count" in javascript
     assert "field_unverified_count" in javascript
-    assert "Telemetry discovery timed out after 30 seconds." in javascript
+    assert "Telemetry inventory timed out after 20 seconds." in javascript
     assert "#dei-analyze" in javascript
     assert "renderPortfolio" in javascript
     assert "renderMitre" in javascript
