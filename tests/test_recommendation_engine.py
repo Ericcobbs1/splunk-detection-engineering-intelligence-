@@ -75,7 +75,7 @@ def test_production_like_lab_baseline_preserves_legacy_readiness() -> None:
     assert readiness["ai-shadow-usage"] == "unsupported"
 
 
-def test_eleven_source_lab_enables_identity_endpoint_and_linux_packs() -> None:
+def test_eleven_source_lab_uses_v2_secondary_capabilities() -> None:
     observed_sources = [
         "XmlWinEventLog:Security",
         "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational",
@@ -95,10 +95,15 @@ def test_eleven_source_lab_enables_identity_endpoint_and_linux_packs() -> None:
         include_unsupported=True,
     )
     assert report.observed_source_count == 11
-    assert report.production_ready_count == 15
+    assert report.production_ready_count == 18
     assert report.partial_count == 0
-    assert report.unsupported_count == 6
+    assert report.unsupported_count == 3
     assert report.unmapped_sources == ()
+
+    readiness = {item.detection_id: item.readiness for item in report.recommendations}
+    assert readiness["web-anomalous-post-volume"] == "production_ready"
+    assert readiness["firewall-risky-inbound"] == "production_ready"
+    assert readiness["dns-suspicious-resolution"] == "production_ready"
 
 
 def test_full_enterprise_lab_reaches_full_catalog_readiness() -> None:
