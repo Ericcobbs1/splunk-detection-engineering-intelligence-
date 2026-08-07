@@ -58,7 +58,7 @@ def test_production_like_lab_baseline_preserves_legacy_readiness() -> None:
     assert report.observed_source_count == 7
     assert report.production_ready_count == 8
     assert report.partial_count == 0
-    assert report.unsupported_count == 13
+    assert report.unsupported_count == 23
 
     readiness = {item.detection_id: item.readiness for item in report.recommendations}
     for detection_id in (
@@ -97,7 +97,7 @@ def test_eleven_source_lab_uses_v2_secondary_capabilities() -> None:
     assert report.observed_source_count == 11
     assert report.production_ready_count == 18
     assert report.partial_count == 0
-    assert report.unsupported_count == 3
+    assert report.unsupported_count == 13
     assert report.unmapped_sources == ()
 
     readiness = {item.detection_id: item.readiness for item in report.recommendations}
@@ -106,7 +106,7 @@ def test_eleven_source_lab_uses_v2_secondary_capabilities() -> None:
     assert readiness["dns-suspicious-resolution"] == "production_ready"
 
 
-def test_full_enterprise_lab_reaches_full_catalog_readiness() -> None:
+def test_legacy_enterprise_lab_remains_ready_for_original_catalog() -> None:
     observed_sources = [
         "XmlWinEventLog:Security",
         "crowdstrike:events:sensor",
@@ -139,20 +139,53 @@ def test_full_enterprise_lab_reaches_full_catalog_readiness() -> None:
     assert report.observed_source_count == 22
     assert report.production_ready_count == 21
     assert report.partial_count == 0
-    assert report.unsupported_count == 0
+    assert report.unsupported_count == 10
     assert report.unmapped_sources == ("stash", "json")
 
-    ready_packs = {item.pack_id for item in report.recommendations}
+    ready_packs = {item.pack_id for item in report.recommendations if item.readiness == "production_ready"}
     assert {
         "windows", "aws", "ai", "identity", "endpoint", "linux",
         "network", "threat_intel", "enterprise_security", "web",
     } <= ready_packs
 
 
+def test_expanded_catalog_sources_enable_new_detection_families() -> None:
+    observed_sources = [
+        "aws:cloudwatch:guardduty",
+        "aws:securityhub:finding",
+        "o365:management:activity",
+        "o365:reporting:messagetrace",
+        "azure:monitor:activity",
+        "google:gcp:pubsub:audit:admin_activity",
+        "gws:reports:admin",
+        "kube:audit",
+        "github:audit",
+        "sfdc:logfile",
+    ]
+    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+        observed_sources,
+        include_unsupported=True,
+    )
+    readiness = {item.detection_id: item.readiness for item in report.recommendations}
+    for detection_id in (
+        "aws-guardduty-high-severity",
+        "aws-securityhub-critical-finding",
+        "m365-admin-change-failure",
+        "m365-message-trace-anomaly",
+        "azure-control-plane-change",
+        "gcp-admin-activity-change",
+        "google-workspace-admin-change",
+        "kubernetes-sensitive-api-operation",
+        "github-organization-admin-change",
+        "salesforce-session-anomaly",
+    ):
+        assert readiness[detection_id] == "production_ready"
+
+
 def test_unsupported_detections_are_hidden_by_default() -> None:
     report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend([])
     assert report.recommendations == ()
-    assert report.unsupported_count == 21
+    assert report.unsupported_count == 31
 
 
 def test_invalid_catalog_is_rejected(tmp_path: Path) -> None:
