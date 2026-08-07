@@ -29,65 +29,44 @@ class NormalizationResult:
     unmapped_sources: tuple[str, ...]
 
 
-# Primary aliases remain conservative and explainable. Some TA sourcetypes also
-# advertise additional capabilities because one telemetry stream can satisfy
-# multiple detection domains (for example Zscaler web or PAN threat telemetry).
-_EXACT_ALIASES: dict[str, tuple[str, int, str]] = {
-    "wineventlog:security": ("XmlWinEventLog:Security", 100, "Windows Security event-log alias"),
-    "xmlwineventlog": ("windows.eventlog", 70, "Generic Windows XML event-log telemetry requires channel or index context for detection-specific routing"),
-    "zscaler:web": ("proxy", 100, "Zscaler web telemetry satisfies the proxy capability"),
-    "zscalernss-web": ("proxy", 100, "Zscaler NSS web telemetry provides proxy and web-security activity"),
-    "oktaim2:log": ("identity.authentication", 100, "Okta System Log provides identity and authentication telemetry"),
-    "crowdstrike:events:sensor": ("endpoint.edr", 100, "CrowdStrike sensor events provide endpoint/EDR telemetry"),
-    "m365:defender:incident:advanced_hunting": ("endpoint.edr", 100, "Microsoft Defender Advanced Hunting provides endpoint/EDR telemetry"),
-    "linux_secure": ("linux.authentication", 100, "Linux secure/auth logs provide authentication and privilege telemetry"),
-    "auditd": ("linux.authentication", 95, "Linux auditd provides authentication, process, and privilege telemetry"),
-    "cisco:asa": ("network.firewall", 100, "Cisco ASA telemetry provides firewall and network-security events"),
-    "cisco:ios": ("network.infrastructure", 100, "Cisco IOS telemetry provides network infrastructure events"),
-    "stream:dns": ("network.dns", 100, "Splunk Stream DNS telemetry provides DNS activity"),
-    "aws:cloudwatchlogs:route53": ("network.dns", 100, "Route 53 query logs provide authoritative DNS activity"),
-    "aws:cloudwatchlogs:vpcflow": ("network.traffic", 100, "AWS VPC Flow Logs provide network-flow telemetry"),
-    "aws:cloudwatch:guardduty": ("aws.guardduty", 100, "GuardDuty findings provide AWS threat-detection telemetry"),
-    "aws:securityhub:finding": ("cloud.security_finding", 100, "AWS Security Hub findings provide cloud security findings"),
-    "o365:management:activity": ("m365.activity", 100, "Microsoft 365 Management Activity provides SaaS audit/change telemetry"),
-    "o365:reporting:messagetrace": ("email.message_trace", 100, "Microsoft 365 Message Trace provides email-flow telemetry"),
-    "azure:monitor:aad": ("identity.authentication", 100, "Microsoft Entra sign-in telemetry provides identity authentication activity"),
-    "azure:monitor:activity": ("cloud.change", 100, "Azure Activity Logs provide cloud administrative change telemetry"),
-    "google:gcp:pubsub:audit:admin_activity": ("gcp.audit", 100, "Google Cloud Admin Activity audit logs provide cloud-change telemetry"),
-    "google:gcp:pubsub:message": ("gcp.audit", 80, "Legacy/generic GCP Pub/Sub audit telemetry requires granular audit sourcetype normalization when available"),
-    "gws:reports:admin": ("google.workspace.admin", 100, "Google Workspace Admin audit telemetry provides SaaS administrative activity"),
-    "pan:traffic": ("network.firewall", 100, "PAN-OS Traffic logs provide firewall and network-flow telemetry"),
-    "pan:threat": ("intrusion_detection", 100, "PAN-OS Threat logs provide intrusion and threat telemetry"),
-    "suricata": ("intrusion_detection", 100, "Suricata EVE alerts provide IDS telemetry"),
-    "kube:audit": ("kubernetes.audit", 100, "Kubernetes Audit logs provide cluster administrative and access telemetry"),
-    "github:audit": ("source_control.audit", 100, "GitHub audit logs provide source-control administrative activity"),
-    "cloudflare:http": ("web.http", 100, "Cloudflare HTTP logs provide web request and edge-security telemetry"),
-    "sfdc:logfile": ("salesforce.audit", 100, "Salesforce Event Monitoring provides SaaS audit activity"),
-    "cdcc:edr": ("endpoint.edr", 90, "Known lab EDR sourcetype provides endpoint security telemetry"),
-    "otx:indicator": ("threat_intelligence", 100, "OTX indicator telemetry provides threat-intelligence observables"),
-    "otx:pulse": ("threat_intelligence", 100, "OTX pulse telemetry provides threat-intelligence context"),
-    "modular_alerts:risk": ("es.risk", 100, "Enterprise Security risk events provide risk-based alerting telemetry"),
-    "access_combined": ("web.http", 95, "Combined web access logs provide HTTP request telemetry"),
-}
-
-_ADDITIONAL_CAPABILITIES: dict[str, tuple[str, ...]] = {
-    "zscalernss-web": ("web.http", "network.traffic", "intrusion_detection"),
-    "crowdstrike:events:sensor": ("endpoint.process", "network.dns"),
-    "m365:defender:incident:advanced_hunting": ("endpoint.process", "endpoint.authentication", "network.traffic"),
-    "auditd": ("endpoint.process",),
-    "cisco:asa": ("network.traffic",),
-    "aws:cloudwatchlogs:vpcflow": ("network.firewall",),
-    "aws:cloudwatch:guardduty": ("intrusion_detection",),
-    "aws:securityhub:finding": ("intrusion_detection",),
-    "o365:management:activity": ("identity.change", "cloud.change"),
-    "o365:reporting:messagetrace": ("email",),
-    "azure:monitor:activity": ("identity.change",),
-    "google:gcp:pubsub:audit:admin_activity": ("cloud.change",),
-    "gws:reports:admin": ("identity.change",),
-    "pan:traffic": ("network.traffic",),
-    "pan:threat": ("web.http",),
-    "suricata": ("network.traffic",),
-    "sfdc:logfile": ("identity.authentication", "cloud.change"),
+# Exact aliases stay conservative. Each alias defines a primary canonical token
+# for backward compatibility plus optional additional capabilities validated from
+# vendor TA/runtime evidence.
+_EXACT_ALIASES: dict[str, tuple[str, tuple[str, ...], int, str]] = {
+    "wineventlog:security": ("XmlWinEventLog:Security", (), 100, "Windows Security event-log alias"),
+    "xmlwineventlog": ("windows.eventlog", (), 70, "Generic rendered Windows Event Log XML; channel context required for Security/PowerShell readiness"),
+    "zscaler:web": ("proxy", ("web.http", "network.firewall"), 100, "Zscaler web telemetry provides proxy, web, and network-security capabilities"),
+    "zscalernss-web": ("web.http", ("network.firewall", "network.ids"), 100, "Zscaler NSS web telemetry provides web, network traffic, and threat context"),
+    "oktaim2:log": ("identity.authentication", (), 100, "Okta System Log provides identity and authentication telemetry"),
+    "crowdstrike:events:sensor": ("endpoint.edr", ("network.dns",), 100, "CrowdStrike sensor events provide endpoint, process, and DNS telemetry"),
+    "linux_secure": ("linux.authentication", (), 100, "Linux secure/auth logs provide authentication and privilege telemetry"),
+    "auditd": ("linux.authentication", ("endpoint.process",), 95, "Linux auditd provides authentication and process/syscall telemetry"),
+    "cisco:asa": ("network.firewall", (), 100, "Cisco ASA telemetry provides firewall and network-security events"),
+    "cisco:ios": ("network.infrastructure", (), 100, "Cisco IOS telemetry provides network infrastructure events"),
+    "stream:dns": ("network.dns", (), 100, "Splunk Stream DNS telemetry provides DNS activity"),
+    "cdcc:edr": ("endpoint.edr", (), 90, "Known lab EDR sourcetype provides endpoint security telemetry"),
+    "otx:indicator": ("threat_intelligence", (), 100, "OTX indicator telemetry provides threat-intelligence observables"),
+    "otx:pulse": ("threat_intelligence", (), 100, "OTX pulse telemetry provides threat-intelligence context"),
+    "modular_alerts:risk": ("es.risk", (), 100, "Enterprise Security risk events provide risk-based alerting telemetry"),
+    "access_combined": ("web.http", (), 95, "Combined web access logs provide HTTP request telemetry"),
+    "aws:cloudwatch:guardduty": ("aws.guardduty", ("network.ids",), 100, "GuardDuty finding telemetry provides AWS threat-detection context"),
+    "aws:cloudwatchlogs:vpcflow": ("network.firewall", (), 100, "AWS VPC Flow Logs provide network traffic and allow/deny telemetry"),
+    "aws:cloudwatchlogs:route53": ("network.dns", (), 100, "Route 53 Resolver query logs provide DNS telemetry"),
+    "aws:securityhub:finding": ("aws.securityhub", ("network.ids",), 100, "AWS Security Hub findings provide normalized security findings"),
+    "o365:management:activity": ("m365.activity", ("identity.authentication",), 100, "Microsoft 365 Management Activity provides audit, authentication, and change telemetry"),
+    "o365:reporting:messagetrace": ("email.message_trace", (), 100, "Microsoft 365 Message Trace provides email-delivery telemetry"),
+    "azure:monitor:aad": ("identity.authentication", (), 100, "Microsoft Entra sign-in telemetry provides identity and authentication events"),
+    "azure:monitor:activity": ("azure.activity", (), 100, "Azure Activity Log provides cloud control-plane change telemetry"),
+    "m365:defender:incident:advanced_hunting": ("endpoint.edr", ("identity.authentication", "network.firewall"), 100, "Microsoft Defender Advanced Hunting provides endpoint, authentication, and network telemetry"),
+    "google:gcp:pubsub:audit:admin_activity": ("gcp.audit", (), 100, "Google Cloud Admin Activity audit logs provide control-plane change telemetry"),
+    "gws:reports:admin": ("google_workspace.admin", (), 100, "Google Workspace Admin audit logs provide SaaS administration telemetry"),
+    "pan:traffic": ("network.firewall", (), 100, "PAN-OS Traffic logs provide network traffic and policy-action telemetry"),
+    "pan:threat": ("network.ids", ("web.http",), 100, "PAN-OS Threat logs provide intrusion and web-threat telemetry"),
+    "suricata": ("network.ids", (), 100, "Suricata EVE alerts provide network intrusion telemetry"),
+    "kube:audit": ("kubernetes.audit", (), 100, "Kubernetes audit events provide cluster control-plane activity"),
+    "github:audit": ("github.audit", (), 100, "GitHub audit logs provide repository and organization administration telemetry"),
+    "cloudflare:http": ("web.http", (), 100, "Cloudflare HTTP logs provide edge web-request telemetry"),
+    "sfdc:logfile": ("salesforce.event_monitoring", ("identity.authentication",), 100, "Salesforce Event Monitoring provides SaaS authentication and activity telemetry"),
 }
 
 _CANONICAL_SOURCES = {
@@ -105,19 +84,23 @@ _CANONICAL_SOURCES = {
     "network.firewall": "network.firewall",
     "network.infrastructure": "network.infrastructure",
     "network.dns": "network.dns",
+    "network.ids": "network.ids",
+    "endpoint.process": "endpoint.process",
     "threat_intelligence": "threat_intelligence",
     "es.risk": "es.risk",
     "web.http": "web.http",
+    "aws.guardduty": "aws.guardduty",
+    "aws.securityhub": "aws.securityhub",
+    "m365.activity": "m365.activity",
+    "email.message_trace": "email.message_trace",
+    "azure.activity": "azure.activity",
+    "gcp.audit": "gcp.audit",
+    "google_workspace.admin": "google_workspace.admin",
+    "kubernetes.audit": "kubernetes.audit",
+    "github.audit": "github.audit",
+    "salesforce.event_monitoring": "salesforce.event_monitoring",
+    "windows.eventlog": "windows.eventlog",
 }
-
-
-def _append_canonical(
-    canonical: list[str], canonical_seen: set[str], source: str
-) -> None:
-    key = source.lower()
-    if key not in canonical_seen:
-        canonical_seen.add(key)
-        canonical.append(source)
 
 
 def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
@@ -139,16 +122,11 @@ def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
 
         alias = _EXACT_ALIASES.get(key)
         if alias is not None:
-            canonical_source, confidence, reason = alias
-            extras = _ADDITIONAL_CAPABILITIES.get(key, ())
+            canonical_source, additional, confidence, reason = alias
             mapping = SourceMapping(
-                source,
-                canonical_source,
-                "mapped_alias",
-                confidence,
-                reason,
-                extras,
+                source, canonical_source, "mapped_alias", confidence, reason, additional
             )
+            all_canonical = (canonical_source,) + additional
         elif key in _CANONICAL_SOURCES:
             canonical_source = _CANONICAL_SOURCES[key]
             mapping = SourceMapping(
@@ -158,20 +136,20 @@ def normalize_sources(observed_sources: list[str]) -> NormalizationResult:
                 100,
                 "Source already matches a DEI canonical telemetry token",
             )
+            all_canonical = (canonical_source,)
         else:
             canonical_source = source
             mapping = SourceMapping(
-                source,
-                source,
-                "unmapped",
-                0,
-                "No DEI telemetry mapping is currently defined",
+                source, source, "unmapped", 0, "No DEI telemetry mapping is currently defined"
             )
+            all_canonical = (source,)
             unmapped.append(source)
 
-        _append_canonical(canonical, canonical_seen, canonical_source)
-        for extra in mapping.additional_canonical_sources:
-            _append_canonical(canonical, canonical_seen, extra)
+        for canonical_source in all_canonical:
+            canonical_key = canonical_source.lower()
+            if canonical_key not in canonical_seen:
+                canonical_seen.add(canonical_key)
+                canonical.append(canonical_source)
         mappings.append(mapping)
 
     return NormalizationResult(tuple(canonical), tuple(mappings), tuple(unmapped))
