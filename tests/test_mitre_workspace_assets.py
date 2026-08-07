@@ -34,7 +34,7 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert '"T1098"' in javascript
     assert '"T1562.008"' in javascript
     assert "Sub-technique of" in javascript
-    assert "Open selected technique on MITRE ATT&CK" in javascript
+    assert "Open selected technique on MITRE ATT&amp;CK" in javascript
     assert "What this protects" in javascript
     assert "dei.latestRecommendationReport" in javascript
     assert ".dei-mitre-layout" in stylesheet
