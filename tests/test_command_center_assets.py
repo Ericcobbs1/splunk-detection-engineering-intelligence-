@@ -17,6 +17,9 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     assert root.attrib["stylesheet"] == "command_center.css"
     assert root.find(".//*[@id='dei-command-center']") is not None
     assert root.find(".//*[@id='metric-understanding']") is not None
+    assert root.find(".//*[@id='portfolio-total']") is not None
+    assert root.find(".//*[@id='portfolio-field-gaps']") is not None
+    assert root.find(".//*[@id='portfolio-unverified']") is not None
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
@@ -61,5 +64,11 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "field_unverified_count" in javascript
     assert "Telemetry discovery timed out after 30 seconds." in javascript
     assert "#dei-analyze" in javascript
+    assert "renderPortfolio" in javascript
+    assert "renderMitre" in javascript
+    assert "dei-field-state" in javascript
     assert ".dei-shell" in stylesheet
     assert "--dei-accent" in stylesheet
+    assert ".dei-portfolio-grid" in stylesheet
+    assert ".dei-recommendation" in stylesheet
+    assert ".dei-severity.critical" in stylesheet
