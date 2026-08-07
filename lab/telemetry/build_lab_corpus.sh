@@ -4,11 +4,12 @@ set -euo pipefail
 TARGET_MB="${1:-1024}"
 DAYS="${2:-7}"
 OUT="${3:-dist/siem-corpus}"
+GENERATOR="lab/telemetry/generate_corpus_v2.py"
 
 mkdir -p "$OUT"
 
 # Start with a representative event count, measure output, then scale once.
-python3 lab/telemetry/generate_corpus.py --out "$OUT" --events-per-source 5000 --days "$DAYS"
+python3 "$GENERATOR" --out "$OUT" --events-per-source 5000 --days "$DAYS"
 
 ACTUAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -print0 | xargs -0 stat -f%z 2>/dev/null | awk '{s+=$1} END{print s+0}')
 if [[ "$ACTUAL_BYTES" -eq 0 ]]; then
@@ -37,7 +38,7 @@ SCALED_TOTAL_EVENTS=$(( (BASE_TOTAL_EVENTS * TARGET_BYTES + ACTUAL_BYTES - 1) / 
 EVENTS_PER_SOURCE=$(( (SCALED_TOTAL_EVENTS + SOURCE_COUNT - 1) / SOURCE_COUNT ))
 
 rm -rf "$OUT"
-python3 lab/telemetry/generate_corpus.py --out "$OUT" --events-per-source "$EVENTS_PER_SOURCE" --days "$DAYS"
+python3 "$GENERATOR" --out "$OUT" --events-per-source "$EVENTS_PER_SOURCE" --days "$DAYS"
 
 FINAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -print0 | xargs -0 stat -f%z 2>/dev/null | awk '{s+=$1} END{print s+0}')
 if [[ "$FINAL_BYTES" -eq 0 ]]; then
