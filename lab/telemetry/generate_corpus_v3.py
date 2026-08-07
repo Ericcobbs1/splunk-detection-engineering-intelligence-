@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the DEI corpus with event-specific semantic telemetry contracts.
+"""Generate DEI telemetry with event-specific semantic contracts.
 
-V3 keeps all verified v2 profiles but routes Windows Security and PowerShell
-through Microsoft event-specific contracts instead of a single generic field
-shape per dataset.
+V3 keeps verified v2 profiles but routes sources with known event-level semantics
+through dedicated contract builders. The goal is TA-facing fidelity rather than
+merely producing plausible searchable JSON.
 """
 from __future__ import annotations
 
@@ -18,7 +18,8 @@ from typing import Any, Dict, List
 ROOT = Path(__file__).resolve().parent
 V2_PATH = ROOT / "generate_corpus_v2.py"
 WINDOWS_PATH = ROOT / "windows_event_contracts.py"
-RECORD_FORMAT = "authoritative_searchable_json"
+AZURE_PATH = ROOT / "azure_event_contracts.py"
+RECORD_FORMAT = "ta_faithful_contract_v1"
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -32,6 +33,7 @@ def _load_module(name: str, path: Path) -> Any:
 
 v2 = _load_module("dei_generate_corpus_v2", V2_PATH)
 windows = _load_module("dei_windows_event_contracts", WINDOWS_PATH)
+azure = _load_module("dei_azure_event_contracts", AZURE_PATH)
 
 
 def load_profiles() -> List[Dict[str, Any]]:
@@ -43,8 +45,13 @@ def make_event(
     ts: str,
     contracts: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
-    if profile["id"] in {"windows_security", "windows_powershell"}:
-        return windows.make_windows_event(profile["id"], v2.base)
+    profile_id = profile["id"]
+    if profile_id in {"windows_security", "windows_powershell"}:
+        return windows.make_windows_event(profile_id, v2.base)
+    if profile_id == "entra_signin":
+        return azure.entra_signin_event(v2.base, ts)
+    if profile_id == "azure_activity":
+        return azure.azure_activity_event(v2.base, ts)
     return v2.make_event(profile, ts, contracts)
 
 
@@ -99,7 +106,10 @@ def main() -> None:
             {
                 "generated_at": now.isoformat(),
                 "record_format": RECORD_FORMAT,
-                "telemetry_contracts": {"windows": windows.contract_metadata()},
+                "telemetry_contracts": {
+                    "windows": windows.contract_metadata(),
+                    "azure": azure.contract_metadata(),
+                },
                 "sources": manifest,
             },
             indent=2,
@@ -107,7 +117,7 @@ def main() -> None:
         encoding="utf-8",
     )
     print(
-        f"Generated {len(manifest)} verified searchable-schema datasets / "
+        f"Generated {len(manifest)} verified TA-contract datasets / "
         f"{len(manifest) * args.events_per_source:,} events"
     )
 
