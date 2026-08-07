@@ -40,16 +40,33 @@ print(f"Applied dedicated index routing to {len(sources)} datasets")
 PY
 }
 
+measure_payload_bytes() {
+  python3 - "$OUT" <<'PY'
+import json, sys
+from pathlib import Path
+out = Path(sys.argv[1])
+manifest = json.loads((out / "manifest.json").read_text())
+total = 0
+for item in manifest["sources"]:
+    p = Path(item["file"])
+    if not p.is_absolute():
+        # Manifest paths are repo-relative or already rooted under OUT.
+        if not p.exists():
+            p = Path.cwd() / p
+    if not p.exists():
+        raise SystemExit(f"Missing corpus payload: {p}")
+    total += p.stat().st_size
+print(total)
+PY
+}
+
 mkdir -p "$OUT"
 
-# Start with a representative event count, measure output, then scale once.
+# Start with a representative event count, measure every manifest payload format,
+# then scale once. This includes JSON, XML, CSV, syslog, delimited, and text logs.
 python3 "$GENERATOR" --out "$OUT" --events-per-source 5000 --days "$DAYS"
 apply_routing
-
-ACTUAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -print0 | xargs -0 stat -f%z 2>/dev/null | awk '{s+=$1} END{print s+0}')
-if [[ "$ACTUAL_BYTES" -eq 0 ]]; then
-  ACTUAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -printf '%s\n' 2>/dev/null | awk '{s+=$1} END{print s+0}')
-fi
+ACTUAL_BYTES=$(measure_payload_bytes)
 
 TARGET_BYTES=$((TARGET_MB * 1024 * 1024))
 if [[ "$ACTUAL_BYTES" -le 0 ]]; then
@@ -75,11 +92,7 @@ EVENTS_PER_SOURCE=$(( (SCALED_TOTAL_EVENTS + SOURCE_COUNT - 1) / SOURCE_COUNT ))
 rm -rf "$OUT"
 python3 "$GENERATOR" --out "$OUT" --events-per-source "$EVENTS_PER_SOURCE" --days "$DAYS"
 apply_routing
-
-FINAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -print0 | xargs -0 stat -f%z 2>/dev/null | awk '{s+=$1} END{print s+0}')
-if [[ "$FINAL_BYTES" -eq 0 ]]; then
-  FINAL_BYTES=$(find "$OUT" -type f -name '*.ndjson' -printf '%s\n' 2>/dev/null | awk '{s+=$1} END{print s+0}')
-fi
+FINAL_BYTES=$(measure_payload_bytes)
 
 python3 - "$OUT" "$TARGET_MB" "$EVENTS_PER_SOURCE" "$FINAL_BYTES" <<'PY'
 import json,sys
