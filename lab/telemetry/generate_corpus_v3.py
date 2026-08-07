@@ -16,9 +16,11 @@ WINDOWS_PATH = ROOT / "windows_event_contracts.py"
 AZURE_PATH = ROOT / "azure_event_contracts.py"
 AWS_PATH = ROOT / "aws_event_contracts.py"
 MICROSOFT_PATH = ROOT / "microsoft_event_contracts.py"
+NETWORK_PATH = ROOT / "network_event_contracts.py"
 RECORD_FORMAT = "ta_faithful_contract_v1"
 AWS_IDS = {"aws_cloudtrail", "aws_guardduty", "aws_vpc_flow", "aws_route53_dns", "aws_security_hub"}
 MICROSOFT_IDS = {"m365_management_activity", "m365_message_trace", "microsoft_defender_endpoint"}
+NETWORK_IDS = {"palo_alto_traffic", "palo_alto_threat", "zscaler_zia_web", "suricata_eve_alert", "linux_auditd", "cisco_asa"}
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -35,6 +37,7 @@ windows = _load_module("dei_windows_event_contracts", WINDOWS_PATH)
 azure = _load_module("dei_azure_event_contracts", AZURE_PATH)
 aws = _load_module("dei_aws_event_contracts", AWS_PATH)
 microsoft = _load_module("dei_microsoft_event_contracts", MICROSOFT_PATH)
+network = _load_module("dei_network_event_contracts", NETWORK_PATH)
 
 
 def load_profiles() -> List[Dict[str, Any]]:
@@ -53,6 +56,8 @@ def make_event(profile: Dict[str, Any], ts: str, contracts: Dict[str, Dict[str, 
         return aws.make_aws_event(profile_id, v2.base, ts)
     if profile_id in MICROSOFT_IDS:
         return microsoft.make_microsoft_event(profile_id, v2.base, ts)
+    if profile_id in NETWORK_IDS:
+        return network.make_network_event(profile_id, v2.base, ts)
     return v2.make_event(profile, ts, contracts)
 
 
@@ -61,12 +66,16 @@ def serialize_event(profile_id: str, event: Any) -> str:
         return aws.serialize(profile_id, event)
     if profile_id in MICROSOFT_IDS:
         return microsoft.serialize(event)
+    if profile_id in NETWORK_IDS:
+        return network.serialize(profile_id, event)
     return json.dumps(event, separators=(",", ":"))
 
 
 def source_extension(profile_id: str) -> str:
     if profile_id == "aws_vpc_flow":
         return ".log"
+    if profile_id in NETWORK_IDS:
+        return network.extension(profile_id)
     return ".ndjson"
 
 
@@ -117,6 +126,7 @@ def main() -> None:
                     "azure": azure.contract_metadata(),
                     "aws": aws.contract_metadata(),
                     "microsoft": microsoft.contract_metadata(),
+                    "network": network.contract_metadata(),
                 },
                 "sources": manifest,
             },
