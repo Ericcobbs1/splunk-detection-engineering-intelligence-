@@ -4,8 +4,8 @@
     "purpose": "Keep every telemetry dataset independently reusable across DEI and other Splunk projects while preserving vendor/TA sourcetype routing."
   },
   "datasets": {
-    "windows_security": {"index": "windows_security", "sourcetype": "XmlWinEventLog:Security"},
-    "windows_powershell": {"index": "windows_powershell", "sourcetype": "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"},
+    "windows_security": {"index": "windows_security", "sourcetype": "XmlWinEventLog"},
+    "windows_powershell": {"index": "windows_powershell", "sourcetype": "XmlWinEventLog"},
     "aws_cloudtrail": {"index": "aws_cloudtrail", "sourcetype": "aws:cloudtrail"},
     "aws_guardduty": {"index": "aws_guardduty", "sourcetype": "aws:cloudwatch:guardduty"},
     "okta_system_log": {"index": "okta_system_log", "sourcetype": "OktaIM2:log"},
