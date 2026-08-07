@@ -13,8 +13,16 @@
           </section>
 
           <section class="dei-mitre-page-head">
-            <div><p class="dei-eyebrow">Detection Coverage Intelligence</p><h1>Enterprise ATT&amp;CK coverage workspace</h1><p>Choose a detection opportunity, inspect the ATT&amp;CK stages it covers, and understand the security outcome without leaving this workspace.</p></div>
-            <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Refresh analysis</a></div>
+            <div class="dei-mitre-head-copy">
+              <p class="dei-eyebrow">Detection Coverage Intelligence</p>
+              <h1>Enterprise ATT&amp;CK coverage workspace</h1>
+              <p>Choose a detection opportunity, inspect where it is effective in ATT&amp;CK, and use the bundled offline reference when this search head cannot reach the Internet.</p>
+              <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Refresh analysis</a></div>
+            </div>
+            <div class="dei-coverage-summary" aria-label="Portfolio ATT&amp;CK coverage summary">
+              <div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div>
+              <div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Across loaded detection findings</small><p>Click a detection below for technique-level detail. Use the live MITRE button when Internet access is available for the authoritative record.</p></div>
+            </div>
           </section>
 
           <section class="dei-mitre-layout">
@@ -24,15 +32,17 @@
               <div id="mitre-detection-list" class="dei-mitre-detection-list"><p class="dei-empty">Run analysis from Command Center to populate findings.</p></div>
             </aside>
 
-            <main class="dei-mitre-matrix-pane">
-              <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK tactics</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage.</p></div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span></div>
-              <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div>
-            </main>
+            <div class="dei-mitre-content">
+              <main class="dei-mitre-matrix-pane">
+                <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK tactics</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage.</p></div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span></div>
+                <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div>
+              </main>
 
-            <aside class="dei-mitre-inspector" aria-label="Coverage details">
-              <div class="dei-pane-head"><div><p class="dei-eyebrow">Coverage Inspector</p><h2 id="mitre-inspector-title">Select a detection</h2></div></div>
-              <div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Technique, platform, readiness, and protection details will appear here.</p></div>
-            </aside>
+              <section class="dei-mitre-inspector" aria-label="Coverage details">
+                <div class="dei-pane-head"><div><p class="dei-eyebrow">Coverage Inspector</p><h2 id="mitre-inspector-title">Select a detection</h2><p>Bundled ATT&amp;CK context is available offline; the live MITRE record remains the authoritative source.</p></div></div>
+                <div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Technique, platform, readiness, detection guidance, mitigation, and protection details will appear here.</p></div>
+              </section>
+            </div>
           </section>
         </div>
       </html>
