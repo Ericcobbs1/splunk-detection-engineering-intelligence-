@@ -18,6 +18,14 @@ def test_ta_replication_contracts_cover_every_dedicated_dataset():
         assert contract["wire_format"]
         assert isinstance(contract["format_verified"], bool)
         assert isinstance(contract["semantic_verified"], bool)
+        assert route["sourcetype"] == contract["ta_sourcetype"]
+
+
+def test_current_hardened_contracts_are_marked_verified():
+    contracts = json.loads((TELEMETRY / "ta_replication_contracts.json").read_text())["datasets"]
+    for dataset in ("windows_security", "windows_powershell", "entra_signin", "azure_activity"):
+        assert contracts[dataset]["format_verified"] is True
+        assert contracts[dataset]["semantic_verified"] is True
 
 
 def test_dedicated_index_policy_remains_unique():
