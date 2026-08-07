@@ -41,7 +41,7 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert '"T1098"' in javascript
     assert '"T1562.008"' in javascript
     assert 'currentId:"T1685.002"' in javascript
-    assert "Bundled ATT&amp;CK reference" in javascript
+    assert "Bundled ATT&CK reference reviewed" in javascript
     assert "Detection guidance" in javascript
     assert "Mitigation themes" in javascript
     assert "The live MITRE record is authoritative" in javascript
