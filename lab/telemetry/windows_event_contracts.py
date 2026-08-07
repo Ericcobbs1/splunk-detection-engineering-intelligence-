@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import random
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 CONTRACT_VERSION = 1
 
@@ -35,7 +35,7 @@ FAILURE_STATUS = (
 )
 
 
-def _sid(rid: int | None = None) -> str:
+def _sid(rid: Optional[int] = None) -> str:
     rid = rid if rid is not None else random.randint(1000, 9999)
     return f"S-1-5-21-3457937927-2839227994-823803824-{rid}"
 
@@ -59,10 +59,7 @@ def _target(base: Any, *, group: bool = False) -> Dict[str, Any]:
 
 
 def _base_event(event_code: int, base: Any) -> Dict[str, Any]:
-    return {
-        "EventCode": event_code,
-        "Computer": base.hostname(),
-    }
+    return {"EventCode": event_code, "Computer": base.hostname()}
 
 
 def security_event(base: Any) -> Dict[str, Any]:
@@ -176,9 +173,6 @@ def contract_metadata() -> Dict[str, Any]:
         "version": CONTRACT_VERSION,
         "security_event_codes": list(SECURITY_EVENT_CODES),
         "powershell_event_codes": list(POWERSHELL_EVENT_CODES),
-        "authorities": {
-            str(code): MICROSOFT_EVENT_DOC.format(code)
-            for code in SECURITY_EVENT_CODES
-        },
+        "authorities": {str(code): MICROSOFT_EVENT_DOC.format(code) for code in SECURITY_EVENT_CODES},
         "powershell": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent",
     }
