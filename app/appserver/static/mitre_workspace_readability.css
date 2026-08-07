@@ -1,0 +1,101 @@
+/* Readability overrides for the MITRE ATT&CK workspace.
+ * Keep the matrix compact while allowing the Coverage Inspector to use normal
+ * page flow so detailed ATT&CK content is never clipped by viewport grids.
+ */
+.dei-mitre-page {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  padding-bottom: 28px;
+}
+
+.dei-mitre-layout {
+  grid-template-columns: 300px minmax(0, 1fr);
+  height: auto;
+  min-height: 0;
+  align-items: start;
+}
+
+.dei-mitre-advisor {
+  position: sticky;
+  top: 12px;
+  height: min(720px, calc(100vh - 130px));
+  min-height: 520px;
+}
+
+.dei-mitre-content {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+}
+
+.dei-mitre-matrix-pane {
+  height: 480px;
+  min-height: 420px;
+  margin-bottom: 14px;
+}
+
+.dei-mitre-matrix {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding-bottom: 14px;
+}
+
+.dei-mitre-inspector {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+}
+
+.dei-mitre-inspector-body {
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  padding: 14px 0 0;
+}
+
+.dei-inspector-columns {
+  align-items: start;
+  grid-template-columns: minmax(300px, .72fr) minmax(520px, 1.28fr);
+  gap: 16px;
+}
+
+.dei-inspector-primary,
+.dei-inspector-reference {
+  min-width: 0;
+}
+
+.dei-offline-reference,
+.dei-inspector-section {
+  break-inside: avoid;
+}
+
+@media (max-width: 1350px) {
+  .dei-mitre-layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .dei-inspector-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1050px) {
+  .dei-mitre-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dei-mitre-advisor {
+    position: static;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    max-height: 480px;
+  }
+
+  .dei-mitre-matrix-pane {
+    height: 520px;
+    min-height: 420px;
+  }
+}
