@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="mitre_workspace.js" stylesheet="command_center_v2.css,mitre_workspace.css">
+<form version="1.1" theme="dark" script="mitre_workspace.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css">
   <label>MITRE ATT&amp;CK Coverage</label>
   <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
