@@ -17,7 +17,7 @@
     "suricata_eve_alert": {"index": "suricata", "sourcetype": "suricata"},
     "linux_auditd": {"index": "linux_auditd", "sourcetype": "auditd"},
     "microsoft_defender_endpoint": {"index": "microsoft_defender_endpoint", "sourcetype": "m365:defender:incident:advanced_hunting"},
-    "gcp_audit": {"index": "gcp_audit", "sourcetype": "google:gcp:pubsub:message"},
+    "gcp_audit": {"index": "gcp_audit", "sourcetype": "google:gcp:pubsub:audit:admin_activity"},
     "google_workspace": {"index": "google_workspace_admin", "sourcetype": "gws:reports:admin"},
     "aws_vpc_flow": {"index": "aws_vpc_flow", "sourcetype": "aws:cloudwatchlogs:vpcflow"},
     "kubernetes_audit": {"index": "kubernetes_audit", "sourcetype": "kube:audit"},
