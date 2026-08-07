@@ -8,7 +8,7 @@ CATALOG_PATH = Path("app/detections/catalog.json")
 
 def test_every_detection_defines_required_fields_for_required_sources() -> None:
     catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-    assert len(catalog) == 21
+    assert len(catalog) == 31
 
     for detection in catalog:
         required_sources = detection["required_sources"]
