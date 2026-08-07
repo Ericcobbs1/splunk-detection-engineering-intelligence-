@@ -163,18 +163,25 @@ class RecommendationEngine:
     ) -> RecommendationReport:
         normalization = normalize_sources(observed_sources)
         normalized = {source.lower() for source in normalization.canonical_sources}
+        for mapping in normalization.mappings:
+            normalized.update(source.lower() for source in mapping.additional_canonical_sources)
 
         canonical_fields: dict[str, set[str]] = {}
         if fields_by_source is not None:
             mapping_by_observed = {
-                item.observed_source.lower(): item.canonical_source.lower()
+                item.observed_source.lower(): (
+                    item.canonical_source,
+                    *item.additional_canonical_sources,
+                )
                 for item in normalization.mappings
             }
             for source, fields in fields_by_source.items():
-                canonical_source = mapping_by_observed.get(source.lower(), source.lower())
-                canonical_fields.setdefault(canonical_source, set()).update(
-                    field.lower() for field in fields if field.strip()
-                )
+                canonical_sources = mapping_by_observed.get(source.lower(), (source,))
+                normalized_fields = {field.lower() for field in fields if field.strip()}
+                for canonical_source in canonical_sources:
+                    canonical_fields.setdefault(canonical_source.lower(), set()).update(
+                        normalized_fields
+                    )
 
         recommendations: list[DetectionRecommendation] = []
         ready = partial = unsupported = field_gaps = field_unverified = 0
