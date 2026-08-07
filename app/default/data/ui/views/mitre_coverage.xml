@@ -1,0 +1,41 @@
+<form version="1.1" theme="dark" script="mitre_workspace.js" stylesheet="command_center_v2.css,mitre_workspace.css">
+  <label>MITRE ATT&amp;CK Coverage</label>
+  <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <div id="dei-mitre-page" class="dei-shell dei-mitre-page">
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>MITRE ATT&amp;CK Coverage</span></div></div>
+            <nav class="dei-workspace-nav"><a href="command_center">Command Center</a><a class="active" href="mitre_coverage">MITRE ATT&amp;CK</a></nav>
+            <div id="mitre-data-status" class="dei-status">Analysis: checking</div>
+          </section>
+
+          <section class="dei-mitre-page-head">
+            <div><p class="dei-eyebrow">Detection Coverage Intelligence</p><h1>Enterprise ATT&amp;CK coverage workspace</h1><p>Choose a detection opportunity, inspect the ATT&amp;CK stages it covers, and understand the security outcome without leaving this workspace.</p></div>
+            <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Refresh analysis</a></div>
+          </section>
+
+          <section class="dei-mitre-layout">
+            <aside class="dei-mitre-advisor" aria-label="Detection Advisor">
+              <div class="dei-pane-head"><div><p class="dei-eyebrow">Detection Advisor</p><h2>Findings</h2></div><span id="mitre-detection-count" class="dei-chip">0</span></div>
+              <div class="dei-filter-stack"><input id="mitre-filter" type="search" placeholder="Filter detections..."/><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select></div>
+              <div id="mitre-detection-list" class="dei-mitre-detection-list"><p class="dei-empty">Run analysis from Command Center to populate findings.</p></div>
+            </aside>
+
+            <main class="dei-mitre-matrix-pane">
+              <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK tactics</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage.</p></div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span></div>
+              <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div>
+            </main>
+
+            <aside class="dei-mitre-inspector" aria-label="Coverage details">
+              <div class="dei-pane-head"><div><p class="dei-eyebrow">Coverage Inspector</p><h2 id="mitre-inspector-title">Select a detection</h2></div></div>
+              <div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Technique, platform, readiness, and protection details will appear here.</p></div>
+            </aside>
+          </section>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
