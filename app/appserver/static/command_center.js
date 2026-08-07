@@ -71,7 +71,7 @@ require([
   function setStatus(message, healthy) {
     var status = $("#dei-api-status");
     status.text(message);
-    status.css("color", healthy ? "#45e6c1" : "#ff6b7a");
+    status.removeClass("healthy unhealthy").addClass(healthy ? "healthy" : "unhealthy");
   }
 
   function uniqueValues(values) {
@@ -103,6 +103,15 @@ require([
 
   function escapeSearchValue(value) {
     return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function discoverFieldInventory(sources) {
@@ -161,7 +170,7 @@ require([
   }
 
   function readinessLabel(value) {
-    return value.replace(/_/g, " ");
+    return String(value || "unknown").replace(/_/g, " ");
   }
 
   function renderDomains(recommendations) {
@@ -176,7 +185,7 @@ require([
       var percent = Math.round((counts[packId] / maximum) * 100);
       return [
         '<div class="dei-domain">',
-        '<div class="dei-domain-row"><span>', packId, "</span><strong>", counts[packId], "</strong></div>",
+        '<div class="dei-domain-row"><span>', escapeHtml(packId), "</span><strong>", counts[packId], "</strong></div>",
         '<div class="dei-bar"><span style="width:', percent, '%"></span></div>',
         "</div>"
       ].join("");
@@ -192,37 +201,71 @@ require([
     return parts.length ? "Field gaps: " + parts.join("; ") : "";
   }
 
+  function fieldState(item) {
+    if (item.field_validation === "passed") { return {label: "Fields verified", css: "verified"}; }
+    if (item.field_validation === "failed") { return {label: "Field gap", css: "gap"}; }
+    if (item.field_validation === "unverified") { return {label: "Fields unverified", css: "unverified"}; }
+    return {label: "Fields not evaluated", css: "neutral"};
+  }
+
+  function detailText(item) {
+    if (item.missing_sources && item.missing_sources.length) {
+      return "Missing telemetry: " + item.missing_sources.join(", ");
+    }
+    if (item.field_validation === "failed") {
+      return fieldGapText(item);
+    }
+    if (item.field_validation === "unverified") {
+      return "No recent field sample for: " + (item.unverified_field_sources || []).join(", ");
+    }
+    if (item.field_validation === "passed") {
+      return "Telemetry and field requirements satisfied";
+    }
+    return "Telemetry requirements satisfied; fields not evaluated";
+  }
+
+  function renderMitre(techniques) {
+    var values = techniques || [];
+    if (!values.length) { return '<span class="dei-technique muted">No MITRE mapping</span>'; }
+    return values.slice(0, 4).map(function (technique) {
+      return '<span class="dei-technique">' + escapeHtml(technique) + "</span>";
+    }).join("");
+  }
+
   function renderRecommendations(report) {
     var recommendations = report.recommendations || [];
-    var html = recommendations.slice(0, 8).map(function (item) {
-      var detail;
-      if (item.missing_sources && item.missing_sources.length) {
-        detail = "Missing telemetry: " + item.missing_sources.join(", ");
-      } else if (item.field_validation === "failed") {
-        detail = fieldGapText(item);
-      } else if (item.field_validation === "unverified") {
-        detail = "Field validation unavailable; no recent sample for: " +
-          (item.unverified_field_sources || []).join(", ");
-      } else if (item.field_validation === "passed") {
-        detail = "Telemetry and field requirements satisfied";
-      } else {
-        detail = "Telemetry requirements satisfied; fields not evaluated";
-      }
+    var html = recommendations.slice(0, 10).map(function (item, index) {
+      var validation = fieldState(item);
       return [
         '<article class="dei-recommendation">',
+        '<div class="dei-rec-rank">', String(index + 1).padStart(2, "0"), "</div>",
+        '<div class="dei-rec-body">',
         '<div class="dei-rec-top"><div>',
-        '<h3 class="dei-rec-title">', item.name, "</h3>",
-        '<p class="dei-rec-meta">', item.capability, " · ", item.severity, " · ", item.pack_id, "</p></div>",
-        '<span class="dei-rec-score">', item.score, "</span></div>",
-        '<span class="dei-readiness ', item.readiness, '">', readinessLabel(item.readiness), "</span>",
-        '<p class="dei-rec-why">', item.why, "</p>",
-        '<p class="dei-rec-meta">', detail, "</p>",
-        "</article>"
+        '<div class="dei-rec-badges">',
+        '<span class="dei-severity ', escapeHtml(item.severity), '">', escapeHtml(item.severity), "</span>",
+        '<span class="dei-readiness ', escapeHtml(item.readiness), '">', escapeHtml(readinessLabel(item.readiness)), "</span>",
+        '<span class="dei-field-state ', validation.css, '">', validation.label, "</span>",
+        "</div>",
+        '<h3 class="dei-rec-title">', escapeHtml(item.name), "</h3>",
+        '<p class="dei-rec-meta">', escapeHtml(item.capability), " · ", escapeHtml(item.pack_id), "</p></div>",
+        '<div class="dei-score-block"><span>Score</span><strong>', escapeHtml(item.score), "</strong></div></div>",
+        '<p class="dei-rec-why">', escapeHtml(item.why), "</p>",
+        '<div class="dei-rec-footer"><div class="dei-techniques">', renderMitre(item.mitre_techniques), "</div>",
+        '<p class="dei-rec-detail">', escapeHtml(detailText(item)), "</p></div>",
+        "</div></article>"
       ].join("");
     }).join("");
     $("#recommendation-count").text(recommendations.length + " results");
     $("#recommendations").html(html || '<p class="dei-empty">No recommendations matched the current telemetry.</p>');
     renderDomains(recommendations);
+  }
+
+  function renderPortfolio(report, total) {
+    $("#portfolio-total").text(total + " opportunities");
+    $("#portfolio-ready").text(report.production_ready_count || 0);
+    $("#portfolio-partial").text(report.partial_count || 0);
+    $("#portfolio-field-gaps").text(report.field_gap_count || 0);
+    $("#portfolio-unverified").text(report.field_unverified_count || 0);
   }
 
   function renderReport(report) {
@@ -244,6 +287,7 @@ require([
     $("#coverage-value").text(potential + "%");
     $("#coverage-ring").css("--dei-coverage", potential + "%");
     $("#coverage-label").text(potential >= 75 ? "Strong" : potential >= 40 ? "Developing" : "Limited");
+    renderPortfolio(report, total);
     renderRecommendations(report);
   }
 

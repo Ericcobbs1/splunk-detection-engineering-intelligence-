@@ -12,10 +12,20 @@
               <h1>Security Operations Command Center</h1>
               <p class="dei-subtitle">Measure telemetry readiness, surface detection potential, and prioritize the next use cases to build.</p>
             </div>
-            <div id="dei-api-status" class="dei-status">API status: checking</div>
+            <div class="dei-hero-status">
+              <div id="dei-api-status" class="dei-status">API status: checking</div>
+              <span class="dei-version-badge">DEI Intelligence</span>
+            </div>
           </section>
 
           <section class="dei-control-panel">
+            <div class="dei-control-header">
+              <div>
+                <p class="dei-eyebrow">Environment Intelligence</p>
+                <h2>Telemetry discovery</h2>
+              </div>
+              <span class="dei-control-note">7-day active telemetry window</span>
+            </div>
             <label for="dei-sources">Discovered source types</label>
             <textarea id="dei-sources" rows="6" readonly="readonly" placeholder="Discovering active Splunk telemetry..."></textarea>
             <div class="dei-actions">
@@ -26,11 +36,27 @@
           </section>
 
           <section class="dei-metrics" aria-label="Detection intelligence summary">
-            <article class="dei-metric"><span>Observed sources</span><strong id="metric-sources">0</strong></article>
-            <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong></article>
-            <article class="dei-metric"><span>Production ready</span><strong id="metric-ready">0</strong></article>
-            <article class="dei-metric"><span>Partial coverage</span><strong id="metric-partial">0</strong></article>
-            <article class="dei-metric"><span>Detection potential</span><strong id="metric-potential">0%</strong></article>
+            <article class="dei-metric"><span>Observed sources</span><strong id="metric-sources">0</strong><small>active telemetry</small></article>
+            <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong><small>mapped source types</small></article>
+            <article class="dei-metric"><span>Production ready</span><strong id="metric-ready">0</strong><small>deployable opportunities</small></article>
+            <article class="dei-metric"><span>Partial coverage</span><strong id="metric-partial">0</strong><small>needs remediation</small></article>
+            <article class="dei-metric"><span>Detection potential</span><strong id="metric-potential">0%</strong><small>portfolio readiness</small></article>
+          </section>
+
+          <section class="dei-portfolio" aria-label="Detection portfolio">
+            <div class="dei-portfolio-heading">
+              <div>
+                <p class="dei-eyebrow">Detection Portfolio</p>
+                <h2>Readiness at a glance</h2>
+              </div>
+              <span id="portfolio-total" class="dei-chip">0 opportunities</span>
+            </div>
+            <div class="dei-portfolio-grid">
+              <article><span class="dei-dot ready"></span><strong id="portfolio-ready">0</strong><small>Production ready</small></article>
+              <article><span class="dei-dot partial"></span><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></article>
+              <article><span class="dei-dot gap"></span><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></article>
+              <article><span class="dei-dot unverified"></span><strong id="portfolio-unverified">0</strong><small>Field unverified</small></article>
+            </div>
           </section>
 
           <section class="dei-grid">
@@ -48,7 +74,7 @@
               </div>
             </article>
 
-            <article class="dei-panel">
+            <article class="dei-panel dei-advisor-panel">
               <div class="dei-section-heading">
                 <div>
                   <p class="dei-eyebrow">Detection Advisor</p>
