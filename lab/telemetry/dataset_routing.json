@@ -1,0 +1,34 @@
+{
+  "policy": {
+    "one_dataset_per_index": true,
+    "purpose": "Keep every telemetry dataset independently reusable across DEI and other Splunk projects while preserving vendor/TA sourcetype routing."
+  },
+  "datasets": {
+    "windows_security": {"index": "windows_security", "sourcetype": "XmlWinEventLog:Security"},
+    "windows_powershell": {"index": "windows_powershell", "sourcetype": "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"},
+    "aws_cloudtrail": {"index": "aws_cloudtrail", "sourcetype": "aws:cloudtrail"},
+    "aws_guardduty": {"index": "aws_guardduty", "sourcetype": "aws:cloudwatch:guardduty"},
+    "okta_system_log": {"index": "okta_system_log", "sourcetype": "OktaIM2:log"},
+    "m365_management_activity": {"index": "m365_management_activity", "sourcetype": "o365:management:activity"},
+    "m365_message_trace": {"index": "m365_message_trace", "sourcetype": "o365:reporting:messagetrace"},
+    "entra_signin": {"index": "entra_signin", "sourcetype": "azure:monitor:aad"},
+    "palo_alto_traffic": {"index": "pan_traffic", "sourcetype": "pan:traffic"},
+    "zscaler_zia_web": {"index": "zscaler_web", "sourcetype": "zscalernss-web"},
+    "suricata_eve_alert": {"index": "suricata", "sourcetype": "suricata"},
+    "linux_auditd": {"index": "linux_auditd", "sourcetype": "auditd"},
+    "microsoft_defender_endpoint": {"index": "microsoft_defender_endpoint", "sourcetype": "m365:defender:incident:advanced_hunting"},
+    "gcp_audit": {"index": "gcp_audit", "sourcetype": "google:gcp:pubsub:message"},
+    "google_workspace": {"index": "google_workspace_admin", "sourcetype": "gws:reports:admin"},
+    "aws_vpc_flow": {"index": "aws_vpc_flow", "sourcetype": "aws:cloudwatchlogs:vpcflow"},
+    "kubernetes_audit": {"index": "kubernetes_audit", "sourcetype": "kube:audit"},
+    "github_audit": {"index": "github_audit", "sourcetype": "github:audit"},
+    "palo_alto_threat": {"index": "pan_threat", "sourcetype": "pan:threat"},
+    "cloudflare_http": {"index": "cloudflare_http", "sourcetype": "cloudflare:http"},
+    "salesforce_event_monitoring": {"index": "salesforce_event_monitoring", "sourcetype": "sfdc:logfile"},
+    "aws_route53_dns": {"index": "aws_route53_dns", "sourcetype": "aws:cloudwatchlogs:route53"},
+    "crowdstrike_fdr_sensor": {"index": "crowdstrike_fdr", "sourcetype": "crowdstrike:events:sensor"},
+    "aws_security_hub": {"index": "aws_security_hub", "sourcetype": "aws:securityhub:finding"},
+    "azure_activity": {"index": "azure_activity", "sourcetype": "azure:monitor:activity"},
+    "cisco_asa": {"index": "cisco_asa", "sourcetype": "cisco:asa"}
+  }
+}
