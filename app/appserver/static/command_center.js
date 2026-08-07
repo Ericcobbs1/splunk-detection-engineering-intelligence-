@@ -6,7 +6,9 @@ require([
 
   var appId = "splunk_detection_engineering_intelligence";
   var fieldSampleEvents = 200;
-  var fieldDiscoveryConcurrency = 4;
+  var fieldDiscoveryConcurrency = 6;
+  var fieldSearchTimeoutMs = 12000;
+  var fieldDiscoveryTimeoutMs = 90000;
 
   function endpoint() {
     var parts = Array.prototype.slice.call(arguments);
@@ -114,20 +116,35 @@ require([
       .replace(/'/g, "&#39;");
   }
 
-  function discoverFieldInventory(sources) {
-    return new Promise(function (resolve, reject) {
+  function discoverFieldInventory(sources, onProgress) {
+    return new Promise(function (resolve) {
       var inventory = {};
       var failures = [];
+      var requests = [];
       var cursor = 0;
       var active = 0;
+      var completed = 0;
+      var settled = false;
+
+      function finish(timedOut) {
+        if (settled) { return; }
+        settled = true;
+        requests.forEach(function (request) {
+          if (request && request.readyState !== 4) { request.abort(); }
+        });
+        resolve({inventory: inventory, failures: uniqueValues(failures), timedOut: timedOut});
+      }
+
+      var overallTimer = window.setTimeout(function () {
+        sources.slice(cursor).forEach(function (source) { failures.push(source); });
+        finish(true);
+      }, fieldDiscoveryTimeoutMs);
 
       function finishOrSchedule() {
+        if (settled) { return; }
         if (cursor >= sources.length && active === 0) {
-          if (failures.length) {
-            reject(failures);
-          } else {
-            resolve(inventory);
-          }
+          window.clearTimeout(overallTimer);
+          finish(false);
           return;
         }
         while (active < fieldDiscoveryConcurrency && cursor < sources.length) {
@@ -139,8 +156,9 @@ require([
               "| fieldsummary",
               "| fields field"
             ].join(" ");
+            var request;
             active += 1;
-            exportSearch(fieldSpl, 30000).done(function (text) {
+            request = exportSearch(fieldSpl, fieldSearchTimeoutMs).done(function (text) {
               var fieldRows = parseExportRows(text);
               if (isEsRisk) {
                 $("#dei-es-enabled").prop("checked", true);
@@ -149,20 +167,27 @@ require([
                 inventory[source] = uniqueValues(fieldRows.map(function (row) {
                   return row.field;
                 }));
+              } else {
+                failures.push(source);
               }
             }).fail(function () {
               failures.push(source);
             }).always(function () {
+              if (settled) { return; }
               active -= 1;
+              completed += 1;
+              if (onProgress) { onProgress(completed, sources.length, source); }
               finishOrSchedule();
             });
+            requests.push(request);
           })(sources[cursor]);
           cursor += 1;
         }
       }
 
       if (!sources.length) {
-        resolve(inventory);
+        window.clearTimeout(overallTimer);
+        finish(false);
         return;
       }
       finishOrSchedule();
@@ -304,7 +329,7 @@ require([
     $("#dei-analyze").prop("disabled", false).text("Analyze environment");
   }
 
-  function runRecommendations(sources, indexCount, fieldsBySource) {
+  function runRecommendations(sources, indexCount, fieldsBySource, profilingFailures) {
     var feedback = $("#dei-feedback");
     var esEnabled = $("#dei-es-enabled").is(":checked");
     $("#dei-analyze").text("Analyzing...");
@@ -321,6 +346,9 @@ require([
       var understanding = observed ? Math.round((understood / observed) * 100) : 0;
       var fieldGaps = report.field_gap_count || 0;
       var unverified = report.field_unverified_count || 0;
+      var profileNote = profilingFailures && profilingFailures.length
+        ? "; " + profilingFailures.length + " source type(s) could not be field-profiled and were treated as unverified"
+        : "";
       renderReport(report);
       setStatus("API status: healthy", true);
       feedback.text(
@@ -328,7 +356,7 @@ require([
         " indexes; " + understood + " mapped, " + unmapped.length + " unmapped (" + understanding +
         "% telemetry understanding); Enterprise Security " + (esEnabled ? "enabled" : "not enabled") +
         "; " + fieldGaps + " detections have confirmed field gaps; " + unverified +
-        " are field-unverified because no recent sample was available."
+        " are field-unverified because no recent sample was available" + profileNote + "."
       );
     }).fail(function (xhr) {
       feedback.text(errorDetail(xhr));
@@ -344,7 +372,7 @@ require([
     }
     feedback.text("Discovering active Splunk telemetry from the last 7 days.");
 
-    exportSearch(discoverySpl, 30000).done(function (text) {
+    exportSearch(discoverySpl, 20000).done(function (text) {
       var rows = parseExportRows(text);
       var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
       var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
@@ -362,22 +390,28 @@ require([
         return;
       }
 
-      button.text("Profiling fields...");
+      button.text("Profiling fields 0/" + sources.length);
       feedback.text(
-        "Sampling up to " + fieldSampleEvents + " events per source type to validate detection fields."
+        "Telemetry inventory complete. Profiling 0/" + sources.length +
+        " source types; slow sources will be marked unverified instead of blocking analysis."
       );
-      discoverFieldInventory(sources).then(function (fieldsBySource) {
-        runRecommendations(sources, indexes.length, fieldsBySource);
-      }).catch(function (failures) {
+      discoverFieldInventory(sources, function (completed, total, source) {
+        button.text("Profiling fields " + completed + "/" + total);
         feedback.text(
-          "Field discovery failed for " + failures.length + " source type(s): " + failures.join(", ") +
-          ". Analysis stopped rather than assuming field readiness."
+          "Profiling fields " + completed + "/" + total + ". Last completed: " + source + "."
         );
-        resetAnalyzeButton();
+      }).then(function (result) {
+        if (result.timedOut) {
+          feedback.text(
+            "Field profiling reached its 90-second ceiling. Continuing analysis with completed samples; " +
+            result.failures.length + " source type(s) will be field-unverified."
+          );
+        }
+        runRecommendations(sources, indexes.length, result.inventory, result.failures);
       });
     }).fail(function (xhr, statusText) {
       feedback.text(statusText === "timeout"
-        ? "Telemetry discovery timed out after 30 seconds."
+        ? "Telemetry inventory timed out after 20 seconds."
         : "Telemetry discovery failed: " + errorDetail(xhr));
       resetAnalyzeButton();
     });
