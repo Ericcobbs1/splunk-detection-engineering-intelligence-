@@ -2,7 +2,6 @@ import importlib.util
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "lab" / "telemetry" / "generate_corpus.py"
 
@@ -31,11 +30,25 @@ def test_cloudtrail_event_is_vendor_native_and_semantic():
     assert "sourcetype" not in event
     assert event["eventSource"].endswith("amazonaws.com")
     assert event["eventName"] in {
-        "ConsoleLogin", "CreateUser", "AttachUserPolicy", "PutBucketPolicy",
-        "StopLogging", "RunInstances", "AssumeRole",
+        "ConsoleLogin",
+        "CreateUser",
+        "AttachUserPolicy",
+        "PutBucketPolicy",
+        "StopLogging",
+        "RunInstances",
+        "AssumeRole",
     }
-    assert event["userIdentity"]["type"] in {"IAMUser", "AssumedRole", "Root", "AWSService"}
-    assert event["requestParameters"]["bucketName"] in {"corp-logs", "finance-archive", "security-evidence"}
+    assert event["userIdentity"]["type"] in {
+        "IAMUser",
+        "AssumedRole",
+        "Root",
+        "AWSService",
+    }
+    assert event["requestParameters"]["bucketName"] in {
+        "corp-logs",
+        "finance-archive",
+        "security-evidence",
+    }
 
 
 def test_okta_actor_and_target_are_distinct_schema_objects():
