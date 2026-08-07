@@ -45,7 +45,7 @@ def test_es_prerequisite_overrides_field_gap_without_double_counting() -> None:
     assert risk.readiness == "requires_enterprise_security"
     assert report.field_gap_count == 0
     assert report.partial_count == 0
-    assert report.unsupported_count == 21
+    assert report.unsupported_count == 31
 
 
 def test_es_field_gap_counts_when_es_is_enabled() -> None:
