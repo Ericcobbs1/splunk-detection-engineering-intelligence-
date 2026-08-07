@@ -21,10 +21,11 @@ if [[ "$ACTUAL_BYTES" -le 0 ]]; then
   exit 1
 fi
 
-SOURCE_COUNT=$(python3 - <<'PY'
+SOURCE_COUNT=$(python3 - "$OUT" <<'PY'
 import json
+import sys
 from pathlib import Path
-p=Path('dist/siem-corpus/manifest.json')
+p=Path(sys.argv[1])/'manifest.json'
 if not p.exists():
     raise SystemExit(1)
 print(len(json.loads(p.read_text())['sources']))
