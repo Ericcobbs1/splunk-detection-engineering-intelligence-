@@ -1,0 +1,30 @@
+{
+  "purpose": "Single-pass TA installation plan for the schema-authentic DEI SIEM lab corpus.",
+  "policy": {
+    "install_when_required": true,
+    "do_not_fake_ta_extractions": true,
+    "validate_after_install": ["app enabled", "sourcetype recognized", "field extraction present", "CIM mapping where applicable"]
+  },
+  "apps": [
+    {"name":"Splunk Add-on for Microsoft Windows","required_for":["XmlWinEventLog:Security","XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"]},
+    {"name":"Splunk Add-on for AWS","required_for":["aws:cloudtrail","aws:cloudwatch:guardduty","aws:securityhub:finding","aws:cloudwatchlogs:vpcflow","aws:cloudwatchlogs:route53"]},
+    {"name":"Splunk Add-on for Okta Identity Cloud","required_for":["OktaIM2:log"]},
+    {"name":"Splunk Add-on for Microsoft Office 365","required_for":["o365:management:activity","o365:reporting:messagetrace"]},
+    {"name":"Splunk Add-on for Microsoft Azure / supported Azure integration","required_for":["azure:monitor:aad","azure:monitor:activity"]},
+    {"name":"Splunk Add-on for Microsoft Security","required_for":["ms:defender:advancedhunting"]},
+    {"name":"Splunk Add-on for Google Cloud Platform","required_for":["google:gcp:pubsub:message"]},
+    {"name":"Splunk Add-on for Google Workspace","required_for":["gws:admin"]},
+    {"name":"Palo Alto Networks Add-on for Splunk","required_for":["pan:traffic","pan:threat"]},
+    {"name":"Zscaler Technical Add-On for Splunk","required_for":["zscalernss-web"]},
+    {"name":"Splunk Add-on for CrowdStrike FDR","required_for":["crowdstrike:events:sensor"]},
+    {"name":"Splunk Add-on for Cisco ASA","required_for":["cisco:asa"]},
+    {"name":"Splunk Add-on for Unix and Linux","required_for":["auditd"]},
+    {"name":"Splunk Add-on for Salesforce","required_for":["salesforce:eventlogfile"]}
+  ],
+  "native_or_optional_integrations": [
+    {"sourcetype":"suricata","note":"Vendor EVE JSON schema is authoritative; TA/community integration optional."},
+    {"sourcetype":"github:audit","note":"GitHub audit schema is authoritative; collection method may vary."},
+    {"sourcetype":"kube:audit","note":"Kubernetes audit schema is authoritative; collection may use OTel or Splunk Connect."},
+    {"sourcetype":"cloudflare:http","note":"Cloudflare Logpush schema is authoritative; collection method may vary."}
+  ]
+}
