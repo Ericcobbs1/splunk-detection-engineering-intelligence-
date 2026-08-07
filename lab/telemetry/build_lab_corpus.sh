@@ -4,7 +4,7 @@ set -euo pipefail
 TARGET_MB="${1:-1024}"
 DAYS="${2:-7}"
 OUT="${3:-dist/siem-corpus}"
-GENERATOR="lab/telemetry/generate_corpus_v2.py"
+GENERATOR="lab/telemetry/generate_corpus_v3.py"
 ROUTING="lab/telemetry/dataset_routing.json"
 
 apply_routing() {
