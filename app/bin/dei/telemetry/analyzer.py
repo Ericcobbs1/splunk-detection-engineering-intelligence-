@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 from dei.knowledgepacks.models import KnowledgePack
@@ -22,7 +22,15 @@ class TelemetryAnalysis:
 
     def to_mapping(self) -> dict[str, Any]:
         """Return a JSON-compatible representation."""
-        return asdict(self)
+        return {
+            "observed_sources": list(self.observed_sources),
+            "matched_sources": list(self.matched_sources),
+            "unmatched_sources": list(self.unmatched_sources),
+            "matched_packs": list(self.matched_packs),
+            "enabled_capabilities": list(self.enabled_capabilities),
+            "missing_required_sources": list(self.missing_required_sources),
+            "source_coverage_percent": self.source_coverage_percent,
+        }
 
 
 class TelemetryAnalyzer:
