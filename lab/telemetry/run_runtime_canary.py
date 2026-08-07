@@ -43,36 +43,35 @@ def search_csv(spl: str) -> List[Dict[str, str]]:
     return list(csv.DictReader(proc.stdout.splitlines()))
 
 
-def scoped_search(index: str, source: str, ingest_start: int) -> str:
-    escaped_source = source.replace('"', '\\"')
+def scoped_search(index: str, ingest_start: int) -> str:
+    """Scope validation to the current canary ingestion in one dedicated index."""
     return (
-        f'search index="{index}" source="{escaped_source}" earliest=-2d latest=now '
+        f'search index="{index}" earliest=-2d latest=now '
         f'| where _indextime >= {ingest_start}'
     )
 
 
-def inventory(index: str, source: str, ingest_start: int) -> Set[str]:
+def inventory(index: str, ingest_start: int) -> Set[str]:
     spl = (
-        scoped_search(index, source, ingest_start)
+        scoped_search(index, ingest_start)
         + " | head 200 | fieldsummary | fields field count distinct_count"
     )
     rows = search_csv(spl)
     return {row.get("field", "") for row in rows if row.get("field")}
 
 
-def event_count(index: str, source: str, ingest_start: int) -> int:
-    rows = search_csv(scoped_search(index, source, ingest_start) + " | stats count")
+def event_count(index: str, ingest_start: int) -> int:
+    rows = search_csv(scoped_search(index, ingest_start) + " | stats count")
     if not rows:
         return 0
     return int(rows[0].get("count", "0") or 0)
 
 
-def cim_count(model_dataset: str, index: str, source: str, ingest_start: int) -> int:
+def cim_count(model_dataset: str, index: str, ingest_start: int) -> int:
     model, dataset = model_dataset.split(".", 1)
-    escaped_source = source.replace('"', '\\"')
     spl = (
         f'| datamodel {model} {dataset} search '
-        f'| search index="{index}" source="{escaped_source}" earliest=-2d latest=now '
+        f'| search index="{index}" earliest=-2d latest=now '
         f'| where _indextime >= {ingest_start} '
         "| stats count"
     )
@@ -113,8 +112,9 @@ def main() -> int:
     contracts = json.loads(CONTRACTS.read_text(encoding="utf-8"))["datasets"]
 
     # Scope validation to events indexed by this run. Synthetic event _time is
-    # intentionally distributed across --days and must not be used to identify
-    # the current runtime canary.
+    # intentionally distributed across --days. Each dataset has its own index,
+    # so index + _indextime uniquely identifies the current runtime canary and
+    # avoids brittle source-path matching that TAs/ingestion can rewrite.
     ingest_start = int(time.time()) - 2
     results: Dict[str, Any] = {}
 
@@ -159,8 +159,8 @@ def main() -> int:
             overall = False
             continue
 
-        count = event_count(result["index"], result["source"], ingest_start)
-        fields = inventory(result["index"], result["source"], ingest_start)
+        count = event_count(result["index"], ingest_start)
+        fields = inventory(result["index"], ingest_start)
         spec = contracts[dataset]
         group_results = []
         for group in spec["required_any_groups"]:
@@ -170,7 +170,7 @@ def main() -> int:
 
         probes = []
         for probe in spec.get("cim_probes", []):
-            n = cim_count(probe, result["index"], result["source"], ingest_start)
+            n = cim_count(probe, result["index"], ingest_start)
             probes.append({"model_dataset": probe, "count": n, "ok": n > 0})
         cim_required = bool(spec.get("cim_probes"))
         cim_ok = (not cim_required) or any(x["ok"] for x in probes)
