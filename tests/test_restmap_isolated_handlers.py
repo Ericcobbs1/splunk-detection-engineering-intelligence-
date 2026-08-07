@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESTMAP = REPO_ROOT / "app" / "default" / "restmap.conf"
 BIN_DIR = REPO_ROOT / "app" / "bin"

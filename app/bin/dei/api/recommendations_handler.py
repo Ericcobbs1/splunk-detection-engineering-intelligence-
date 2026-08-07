@@ -5,10 +5,14 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from dei.api.response import persistent_response
-from dei.recommendations.engine import RecommendationEngine, RecommendationError, RecommendationReport
+from dei.recommendations.engine import (
+    RecommendationEngine,
+    RecommendationError,
+    RecommendationReport,
+)
 
 RecommendationFactory = Callable[
     [list[str], bool, bool, Optional[dict[str, list[str]]]], RecommendationReport
@@ -46,7 +50,7 @@ def _decode_payload(request_data: dict[str, Any]) -> Optional[dict[str, Any]]:
             return None
     if isinstance(nested_payload, dict):
         raw_payload = nested_payload
-    return raw_payload
+    return cast(dict[str, Any], raw_payload)
 
 
 class RecommendationsHandler:

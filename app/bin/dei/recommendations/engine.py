@@ -247,7 +247,7 @@ class RecommendationEngine:
                 readiness = "requires_enterprise_security"
                 readiness_points = -10
 
-            if readiness == "unsupported" and not include_unsupported:
+            if readiness in {"unsupported", "requires_enterprise_security"} and not include_unsupported:
                 continue
 
             score = max(0, min(100, opportunity.priority + readiness_points))

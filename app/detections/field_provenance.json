@@ -1,0 +1,54 @@
+{
+  "policy": {
+    "production_alias_authorities": [
+      "vendor_splunk_addon",
+      "splunk_cim",
+      "vendor_schema"
+    ],
+    "lab_observed_is_sufficient": false,
+    "description": "Production field aliases must be backed by a vendor-supported Splunk integration, Splunk CIM, or the source vendor's documented event schema. Lab-observed fields may validate behavior but cannot by themselves establish a production alias."
+  },
+  "field_families": {
+    "aws:cloudtrail.identity": {
+      "fields": [
+        "userIdentity.arn",
+        "userIdentity.userName",
+        "userIdentity.sessionContext.sessionIssuer.userName"
+      ],
+      "authority": "vendor_schema",
+      "publisher": "Amazon Web Services",
+      "reference": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-user-identity.html"
+    },
+    "gcp:audit:vertexai.method": {
+      "fields": [
+        "protoPayload.methodName"
+      ],
+      "authority": "vendor_schema",
+      "publisher": "Google Cloud",
+      "reference": "https://cloud.google.com/logging/docs/audit/understanding-audit-logs"
+    },
+    "web.http.request_path": {
+      "fields": [
+        "uri_path"
+      ],
+      "authority": "splunk_cim",
+      "publisher": "Splunk",
+      "reference": "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/8.5/data-models/web"
+    },
+    "dlp.classification": {
+      "fields": [
+        "category"
+      ],
+      "authority": "splunk_cim",
+      "publisher": "Splunk",
+      "reference": "https://help.splunk.com/splunk-cloud-platform/common-information-model/6.1/data-models/data-loss-prevention"
+    }
+  },
+  "rejected_lab_shortcuts": {
+    "data_classifications{}": "Observed in synthetic DLP data but not promoted without an authoritative integration/schema source.",
+    "actor.alternateId_as_target": "Actor identity is not semantically equivalent to the affected Okta target.",
+    "requestParameters.resource_as_bucket": "Generic AWS resource is not safely equivalent to an S3 bucket identity.",
+    "prompt_classification{}_as_prompt": "Classification metadata is not prompt content.",
+    "prompt_token_count_as_prompt": "Token counts are not prompt content."
+  }
+}
