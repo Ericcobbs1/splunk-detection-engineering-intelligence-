@@ -28,7 +28,7 @@ def test_enterprise_security_sources_map_to_capabilities() -> None:
     assert result.unmapped_sources == ()
 
 
-def test_new_ta_sources_map_to_runtime_validated_capabilities() -> None:
+def test_new_ta_sources_map_to_runtime_validated_primary_capabilities() -> None:
     result = normalize_sources([
         "aws:cloudwatch:guardduty",
         "aws:cloudwatchlogs:vpcflow",
@@ -63,15 +63,15 @@ def test_new_ta_sources_map_to_runtime_validated_capabilities() -> None:
     assert expected <= set(result.canonical_sources)
 
 
-def test_multi_capability_sources_advertise_secondary_capabilities() -> None:
+def test_multi_capability_sources_keep_primary_contract_and_expose_secondary() -> None:
     result = normalize_sources(["pan:threat", "zscalernss-web", "auditd"])
-    assert "network.ids" in result.canonical_sources
-    assert "web.http" in result.canonical_sources
-    assert "network.firewall" in result.canonical_sources
-    assert "linux.authentication" in result.canonical_sources
-    assert "endpoint.process" in result.canonical_sources
-    pan = result.mappings[0]
-    assert "web.http" in pan.additional_canonical_sources
+    assert result.canonical_sources == (
+        "network.ids", "web.http", "linux.authentication"
+    )
+    pan, zscaler, auditd = result.mappings
+    assert pan.additional_canonical_sources == ("web.http",)
+    assert zscaler.additional_canonical_sources == ("network.firewall", "network.ids")
+    assert auditd.additional_canonical_sources == ("endpoint.process",)
 
 
 def test_generic_xmlwineventlog_stays_broad_and_conservative() -> None:
