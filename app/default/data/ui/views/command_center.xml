@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="command_center.js" stylesheet="command_center.css">
+<form version="1.1" theme="dark" script="command_center.js" stylesheet="command_center_v2.css">
   <label>DEI Command Center</label>
   <description>Telemetry intelligence and explainable detection recommendations.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -6,79 +6,113 @@
     <panel>
       <html>
         <div id="dei-command-center" class="dei-shell">
-          <section class="dei-hero">
-            <div>
-              <p class="dei-eyebrow">Detection Engineering Intelligence</p>
-              <h1>Security Operations Command Center</h1>
-              <p class="dei-subtitle">Measure telemetry readiness, surface detection potential, and prioritize the next use cases to build.</p>
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand">
+              <span class="dei-brand-mark">DEI</span>
+              <div>
+                <strong>Detection Engineering Intelligence</strong>
+                <span>Command Center</span>
+              </div>
             </div>
-            <div class="dei-hero-status">
-              <div id="dei-api-status" class="dei-status">API status: checking</div>
-              <span class="dei-version-badge">DEI Intelligence</span>
+            <nav class="dei-workspace-nav">
+              <a class="active" href="#dei-overview">Overview</a>
+              <a href="#dei-telemetry">Telemetry</a>
+              <a href="#dei-portfolio-section">Portfolio</a>
+              <a href="#dei-coverage-section">Coverage</a>
+              <a href="#dei-advisor-section">Detection Advisor</a>
+            </nav>
+            <div id="dei-api-status" class="dei-status">API status: checking</div>
+          </section>
+
+          <section id="dei-overview" class="dei-hero">
+            <div class="dei-hero-copy">
+              <p class="dei-eyebrow">Security Operations Intelligence</p>
+              <h1>Turn telemetry into detection readiness.</h1>
+              <p class="dei-subtitle">Understand the data you have, identify what is detection-ready, and prioritize the engineering work that closes the highest-value coverage gaps.</p>
+              <div class="dei-hero-tags">
+                <span>Telemetry intelligence</span>
+                <span>Field-aware readiness</span>
+                <span>Explainable recommendations</span>
+                <span>ES-aware</span>
+              </div>
+            </div>
+            <div class="dei-hero-visual" aria-hidden="true">
+              <div class="dei-orbit dei-orbit-one"></div>
+              <div class="dei-orbit dei-orbit-two"></div>
+              <div class="dei-core-mark"><span>DEI</span><small>INTELLIGENCE</small></div>
             </div>
           </section>
 
-          <section class="dei-control-panel">
+          <section class="dei-metrics" aria-label="Detection intelligence summary">
+            <article class="dei-metric metric-primary"><span>Observed sources</span><strong id="metric-sources">0</strong><small>active telemetry</small></article>
+            <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong><small>mapped source types</small></article>
+            <article class="dei-metric metric-success"><span>Production ready</span><strong id="metric-ready">0</strong><small>deployable opportunities</small></article>
+            <article class="dei-metric metric-warning"><span>Partial coverage</span><strong id="metric-partial">0</strong><small>needs remediation</small></article>
+            <article class="dei-metric metric-accent"><span>Detection potential</span><strong id="metric-potential">0%</strong><small>portfolio readiness</small></article>
+          </section>
+
+          <section id="dei-telemetry" class="dei-control-panel">
             <div class="dei-control-header">
               <div>
                 <p class="dei-eyebrow">Environment Intelligence</p>
                 <h2>Telemetry discovery</h2>
+                <p>Active source types observed across searchable indexes during the current seven-day analysis window.</p>
               </div>
               <span class="dei-control-note">7-day active telemetry window</span>
             </div>
-            <label for="dei-sources">Discovered source types</label>
-            <textarea id="dei-sources" rows="6" readonly="readonly" placeholder="Discovering active Splunk telemetry..."></textarea>
+            <div class="dei-source-frame">
+              <div class="dei-source-frame-head">
+                <span>Discovered source types</span>
+                <small>Read-only inventory</small>
+              </div>
+              <textarea id="dei-sources" rows="7" readonly="readonly" placeholder="Discovering active Splunk telemetry..."></textarea>
+            </div>
             <div class="dei-actions">
-              <label class="dei-toggle"><input id="dei-es-enabled" type="checkbox" /> Enterprise Security enabled</label>
-              <button id="dei-analyze" type="button">Analyze environment</button>
+              <label class="dei-toggle"><input id="dei-es-enabled" type="checkbox" /><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label>
+              <button id="dei-analyze" type="button"><span>Analyze environment</span><b>→</b></button>
             </div>
             <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
           </section>
 
-          <section class="dei-metrics" aria-label="Detection intelligence summary">
-            <article class="dei-metric"><span>Observed sources</span><strong id="metric-sources">0</strong><small>active telemetry</small></article>
-            <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong><small>mapped source types</small></article>
-            <article class="dei-metric"><span>Production ready</span><strong id="metric-ready">0</strong><small>deployable opportunities</small></article>
-            <article class="dei-metric"><span>Partial coverage</span><strong id="metric-partial">0</strong><small>needs remediation</small></article>
-            <article class="dei-metric"><span>Detection potential</span><strong id="metric-potential">0%</strong><small>portfolio readiness</small></article>
-          </section>
-
-          <section class="dei-portfolio" aria-label="Detection portfolio">
+          <section id="dei-portfolio-section" class="dei-portfolio" aria-label="Detection portfolio">
             <div class="dei-portfolio-heading">
               <div>
                 <p class="dei-eyebrow">Detection Portfolio</p>
                 <h2>Readiness at a glance</h2>
+                <p>Operational view of deployable detections, remediation work, and evidence gaps.</p>
               </div>
               <span id="portfolio-total" class="dei-chip">0 opportunities</span>
             </div>
             <div class="dei-portfolio-grid">
-              <article><span class="dei-dot ready"></span><strong id="portfolio-ready">0</strong><small>Production ready</small></article>
-              <article><span class="dei-dot partial"></span><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></article>
-              <article><span class="dei-dot gap"></span><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></article>
-              <article><span class="dei-dot unverified"></span><strong id="portfolio-unverified">0</strong><small>Field unverified</small></article>
+              <article class="portfolio-ready"><span class="dei-dot ready"></span><div><strong id="portfolio-ready">0</strong><small>Production ready</small></div></article>
+              <article class="portfolio-partial"><span class="dei-dot partial"></span><div><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></div></article>
+              <article class="portfolio-gap"><span class="dei-dot gap"></span><div><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></div></article>
+              <article class="portfolio-unverified"><span class="dei-dot unverified"></span><div><strong id="portfolio-unverified">0</strong><small>Field unverified</small></div></article>
             </div>
           </section>
 
           <section class="dei-grid">
-            <article class="dei-panel dei-coverage-panel">
+            <article id="dei-coverage-section" class="dei-panel dei-coverage-panel">
               <div class="dei-section-heading">
                 <div>
                   <p class="dei-eyebrow">Telemetry DNA</p>
                   <h2>Coverage profile</h2>
+                  <p>Detection opportunity distribution across understood telemetry domains.</p>
                 </div>
                 <span id="coverage-label" class="dei-chip">Not analyzed</span>
               </div>
               <div class="dei-ring-wrap">
-                <div id="coverage-ring" class="dei-ring"><span id="coverage-value">0%</span></div>
+                <div id="coverage-ring" class="dei-ring"><span id="coverage-value">0%</span><small>potential</small></div>
                 <div id="coverage-domains" class="dei-domain-list"></div>
               </div>
             </article>
 
-            <article class="dei-panel dei-advisor-panel">
+            <article id="dei-advisor-section" class="dei-panel dei-advisor-panel">
               <div class="dei-section-heading">
                 <div>
                   <p class="dei-eyebrow">Detection Advisor</p>
                   <h2>Prioritized opportunities</h2>
+                  <p>Ranked recommendations based on observed telemetry, required fields, and coverage readiness.</p>
                 </div>
                 <span id="recommendation-count" class="dei-chip">0 results</span>
               </div>
