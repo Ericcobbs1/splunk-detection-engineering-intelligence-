@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "foundation": {
+    "framework": "Splunk UI Toolkit / React",
+    "packages": [
+      "@splunk/react-ui",
+      "@splunk/themes",
+      "@splunk/react-icons"
+    ],
+    "dashboard_framework": "Unified Dashboard Framework when dashboard-first",
+    "visualizations": "Splunk visualizations when an equivalent supported chart exists"
+  },
+  "semantic_states": {
+    "success": ["healthy", "production_ready", "passed"],
+    "info": ["informational", "observed", "mapped"],
+    "warning": ["partial", "unverified", "developing"],
+    "error": ["failed", "field_gap", "unhealthy"],
+    "neutral": ["unsupported", "unavailable", "not_applicable"]
+  },
+  "severity": ["critical", "high", "medium", "low", "informational"],
+  "tokens": [
+    "surface.canvas",
+    "surface.panel",
+    "surface.raised",
+    "border.subtle",
+    "text.primary",
+    "text.secondary",
+    "text.muted",
+    "status.success",
+    "status.info",
+    "status.warning",
+    "status.error",
+    "severity.critical",
+    "severity.high",
+    "severity.medium",
+    "severity.low",
+    "focus.visible"
+  ],
+  "components": {
+    "AppShell": {
+      "required": ["theme", "pageContent"],
+      "responsibilities": ["page width", "global spacing", "theme", "navigation context"]
+    },
+    "PageHeader": {
+      "required": ["title", "description"],
+      "optional": ["eyebrow", "status", "primaryAction"]
+    },
+    "MetricCard": {
+      "required": ["label", "value"],
+      "optional": ["status", "trend", "help", "drilldown"]
+    },
+    "StatusBadge": {
+      "required": ["state", "label"]
+    },
+    "SeverityBadge": {
+      "required": ["severity"]
+    },
+    "DetectionCard": {
+      "required": ["name", "severity", "readiness", "capability", "why"],
+      "optional": ["score", "fieldValidation", "mitreTechniques", "evidence", "nextAction"]
+    },
+    "CoveragePanel": {
+      "required": ["sourceUnderstanding", "fieldValidation", "detectionReadiness"],
+      "optional": ["domains", "drilldown"]
+    },
+    "DataSourceCard": {
+      "required": ["sourceIdentity", "activityState"],
+      "optional": ["index", "sourcetype", "taState", "cimState", "fieldState", "lastSeen"]
+    },
+    "HealthBanner": {
+      "required": ["state", "message"],
+      "optional": ["action"]
+    },
+    "EmptyState": {
+      "required": ["title", "explanation"],
+      "optional": ["action"]
+    },
+    "ErrorState": {
+      "required": ["category", "message"],
+      "categories": ["configuration", "permissions", "telemetry", "api", "timeout", "unknown"]
+    },
+    "LoadingState": {
+      "required": ["phase"],
+      "optional": ["progress", "detail"]
+    },
+    "EvidenceDrawer": {
+      "required": ["title", "evidence"],
+      "optional": ["spl", "fieldMappings", "sourceContext", "copyActions"]
+    }
+  }
+}
