@@ -1,0 +1,210 @@
+{
+  "registry_version": 1,
+  "policy": {
+    "generator_requires_status": "verified",
+    "allowed_authorities": ["vendor_schema", "splunk_supported_addon", "vendor_supported_addon", "splunk_cim"],
+    "lab_only_fields_allowed_as_production_truth": false
+  },
+  "sources": [
+    {
+      "id": "windows_security",
+      "vendor": "Microsoft",
+      "product": "Windows Security Event Log",
+      "status": "verified",
+      "sourcetypes": ["XmlWinEventLog:Security"],
+      "target_index": "wineventlog",
+      "ta": {"name": "Splunk Add-on for Microsoft Windows", "required": true},
+      "raw_fields": ["EventCode", "Computer", "SubjectUserName", "TargetUserName", "IpAddress", "LogonType", "ProcessName"],
+      "value_contracts": {
+        "EventCode": [4624, 4625, 4720, 4722, 4723, 4724, 4725, 4726, 4728, 4729, 4756, 4757]
+      },
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/get-data-in/splunk-supported-add-ons/splunk-supported-add-ons/microsoft-windows"},
+        {"type": "splunk_cim", "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.3/user-and-entity-behavior-analytics/behavior-based-detections-for-ueba-in-splunk-enterprise-security/required-sourcetypes-for-behavior-based-detections"}
+      ]
+    },
+    {
+      "id": "windows_powershell",
+      "vendor": "Microsoft",
+      "product": "Windows PowerShell Operational Log",
+      "status": "verified",
+      "sourcetypes": ["XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"],
+      "target_index": "powershell",
+      "ta": {"name": "Splunk Add-on for Microsoft Windows", "required": true},
+      "raw_fields": ["EventCode", "Computer", "UserId", "ScriptBlockText", "Message"],
+      "value_contracts": {"EventCode": [4103, 4104]},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/get-data-in/splunk-supported-add-ons/splunk-supported-add-ons/microsoft-windows"}
+      ]
+    },
+    {
+      "id": "aws_cloudtrail",
+      "vendor": "Amazon Web Services",
+      "product": "AWS CloudTrail",
+      "status": "verified",
+      "sourcetypes": ["aws:cloudtrail"],
+      "target_index": "aws",
+      "ta": {"name": "Splunk Add-on for AWS", "required": true},
+      "raw_fields": ["eventVersion", "userIdentity.type", "userIdentity.arn", "userIdentity.userName", "userIdentity.sessionContext.sessionIssuer.userName", "eventTime", "eventSource", "eventName", "awsRegion", "sourceIPAddress", "userAgent", "requestParameters", "responseElements", "errorCode", "errorMessage", "eventID", "readOnly", "eventType", "managementEvent", "recipientAccountId", "resources"],
+      "value_contracts": {
+        "eventType": ["AwsApiCall", "AwsConsoleSignIn", "AwsServiceEvent", "AwsVpceEvent"],
+        "managementEvent": [true, false],
+        "readOnly": [true, false]
+      },
+      "authorities": [
+        {"type": "vendor_schema", "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-events.html"},
+        {"type": "vendor_schema", "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-supported-event-schemas.html"},
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-it-service-intelligence/splunk-it-service-intelligence/detect-and-act-on-notable-events/4.20/third-party-alerting/set-up-cloudtrail-alerts-in-itsi"}
+      ]
+    },
+    {
+      "id": "aws_guardduty",
+      "vendor": "Amazon Web Services",
+      "product": "Amazon GuardDuty",
+      "status": "verified",
+      "sourcetypes": ["aws:cloudwatch:guardduty"],
+      "target_index": "aws",
+      "ta": {"name": "Splunk AWS Data Inputs / Splunk Add-on for AWS", "required": true},
+      "raw_fields": ["accountId", "arn", "createdAt", "description", "id", "partition", "region", "resource", "schemaVersion", "service", "severity", "title", "type", "updatedAt"],
+      "value_contracts": {"severity": {"type": "number", "min": 0, "max": 8.9}},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/data-management/ingest-data-from-cloud-sources/use-data-manager/1.16/getting-data-in-gdi/overview-of-source-types-for-data-manager"}
+      ]
+    },
+    {
+      "id": "okta_system_log",
+      "vendor": "Okta",
+      "product": "Okta System Log",
+      "status": "verified",
+      "sourcetypes": ["OktaIM2:log"],
+      "target_index": "okta",
+      "ta": {"name": "Splunk Add-on for Okta Identity Cloud", "required": true},
+      "raw_fields": ["uuid", "published", "eventType", "version", "severity", "legacyEventType", "displayMessage", "actor.id", "actor.type", "actor.alternateId", "client.ipAddress", "client.userAgent.rawUserAgent", "outcome.result", "outcome.reason", "target.id", "target.type", "target.alternateId"],
+      "value_contracts": {"outcome.result": ["SUCCESS", "FAILURE", "SKIPPED", "UNKNOWN"]},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/supported-add-ons/splunk-supported-add-ons/okta-identity-cloud"},
+        {"type": "vendor_schema", "url": "https://developer.okta.com/docs/reference/system-log-query/"},
+        {"type": "vendor_schema", "url": "https://developer.okta.com/docs/reference/api/event-types/"}
+      ]
+    },
+    {
+      "id": "m365_management_activity",
+      "vendor": "Microsoft",
+      "product": "Microsoft 365 Management Activity API",
+      "status": "verified",
+      "sourcetypes": ["o365:management:activity"],
+      "target_index": "o365",
+      "ta": {"name": "Splunk Add-on for Microsoft Office 365", "required": true},
+      "raw_fields": ["Id", "RecordType", "CreationTime", "Operation", "OrganizationId", "UserType", "UserKey", "Workload", "ResultStatus", "ObjectId", "UserId", "ClientIP", "Scope"],
+      "value_contracts": {"ResultStatus": ["Succeeded", "PartiallySucceeded", "Failed", "True", "False"]},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/get-data-in/splunk-supported-add-ons/splunk-supported-add-ons/microsoft-office-365"},
+        {"type": "vendor_schema", "url": "https://learn.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema"}
+      ]
+    },
+    {
+      "id": "m365_message_trace",
+      "vendor": "Microsoft",
+      "product": "Microsoft 365 Message Trace",
+      "status": "verified",
+      "sourcetypes": ["o365:reporting:messagetrace"],
+      "target_index": "o365",
+      "ta": {"name": "Splunk Add-on for Microsoft Office 365", "required": true},
+      "raw_fields": ["MessageTraceId", "MessageId", "SenderAddress", "RecipientAddress", "Subject", "Status", "ToIP", "FromIP", "Size", "StartDate", "EndDate"],
+      "value_contracts": {},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/data-management/transform-and-route-data/process-data-at-ingest-time/process-data-using-pipelines/convert-data-to-ocsf-format-using-ingest-processor/supported-source-types-and-event-types"}
+      ]
+    },
+    {
+      "id": "entra_signin",
+      "vendor": "Microsoft",
+      "product": "Microsoft Entra ID Sign-in Logs",
+      "status": "verified",
+      "sourcetypes": ["azure:monitor:aad"],
+      "target_index": "azure",
+      "ta": {"name": "Splunk Microsoft Azure/Data Inputs integration", "required": true},
+      "raw_fields": ["CreatedDateTime", "UserPrincipalName", "UserId", "IPAddress", "AppDisplayName", "AppId", "ConditionalAccessStatus", "CorrelationId", "DeviceDetail", "HomeTenantId", "ResourceDisplayName", "ResourceId", "ResultType", "ResultDescription", "RiskDetail", "RiskLevelAggregated", "RiskLevelDuringSignIn", "RiskState"],
+      "value_contracts": {"ConditionalAccessStatus": ["success", "failure", "notApplied"]},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-cloud-platform/ingest-data-from-cloud-services/data-manager-troubleshooting-manual/1.12/troubleshoot-azure-data-ingestion/troubleshooting-microsoft-entra-id-data-in-data-manager"},
+        {"type": "vendor_schema", "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/signinlogs"}
+      ]
+    },
+    {
+      "id": "palo_alto_traffic",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS Traffic Logs",
+      "status": "verified",
+      "sourcetypes": ["pan:traffic"],
+      "target_index": "pan",
+      "ta": {"name": "Palo Alto Networks Splunk integration", "required": true},
+      "raw_fields": ["src", "dst", "natsrc", "natdst", "rule", "srcuser", "dstuser", "app", "vsys", "from", "to", "inbound_if", "outbound_if", "sessionid", "sport", "dport", "natsport", "natdport", "proto", "action", "bytes", "bytes_sent", "bytes_received", "packets", "category", "srcloc", "dstloc", "session_end_reason"],
+      "value_contracts": {"action": ["allow", "deny", "drop"]},
+      "authorities": [
+        {"type": "vendor_schema", "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/traffic-log-fields"},
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/en/splunk-enterprise-security-7/splunk-ai-toolkit/ai-toolkit-user-guide/5.7.2/ai-toolkit-deep-dives-library/deep-dive-using-ml-to-identify-network-traffic-anomalies"}
+      ]
+    },
+    {
+      "id": "zscaler_zia_web",
+      "vendor": "Zscaler",
+      "product": "ZIA NSS Web Logs",
+      "status": "verified",
+      "sourcetypes": ["zscalernss-web"],
+      "target_index": "zscaler",
+      "ta": {"name": "Zscaler Technical Add-On for Splunk", "required": true},
+      "raw_fields": ["user", "department", "url", "action", "urlclass", "urlsupercat", "urlcat", "urlcatmethod", "clientip", "serverip", "requestmethod", "status", "riskscore"],
+      "value_contracts": {},
+      "authorities": [
+        {"type": "vendor_supported_addon", "url": "https://splunkbase.splunk.com/app/3865"},
+        {"type": "vendor_schema", "url": "https://help.zscaler.com/legacy-zia/nss-feed-output-format-web-logs"}
+      ]
+    },
+    {
+      "id": "suricata_eve_alert",
+      "vendor": "Open Information Security Foundation",
+      "product": "Suricata EVE JSON",
+      "status": "verified",
+      "sourcetypes": ["suricata"],
+      "target_index": "ids",
+      "ta": {"name": "Suricata TA/community integration", "required": false},
+      "raw_fields": ["timestamp", "flow_id", "event_type", "src_ip", "src_port", "dest_ip", "dest_port", "proto", "app_proto", "alert.action", "alert.gid", "alert.signature_id", "alert.rev", "alert.signature", "alert.category", "alert.severity"],
+      "value_contracts": {"event_type": ["alert", "flow", "dns", "http", "tls", "fileinfo", "anomaly"], "alert.action": ["allowed", "blocked"]},
+      "authorities": [
+        {"type": "vendor_schema", "url": "https://docs.suricata.io/en/suricata-8.0.0/output/eve/eve-json-format.html"},
+        {"type": "splunk_cim", "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.3/user-and-entity-behavior-analytics/behavior-based-detections-for-ueba-in-splunk-enterprise-security/required-sourcetypes-for-behavior-based-detections"}
+      ]
+    },
+    {
+      "id": "linux_auditd",
+      "vendor": "Linux",
+      "product": "Linux Audit Daemon",
+      "status": "pending_research",
+      "sourcetypes": ["auditd"],
+      "target_index": "linux",
+      "ta": {"name": "Splunk Add-on for Unix and Linux", "required": true},
+      "raw_fields": [],
+      "value_contracts": {},
+      "authorities": [
+        {"type": "splunk_supported_addon", "url": "https://help.splunk.com/splunk-cloud-platform/get-data-in/splunk-supported-add-ons/splunk-supported-add-ons/unix-and-linux"}
+      ]
+    },
+    {"id":"crowdstrike_fdr","vendor":"CrowdStrike","product":"Falcon Data Replicator","status":"pending_research","sourcetypes":[],"target_index":"crowdstrike","ta":{"name":"Splunk Add-on for CrowdStrike FDR","required":true},"raw_fields":[],"value_contracts":{},"authorities":[{"type":"splunk_supported_addon","url":"https://help.splunk.com/en/data-management/ingest-data-from-cloud-sources/use-data-inputs/1.17/crowdstrike-data/crowdstrike-introduction"}]},
+    {"id":"microsoft_defender_endpoint","vendor":"Microsoft","product":"Defender for Endpoint","status":"pending_research","sourcetypes":[],"target_index":"defender","ta":{"name":"Splunk Add-on for Microsoft Security","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"gcp_audit","vendor":"Google Cloud","product":"Cloud Audit Logs","status":"pending_research","sourcetypes":[],"target_index":"gcp","ta":{"name":"Splunk GCP Data Inputs/Add-on","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"google_workspace","vendor":"Google","product":"Google Workspace","status":"pending_research","sourcetypes":["gws:gmail"],"target_index":"google_workspace","ta":{"name":"Splunk Add-on for Google Workspace","required":true},"raw_fields":[],"value_contracts":{},"authorities":[{"type":"splunk_supported_addon","url":"https://help.splunk.com/en/supported-add-ons/splunk-supported-add-ons/google-workspace"}]},
+    {"id":"cisco_asa","vendor":"Cisco","product":"ASA","status":"pending_research","sourcetypes":["cisco:asa"],"target_index":"network","ta":{"name":"Splunk Add-on for Cisco ASA","required":true},"raw_fields":[],"value_contracts":{},"authorities":[{"type":"splunk_supported_addon","url":"https://help.splunk.com/en/supported-add-ons/splunk-supported-add-ons/cisco-asa"}]},
+    {"id":"cisco_ios","vendor":"Cisco","product":"IOS/IOS-XE","status":"pending_research","sourcetypes":[],"target_index":"network","ta":{"name":"Cisco network TA","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"aws_security_hub","vendor":"Amazon Web Services","product":"Security Hub","status":"pending_research","sourcetypes":[],"target_index":"aws","ta":{"name":"Splunk AWS Data Inputs/Add-on","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"aws_vpc_flow","vendor":"Amazon Web Services","product":"VPC Flow Logs","status":"pending_research","sourcetypes":[],"target_index":"aws","ta":{"name":"Splunk Add-on for AWS","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"azure_activity","vendor":"Microsoft","product":"Azure Activity Log","status":"pending_research","sourcetypes":[],"target_index":"azure","ta":{"name":"Splunk Microsoft Cloud Services/Data Inputs","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"pan_threat","vendor":"Palo Alto Networks","product":"PAN-OS Threat Logs","status":"pending_research","sourcetypes":["pan:threat"],"target_index":"pan","ta":{"name":"Palo Alto Networks Splunk integration","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"pan_globalprotect","vendor":"Palo Alto Networks","product":"GlobalProtect Logs","status":"pending_research","sourcetypes":["pan:globalprotect"],"target_index":"pan","ta":{"name":"Palo Alto Networks Splunk integration","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"tenable_vulnerability","vendor":"Tenable","product":"Tenable Vulnerability Management","status":"pending_research","sourcetypes":[],"target_index":"vulnerability","ta":{"name":"Tenable Splunk integration","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"qualys_vulnerability","vendor":"Qualys","product":"VMDR","status":"pending_research","sourcetypes":[],"target_index":"vulnerability","ta":{"name":"Qualys Splunk integration","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"kubernetes_audit","vendor":"Kubernetes","product":"Kubernetes Audit Logs","status":"pending_research","sourcetypes":[],"target_index":"kubernetes","ta":{"name":"Kubernetes/Splunk integration","required":false},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"github_audit","vendor":"GitHub","product":"GitHub Audit Log","status":"pending_research","sourcetypes":[],"target_index":"saas","ta":{"name":"GitHub Splunk integration","required":false},"raw_fields":[],"value_contracts":{},"authorities":[]},
+    {"id":"salesforce_audit","vendor":"Salesforce","product":"Event Monitoring","status":"pending_research","sourcetypes":[],"target_index":"saas","ta":{"name":"Salesforce Splunk integration","required":true},"raw_fields":[],"value_contracts":{},"authorities":[]}
+  ]
+}
