@@ -7,8 +7,8 @@
     "merge_gate": "all datasets must be format_verified and semantic_verified"
   },
   "datasets": {
-    "windows_security": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Authentication","Change","Endpoint"],"format_verified":true,"semantic_verified":true},
-    "windows_powershell": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Endpoint.Processes"],"format_verified":true,"semantic_verified":true},
+    "windows_security": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Authentication","Change","Endpoint"],"format_verified":false,"semantic_verified":true},
+    "windows_powershell": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Endpoint.Processes"],"format_verified":false,"semantic_verified":true},
     "aws_cloudtrail": {"wire_format":"json","ta_sourcetype":"aws:cloudtrail","cim":["Authentication","Change"],"format_verified":true,"semantic_verified":false},
     "aws_guardduty": {"wire_format":"json","ta_sourcetype":"aws:cloudwatch:guardduty","cim":["Alerts","Intrusion_Detection"],"format_verified":true,"semantic_verified":false},
     "aws_vpc_flow": {"wire_format":"space_delimited","ta_sourcetype":"aws:cloudwatchlogs:vpcflow","cim":["Network_Traffic"],"format_verified":false,"semantic_verified":false},
