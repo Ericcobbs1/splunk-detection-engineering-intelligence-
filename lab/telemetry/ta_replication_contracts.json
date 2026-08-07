@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "policy": {
+    "one_dataset_per_index": true,
+    "raw_payload_must_match_vendor_or_ta_input_shape": true,
+    "cim_is_search_time_normalization": true,
+    "merge_gate": "all datasets must be format_verified and semantic_verified"
+  },
+  "datasets": {
+    "windows_security": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Authentication","Change","Endpoint"],"format_verified":true,"semantic_verified":true},
+    "windows_powershell": {"wire_format":"windows_event_xml","ta_sourcetype":"XmlWinEventLog","cim":["Endpoint.Processes"],"format_verified":true,"semantic_verified":true},
+    "aws_cloudtrail": {"wire_format":"json","ta_sourcetype":"aws:cloudtrail","cim":["Authentication","Change"],"format_verified":true,"semantic_verified":false},
+    "aws_guardduty": {"wire_format":"json","ta_sourcetype":"aws:cloudwatch:guardduty","cim":["Alerts","Intrusion_Detection"],"format_verified":true,"semantic_verified":false},
+    "aws_vpc_flow": {"wire_format":"space_delimited","ta_sourcetype":"aws:cloudwatchlogs:vpcflow","cim":["Network_Traffic"],"format_verified":false,"semantic_verified":false},
+    "aws_route53_dns": {"wire_format":"json","ta_sourcetype":"aws:cloudwatchlogs:route53","cim":["Network_Resolution"],"format_verified":true,"semantic_verified":false},
+    "aws_security_hub": {"wire_format":"json","ta_sourcetype":"aws:securityhub:finding","cim":["Alerts"],"format_verified":true,"semantic_verified":false},
+    "okta_system_log": {"wire_format":"json","ta_sourcetype":"OktaIM2:log","cim":["Authentication","Change"],"format_verified":true,"semantic_verified":false},
+    "m365_management_activity": {"wire_format":"json","ta_sourcetype":"o365:management:activity","cim":["Authentication","Change","Email"],"format_verified":true,"semantic_verified":false},
+    "m365_message_trace": {"wire_format":"reporting_api_records","ta_sourcetype":"o365:reporting:messagetrace","cim":["Email"],"format_verified":false,"semantic_verified":false},
+    "entra_signin": {"wire_format":"azure_monitor_json","ta_sourcetype":"azure:monitor:aad","cim":["Authentication"],"format_verified":true,"semantic_verified":true},
+    "azure_activity": {"wire_format":"azure_activity_json","ta_sourcetype":"azure:monitor:activity","cim":["Change"],"format_verified":true,"semantic_verified":true},
+    "microsoft_defender_endpoint": {"wire_format":"advanced_hunting_json","ta_sourcetype":"m365:defender:incident:advanced_hunting","cim":["Endpoint","Network_Traffic"],"format_verified":false,"semantic_verified":false},
+    "gcp_audit": {"wire_format":"gcp_pubsub_json","ta_sourcetype":"google:gcp:pubsub:message","cim":["Authentication","Change"],"format_verified":false,"semantic_verified":false},
+    "google_workspace": {"wire_format":"reports_api_json","ta_sourcetype":"gws:reports:admin","cim":["Authentication","Change"],"format_verified":true,"semantic_verified":false},
+    "palo_alto_traffic": {"wire_format":"pan_os_syslog_csv","ta_sourcetype":"pan:traffic","cim":["Network_Traffic"],"format_verified":false,"semantic_verified":false},
+    "palo_alto_threat": {"wire_format":"pan_os_syslog_csv","ta_sourcetype":"pan:threat","cim":["Intrusion_Detection","Malware"],"format_verified":false,"semantic_verified":false},
+    "zscaler_zia_web": {"wire_format":"nss_delimited","ta_sourcetype":"zscalernss-web","cim":["Web"],"format_verified":false,"semantic_verified":false},
+    "suricata_eve_alert": {"wire_format":"eve_json","ta_sourcetype":"suricata","cim":["Intrusion_Detection","Network_Traffic"],"format_verified":true,"semantic_verified":false},
+    "linux_auditd": {"wire_format":"audit_key_value","ta_sourcetype":"auditd","cim":["Endpoint","Authentication","Change"],"format_verified":false,"semantic_verified":false},
+    "kubernetes_audit": {"wire_format":"json","ta_sourcetype":"kube:audit","cim":["Change","Authentication"],"format_verified":true,"semantic_verified":false},
+    "github_audit": {"wire_format":"json","ta_sourcetype":"github:audit","cim":["Change","Authentication"],"format_verified":true,"semantic_verified":false},
+    "cloudflare_http": {"wire_format":"logpush_json","ta_sourcetype":"cloudflare:http","cim":["Web"],"format_verified":true,"semantic_verified":false},
+    "salesforce_event_monitoring": {"wire_format":"eventlogfile_csv","ta_sourcetype":"sfdc:logfile","cim":["Authentication","Web"],"format_verified":false,"semantic_verified":false},
+    "crowdstrike_fdr_sensor": {"wire_format":"fdr_json","ta_sourcetype":"crowdstrike:events:sensor","cim":["Endpoint","Network_Traffic"],"format_verified":true,"semantic_verified":false},
+    "cisco_asa": {"wire_format":"asa_syslog","ta_sourcetype":"cisco:asa","cim":["Network_Traffic","Authentication"],"format_verified":false,"semantic_verified":false}
+  }
+}
