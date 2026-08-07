@@ -13,7 +13,9 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == "mitre_workspace.js"
-    assert root.attrib["stylesheet"] == "command_center_v2.css,mitre_workspace.css"
+    assert root.attrib["stylesheet"] == (
+        "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css"
+    )
     for element_id in (
         "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
         "mitre-readiness-filter", "mitre-detection-list", "mitre-matrix",
@@ -32,6 +34,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
 def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     javascript = (STATIC_ROOT / "mitre_workspace.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "mitre_workspace.css").read_text(encoding="utf-8")
+    readability = (STATIC_ROOT / "mitre_workspace_readability.css").read_text(encoding="utf-8")
     assert 'id:"TA0043", name:"Reconnaissance", count:12' in javascript
     assert 'id:"TA0005", name:"Stealth", count:30' in javascript
     assert 'id:"TA0112", name:"Defense Impairment", count:18' in javascript
@@ -59,3 +62,14 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert ".dei-attack-live-button" in stylesheet
     assert "deiMitrePulse" in stylesheet
     assert "prefers-reduced-motion" in stylesheet
+
+    # Readability overrides prevent the lower inspector from being clipped by
+    # a viewport-height grid while keeping the matrix itself compact.
+    assert ".dei-mitre-page" in readability
+    assert "height: auto" in readability
+    assert "overflow: visible" in readability
+    assert ".dei-mitre-matrix-pane" in readability
+    assert "height: 480px" in readability
+    assert ".dei-mitre-inspector-body" in readability
+    assert "max-height: none" in readability
+    assert "position: sticky" in readability
