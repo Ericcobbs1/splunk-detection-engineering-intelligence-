@@ -10,17 +10,23 @@ from __future__ import annotations
 
 import argparse
 import copy
+import importlib.util
 import json
 import random
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-import generate_corpus as base
-
 ROOT = Path(__file__).resolve().parent
+BASE_GENERATOR = ROOT / "generate_corpus.py"
 BATCH2 = ROOT / "source_registry_batch2.json"
 RECORD_FORMAT = "authoritative_searchable_json"
+
+_BASE_SPEC = importlib.util.spec_from_file_location("dei_generate_corpus_base", BASE_GENERATOR)
+if _BASE_SPEC is None or _BASE_SPEC.loader is None:
+    raise RuntimeError(f"Unable to load base corpus generator: {BASE_GENERATOR}")
+base = importlib.util.module_from_spec(_BASE_SPEC)
+_BASE_SPEC.loader.exec_module(base)
 
 
 def _normalize_profile(profile: Dict[str, Any]) -> Dict[str, Any]:
