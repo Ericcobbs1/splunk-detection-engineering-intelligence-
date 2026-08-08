@@ -33,6 +33,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
         "lifecycle-action-history", "lifecycle-action-progress",
+        "dei-detection-flow", "dei-flow-status",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
