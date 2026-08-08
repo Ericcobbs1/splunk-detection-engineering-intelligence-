@@ -4,6 +4,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var REPORT_KEY = "dei.latestRecommendationReport";
   var REPORT_TIME_KEY = "dei.latestRecommendationTime";
   var report = null;
+  var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
+
+  function artifacts() {
+    var value = safeJson(window.localStorage.getItem(ARTIFACT_KEY));
+    return Array.isArray(value) ? value : [];
+  }
 
   function safeJson(value) {
     try { return JSON.parse(value || "null"); } catch (error) { return null; }
@@ -88,8 +94,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var profiled = items.filter(function (item) {
       return item.field_validation && item.field_validation !== "not_evaluated";
     }).length;
+    var generated = artifacts().length;
     var maturityStages = report ? 4 : 0;
     if (ready) { maturityStages += 1; }
+    if (generated) { maturityStages += 1; }
     var maturity = Math.round((maturityStages / 7) * 100);
 
     $("#life-sources").text(sources);
@@ -97,7 +105,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#life-mitre-mapped").text(mapped);
     $("#life-field-verified").text(verified);
     $("#life-telemetry-ready").text(ready);
-    $("#life-spl-generated").text("0");
+    $("#life-spl-generated").text(generated);
     $("#lifecycle-maturity-percent").text(maturity + "%");
 
     $("#stage-discover").text(sources + " sources");
@@ -105,7 +113,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#stage-qualify").text(verified + " verified");
     $("#stage-recommend").text(items.length + " use cases");
     $("#stage-design").text(ready + " ready");
-    $("#stage-generate").text("0 SPL");
+    $("#stage-generate").text(generated + " SPL");
+    $("#state-draft").text(generated);
     $("#stage-validate").text("0 passed");
   }
 
@@ -135,8 +144,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         '<td><span class="dei-lifecycle-readiness ' + esc(item.readiness) + '">' + esc(readinessLabel(item.readiness)) + "</span></td>" +
         "<td>" + esc(techniques.join(" · ") || "Not mapped") + "</td>" +
         '<td><span class="dei-lifecycle-stage ' + stageName + '">' + esc(stageName) + "</span></td>" +
-        "<td>" + esc(nextAction(item)) + "</td></tr>";
-    }).join("") : '<tr><td colspan="6">No detection opportunities match the current lifecycle filters.</td></tr>');
+        "<td>" + esc(nextAction(item)) + "</td>" +
+        '<td>' + (item.readiness === "production_ready" ? '<button type="button" class="dei-generate-detection" data-detection="' + esc(item.detection_id) + '">Generate</button>' : '<span class="dei-generation-blocked">Resolve gaps</span>') + "</td></tr>";
+    }).join("") : '<tr><td colspan="7">No detection opportunities match the current lifecycle filters.</td></tr>');
   }
 
   function render() {
@@ -146,8 +156,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   $("#lifecycle-search, #lifecycle-readiness, #lifecycle-stage").on("input change", renderQueue);
+  $(document).on("dei:detection-artifacts-changed", function () { renderMetrics(); });
+
   $(window).on("storage", function (event) {
-    if (!event.originalEvent || [REPORT_KEY, REPORT_TIME_KEY].indexOf(event.originalEvent.key) !== -1) {
+    if (!event.originalEvent || [REPORT_KEY, REPORT_TIME_KEY, ARTIFACT_KEY].indexOf(event.originalEvent.key) !== -1) {
       render();
     }
   });
