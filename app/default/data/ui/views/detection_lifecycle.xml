@@ -32,6 +32,19 @@
 
           <section class="dei-lifecycle-section dei-pipeline-section">
             <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Intelligence Pipeline</p><h2>Evidence-to-detection workflow</h2><p>Metrics advance only when DEI has evidence for the corresponding engineering outcome.</p></div><span class="dei-lifecycle-contract">Platform-first · ES-enhanced</span></div>
+            <div id="dei-detection-flow" class="dei-detection-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
+              <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Detection intelligence flow</strong></div><span id="dei-flow-status">Awaiting environment evidence</span></div>
+              <div class="dei-flow-rail" aria-hidden="true"><span class="dei-flow-complete-track"></span><i class="dei-flow-packet packet-one"></i><i class="dei-flow-packet packet-two"></i><i class="dei-flow-packet packet-three"></i></div>
+              <div class="dei-flow-nodes" aria-hidden="true">
+                <span data-flow-stage="discover"><b>01</b><small>Discover</small></span>
+                <span data-flow-stage="profile"><b>02</b><small>Profile</small></span>
+                <span data-flow-stage="qualify"><b>03</b><small>Qualify</small></span>
+                <span data-flow-stage="recommend"><b>04</b><small>Recommend</small></span>
+                <span data-flow-stage="design"><b>05</b><small>Design</small></span>
+                <span data-flow-stage="generate"><b>06</b><small>Generate</small></span>
+                <span data-flow-stage="validate"><b>07</b><small>Validate</small></span>
+              </div>
+            </div>
             <div class="dei-pipeline-grid">
               <article class="available dei-pipeline-stage" data-stage="discover" data-filter-state="recommendation" data-pipeline-state="upcoming" role="button" tabindex="0"><span>01</span><h3>Discover</h3><strong id="stage-discover">0 sources</strong><p>Bounded index and sourcetype inventory.</p></article>
               <article class="available dei-pipeline-stage" data-stage="profile" data-filter-state="recommendation" data-pipeline-state="upcoming" role="button" tabindex="0"><span>02</span><h3>Profile</h3><strong id="stage-profile">0 profiled</strong><p>Fields, events, values, quality, and CIM evidence.</p></article>

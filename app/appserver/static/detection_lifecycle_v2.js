@@ -93,7 +93,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var status=state==="complete"?"complete":state==="blocked"?"blocked by evidence":"next stage";
       card.attr("data-pipeline-state",state).attr("aria-label",label(stage)+": "+metric+", "+status)
         .attr("title",label(stage)+" · "+metric+" · "+status);
+      $('.dei-flow-nodes [data-flow-stage="'+stage+'"]').attr("data-pipeline-state",state);
     });
+    var progress=firstIncomplete===-1 ? 100 : Math.round((firstIncomplete/(stages.length-1))*100);
+    var currentStage=firstIncomplete===-1 ? "Lifecycle evidence complete" : label(stages[firstIncomplete]);
+    var currentCard=firstIncomplete===-1 ? $() : $('.dei-pipeline-stage[data-stage="'+stages[firstIncomplete]+'"]');
+    var flowState=firstIncomplete===-1 ? "complete" :
+      (currentCard.attr("data-pipeline-state")==="blocked" ? "blocked" : "active");
+    $("#dei-detection-flow").css("--dei-flow-progress",progress+"%")
+      .attr("data-flow-state",flowState).toggleClass("has-flow",progress>0);
+    $("#dei-flow-status").text(firstIncomplete===-1 ? "All evidence stages complete" :
+      currentStage+(flowState==="blocked" ? " is blocked by required evidence" : " is the active evidence stage"));
   }
 
   function renderMetrics() {

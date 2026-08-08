@@ -35,9 +35,18 @@ def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> N
         assert f'data-pipeline-state="{state}"' in stylesheet
     assert "@keyframes dei-pipeline-flow" in stylesheet
     assert "@keyframes dei-current-stage" in stylesheet
+    assert ".dei-detection-flow" in stylesheet
+    assert ".dei-flow-rail" in stylesheet
+    assert ".dei-flow-packet" in stylesheet
+    assert ".dei-flow-nodes" in stylesheet
+    assert "@keyframes dei-flow-packet" in stylesheet
+    assert "@keyframes dei-flow-current-node" in stylesheet
+    assert "--dei-flow-progress" in stylesheet
     assert "@media(prefers-reduced-motion:reduce)" in stylesheet
     assert "renderPipelineState" in lifecycle
     assert "activatePipelineStage" in lifecycle
+    assert '.css("--dei-flow-progress",progress+"%")' in lifecycle
+    assert '$("#dei-flow-status").text' in lifecycle
     assert 'event.key==="Enter" || event.key===" "' in lifecycle
 
 
