@@ -62,4 +62,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
         '#dei-detection-builder-page .dei-generator-grid>article:nth-child(2)',
     ):
         assert selector in stylesheet
+    analyst_pipeline = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-pipeline-section{order:3}')
+    analyst_queue = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:4}')
+    assert analyst_pipeline >= 0 and analyst_queue > analyst_pipeline
     assert "position:sticky" in stylesheet

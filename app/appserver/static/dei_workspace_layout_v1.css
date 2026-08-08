@@ -37,8 +37,8 @@
 .dei-lifecycle-workspace-grid.has-selection{grid-template-columns:minmax(640px,1.3fr) minmax(420px,.7fr);align-items:start}
 .dei-lifecycle-workspace-grid>.dei-lifecycle-section{min-width:0;margin-top:14px}
 .dei-lifecycle-workspace-grid.has-selection .dei-action-center{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
-#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:3}
-#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-pipeline-section{order:4}
+#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-pipeline-section{order:3}
+#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:4}
 #dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-state-section{order:5}
 #dei-lifecycle-page[data-dei-workspace-mode="coverage"]>.dei-pipeline-section{order:3}
 #dei-lifecycle-page[data-dei-workspace-mode="coverage"]>.dei-state-section{order:4}
