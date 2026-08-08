@@ -65,10 +65,31 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return storedArtifacts().filter(function (entry) { return entry.id === id; })[0] || null;
   }
 
+  var ANALYTIC_FAMILIES={
+    "windows-password-spray":"authentication_threshold","windows-kerberoasting":"kerberos_service_ticket",
+    "windows-powershell-encoded":"powershell","endpoint-suspicious-powershell":"powershell",
+    "aws-iam-policy-escalation":"aws_change","aws-cloudtrail-disabled":"aws_change","aws-s3-public-access":"aws_change",
+    "ai-shadow-usage":"ai_usage","ai-sensitive-data-exposure":"ai_sensitive","ai-model-admin-change":"admin_change",
+    "identity-mfa-failure-spike":"authentication_threshold","identity-privilege-grant":"admin_change",
+    "endpoint-remote-logon":"remote_logon","linux-ssh-bruteforce":"authentication_threshold","linux-sudo-shell":"privileged_command",
+    "dns-suspicious-resolution":"dns_anomaly","firewall-risky-inbound":"firewall_threshold",
+    "network-device-config-change":"admin_change","threat-intel-observable-match":"threat_intelligence",
+    "es-risk-score-spike":"risk_aggregation","web-anomalous-post-volume":"web_volume",
+    "aws-guardduty-high-severity":"guardduty","aws-securityhub-critical-finding":"securityhub",
+    "m365-admin-change-failure":"admin_change","m365-message-trace-anomaly":"message_volume",
+    "azure-control-plane-change":"admin_change","gcp-admin-activity-change":"admin_change",
+    "google-workspace-admin-change":"admin_change","kubernetes-sensitive-api-operation":"admin_change",
+    "github-organization-admin-change":"admin_change","salesforce-session-anomaly":"session_anomaly"
+  };
+  function analyticFamily(id){return ANALYTIC_FAMILIES[id]||"unsupported";}
+
   function normalizedPrelude(item) {
     var id = item.detection_id;
     if (/password-spray|mfa-failure|ssh-bruteforce/.test(id)) {
       return "| eval user=coalesce(user, TargetUserName, user_name, src_user, 'actor.alternateId'), src_ip=coalesce(src_ip, IpAddress, source_ip, client_ip), action=lower(coalesce(action, status, result, 'outcome.result'))";
+    }
+    if (id === "windows-kerberoasting") {
+      return "| eval user=coalesce(user,TargetUserName,UserName), src_ip=coalesce(src_ip,IpAddress,ClientAddress), service_name=coalesce(ServiceName,service_name), encryption=lower(tostring(coalesce(TicketEncryptionType,ticket_encryption_type)))";
     }
     if (/powershell/.test(id)) {
       return "| eval user=coalesce(user, UserName), process=coalesce(process_name, Image, file_name), command_line=coalesce(command_line, CommandLine, process_command_line, ScriptBlockText)";
@@ -80,16 +101,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return "| eval src_ip=coalesce(src_ip, source_ip), dest_ip=coalesce(dest_ip, destination_ip), dest_port=coalesce(dest_port, destination_port), action=lower(coalesce(action, result))";
     }
     if (/web-anomalous/.test(id)) {
-      return "| eval method=upper(coalesce(method, http_method)), uri=coalesce(uri, uri_path, url, request_uri), src_ip=coalesce(src_ip, clientip, client_ip)";
+      return "| eval method=upper(coalesce(method, http_method)), uri=coalesce(uri, uri_path, url, request_uri), src_ip=coalesce(src_ip, clientip, client_ip), bytes_out=tonumber(coalesce(bytes_out,bytes_sent,response_bytes,sc_bytes))";
     }
     if (/iam|cloudtrail|s3/.test(id)) {
       return "| eval action=coalesce(eventName, event_name), user=coalesce('userIdentity.arn','userIdentity.userName','userIdentity.sessionContext.sessionIssuer.userName',user_arn,user), src_ip=coalesce(sourceIPAddress,src_ip), object=coalesce('requestParameters.bucketName',bucket_name,bucket)";
     }
-    if (/guardduty|securityhub/.test(id)) {
-      return "| eval finding_severity=upper(coalesce('Severity.Label',severity)), account=coalesce(accountId,account_id), resource=coalesce('resource.resourceType',resourceType,resource_type,ProductArn,product_arn)";
+    if (/guardduty/.test(id)) {
+      return "| eval numeric_severity=tonumber(coalesce(severity,Severity)), account=coalesce(accountId,account_id), resource=coalesce('resource.resourceType',resourceType,resource_type), finding_type=coalesce(type,Type), finding_title=coalesce(title,Title)";
     }
-    if (/admin-change|privilege-grant|model-admin|config-change|sensitive-api/.test(id)) {
-      return "| eval action=coalesce(action,eventName,event_name,operationName,operation_name,Operation,operation,methodName,'protoPayload.methodName',events.name,verb,command), user=coalesce(user,caller,Caller,actor,'actor.email','protoPayload.authenticationInfo.principalEmail','actor.alternateId'), object=coalesce(target,target_user,'target.alternateId',resource,resourceId,resource_id,resourceName,'objectRef.resource',host,device)";
+    if (/securityhub/.test(id)) {
+      return "| eval finding_severity=upper(coalesce('Severity.Label',severity)), workflow_status=upper(coalesce('Workflow.Status',workflow_status)), account=coalesce(AwsAccountId,accountId,account_id), resource=coalesce('Resources{}.Type','resource.resourceType',resourceType,resource_type,ProductArn,product_arn), finding_title=coalesce(Title,title)";
+    }
+    if (/admin-change|privilege-grant|model-admin|config-change|sensitive-api|sudo-shell|control-plane-change|admin-activity-change/.test(id)) {
+      return "| eval action=coalesce(action,eventName,event_name,operationName,operation_name,Operation,operation,methodName,'protoPayload.methodName',events.name,verb,command), user=coalesce(user,caller,Caller,actor,'actor.email','protoPayload.authenticationInfo.principalEmail','actor.alternateId'), object=coalesce(target,target_user,'target.alternateId',resource,resourceId,resource_id,resourceName,'objectRef.resource',host,device), src_ip=coalesce(src_ip,sourceIPAddress,callerIp,'protoPayload.requestMetadata.callerIp',client_ip), command=coalesce(command,CommandLine,process,process_name)";
     }
     return "";
   }
@@ -130,7 +154,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return "| where action IN (\"PutBucketAcl\",\"PutBucketPolicy\",\"DeletePublicAccessBlock\",\"PutBucketPublicAccessBlock\")\n| table _time user src_ip action object";
     }
     if (/guardduty/.test(id)) {
-      return "| where tonumber(severity)>=7\n| table _time account resource severity type title";
+      return "| where numeric_severity>=7\n| table _time account resource numeric_severity finding_type finding_title";
     }
     if (/securityhub/.test(id)) {
       return "| where finding_severity IN (\"CRITICAL\",\"HIGH\")\n| table _time resource finding_severity Workflow.Status Title";
@@ -153,10 +177,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (id === "m365-message-trace-anomaly") {
       return "| eval sender=coalesce(SenderAddress,sender), recipient=coalesce(RecipientAddress,recipient), status=coalesce(Status,status)\n| bin _time span=15m\n| stats count dc(recipient) AS recipients values(status) AS statuses by _time sender\n| where count>=100 OR recipients>=50";
     }
-    if (/admin-change|privilege-grant|model-admin|config-change|sensitive-api|sudo-shell/.test(id)) {
-      return "| where isnotnull(action)\n| stats count values(action) AS actions values(object) AS objects by user src_ip\n| where count>=1";
+    if (/admin-change|privilege-grant|model-admin|config-change|sensitive-api|sudo-shell|control-plane-change|admin-activity-change/.test(id)) {
+      return "| where isnotnull(action)\n| fillnull value="unknown" user src_ip object\n| stats count values(action) AS actions values(object) AS objects values(command) AS commands earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=1";
     }
-    return "| stats count earliest(_time) AS first_seen latest(_time) AS last_seen values(host) AS hosts by sourcetype\n| where count>=1";
+    return "| eval dei_generation_blocker=\"No explicit analytic template exists for this detection ID\"\n| where 1=0";
   }
 
   function schedule(item) {
@@ -290,7 +314,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var esEnabled = window.sessionStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     var artifact={
-      schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft",
+      schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft", analytic_family:analyticFamily(item.detection_id),
       description:item.why, severity:item.severity, capability:item.capability,
       source_readiness:item.readiness, unresolved_fields:unresolvedFields(item), engineering_warnings:engineeringWarnings(item),
       sourcetypes:sources, mitre_attack:item.mitre_techniques || [], spl:spl,
