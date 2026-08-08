@@ -98,8 +98,11 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:2" in stylesheet
     assert ".dei-home-workspace-grid" in stylesheet
-    assert ".dei-official-home .dei-detection-flow{min-height:270px" in stylesheet
-    assert ".dei-official-home .dei-flow-nodes b{width:58px;height:58px" in stylesheet
+    assert ".dei-official-home .dei-topology-flow{min-height:590px" in stylesheet
+    assert ".dei-topology-core{position:absolute" in stylesheet
+    assert ".dei-topology-connections" in stylesheet
+    assert "@keyframes dei-topology-signal" in stylesheet
+    assert "@keyframes dei-topology-orbit" in stylesheet
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet
@@ -107,10 +110,15 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'id="dei-home-use-case-count"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
+    markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
-        "Source inventory", "Field evidence", "Readiness gates", "Use-case fit",
-        "Detection logic", "Reviewable SPL", "Test evidence",
+        "Telemetry inventory", "Field evidence", "Readiness gates", "Use-case portfolio",
+        "Detection logic", "Reviewable SPL", "Test evidence", "DEI Intelligence Core",
     ):
-        assert description in ElementTree.tostring(home, encoding="unicode")
+        assert description in markup
+    topology = shell.find(".//*[@class='dei-topology-canvas']")
+    assert topology is not None
+    assert len([element for element in topology.iter() if element.tag.endswith("path")]) == 14
+    assert shell.find(".//*[@id='dei-topology-core-count']") is not None
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None

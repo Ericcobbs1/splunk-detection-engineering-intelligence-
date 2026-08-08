@@ -113,7 +113,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       active+" detection"+(active===1?"":"s")+" moving through engineering";
     $("#dei-home-health").text(healthLabel).attr("data-health",healthState).closest(".dei-flow-health-card").attr("data-health",healthState);
     $("#dei-home-health-detail").text(healthDetail);
-    $("#dei-home-use-case-count").text(useCases);
+    $("#dei-home-use-case-count, #dei-topology-core-count").text(useCases);
     $("#dei-home-active-count").text(active);
     $("#dei-home-blocked-count").text(blocked);
     $("#dei-home-production-count").text(production);
