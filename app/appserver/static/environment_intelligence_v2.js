@@ -152,6 +152,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#env-es-state").text(window.localStorage.getItem(ES_KEY) === "true" ? "Enabled" : "Not enabled");
   }
 
+  function resetPremiumDashboard() {
+    $("#coverage-value").text("0%");
+    $("#coverage-ring").css("--dei-coverage", "0%");
+    $("#coverage-label").text("Not analyzed");
+    $("#env-tactics-covered, #env-tactics-partial, #env-tactics-uncovered").text("0");
+    $("#env-tactic-donut").css("background", "#33465a");
+    $("#env-top-domains").html('<p class="dei-empty">Analyze the environment to populate domains.</p>');
+    $("#env-domain-count").text("0");
+    $("#env-domain-legend").empty();
+    $("#env-domain-donut").css("background", "#1d3347");
+    $("#coverage-domains").empty();
+    $("#env-tactic-bars").html('<p class="dei-empty">Analyze the environment to calculate tactic coverage.</p>');
+    $("#env-index-count").text("0 indexes");
+    $("#env-source-count").text("0 source types");
+    $("#env-event-count, #env-detection-count").text("0");
+    $("#env-es-state").text("Not enabled");
+    $("#dei-coverage-section").attr("aria-busy", "false");
+  }
+
   function render(reportOverride) {
     var report = reportOverride || safeJson(window.localStorage.getItem(REPORT_KEY));
     if (!report || !report.recommendations) {
@@ -168,6 +187,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (url.indexOf("/dei/v1/recommendations") !== -1) {
       window.setTimeout(render, 25);
     }
+  });
+
+  $(document).on("dei:environment-cleared", function () {
+    resetPremiumDashboard();
   });
 
   $(document).on("dei:environment-refreshed", function (_event, report) {
