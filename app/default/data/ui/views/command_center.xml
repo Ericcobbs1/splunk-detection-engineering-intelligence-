@@ -40,7 +40,7 @@
           <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&amp;CK coverage intelligence">
             <div class="dei-env-titlebar">
               <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and ATT&amp;CK effectiveness analysis.</p></div>
-              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-refresh-environment" class="dei-refresh-button-v2" type="button"><span>↻</span> Refresh environment</button></div>
+              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-clear-environment" class="dei-clear-button-v2" type="button"><span>×</span> Clear dashboard</button><button id="dei-refresh-environment" class="dei-refresh-button-v2" type="button"><span>↻</span> Refresh environment</button></div>
             </div>
 
             <div class="dei-env-summary-card">
@@ -81,7 +81,7 @@
               </aside>
             </div>
 
-            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Data refreshes only when you select <strong>Refresh environment</strong> or intentionally run a new analysis.</div>
+            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Select <strong>Refresh environment</strong> to replace it with fresh analysis, or <strong>Clear dashboard</strong> to remove it before another query.</div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>

@@ -24,6 +24,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
         "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
         "dei-coverage-section", "metric-understanding", "portfolio-total",
         "portfolio-field-gaps", "portfolio-unverified", "dei-refresh-environment",
+        "dei-clear-environment",
         "environment-snapshot-age", "coverage-ring", "coverage-domains",
         "env-tactics-covered", "env-tactics-partial", "env-tactics-uncovered",
         "env-tactic-donut", "env-top-domains", "env-domain-donut",
@@ -88,6 +89,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "renderSavedReport" in persistence
     assert "Data remains unchanged until Refresh environment" in persistence
     assert "setGlobalRefreshState" in persistence
+    assert "clearPersistedDashboard" in persistence
+    assert 'window.localStorage.removeItem(key)' in persistence
+    assert '$(document).trigger("dei:environment-cleared")' in persistence
     assert '$(document).trigger("dei:environment-refresh-started")' in persistence
     assert '$(document).trigger("dei:environment-refreshed", [payload])' in persistence
     assert 'window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()))' in persistence
@@ -101,6 +105,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "renderDomains" in premium_js
     assert "renderTactics" in premium_js
     assert 'function render(reportOverride)' in premium_js
+    assert "resetPremiumDashboard" in premium_js
+    assert '.on("dei:environment-cleared"' in premium_js
     assert '.on("dei:environment-refreshed"' in premium_js
     assert '.on("dei:environment-refresh-started"' in premium_js
     assert ".dei-env-summary-card" in premium_css
@@ -109,3 +115,4 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert ".dei-tactic-bars" in premium_css
     assert ".dei-domain-donut" in premium_css
     assert ".dei-mitre-glow-button" in premium_css
+    assert ".dei-clear-button-v2" in premium_css
