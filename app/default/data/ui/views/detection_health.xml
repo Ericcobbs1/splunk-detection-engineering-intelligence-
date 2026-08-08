@@ -1,0 +1,21 @@
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_health_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css">
+  <label>Detection Health</label>
+  <description>Operational health, validation evidence, and direct remediation for managed detections.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row><panel><html>
+    <div id="dei-detection-health-page" class="dei-shell dei-health-page">
+      <section class="dei-product-bar" aria-label="DEI workspace navigation">
+        <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Health</span></div></div>
+        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a><a class="active" href="detection_health">Health</a></nav>
+      </section>
+      <header class="dei-health-hero"><div><p class="dei-eyebrow">Operational assurance</p><h1>Detection Health</h1><p>Current lifecycle and validation evidence identifies what is healthy, what is stale, and exactly what requires action.</p></div><button id="health-refresh" type="button">Refresh health</button></header>
+      <section class="dei-health-summary" aria-label="Detection health summary">
+        <article><span>Managed</span><strong id="health-managed">0</strong></article><article><span>Healthy</span><strong id="health-healthy">0</strong></article><article><span>Attention</span><strong id="health-attention">0</strong></article><article><span>Failed</span><strong id="health-failed">0</strong></article><article><span>Unvalidated</span><strong id="health-unvalidated">0</strong></article>
+      </section>
+      <section class="dei-health-workspace"><div class="dei-health-controls"><input id="health-filter" type="search" placeholder="Filter detections, MITRE, sourcetype, or issue"/><select id="health-state"><option value="all">All health states</option><option value="healthy">Healthy</option><option value="attention">Attention required</option><option value="failed">Failed</option><option value="unvalidated">Unvalidated</option></select></div>
+        <div id="health-evidence-status" class="dei-builder-feedback ready" role="status" aria-live="polite">Loading current lifecycle evidence…</div>
+        <div id="health-records" class="dei-health-records"></div>
+      </section>
+    </div>
+  </html></panel></row>
+</form>

@@ -605,6 +605,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var root = shell();
     var bar = root.find(".dei-product-bar").first();
     if (!root.length || !bar.length || bar.find(".dei-workspace-controls").length) { return; }
+    var nav=bar.find(".dei-workspace-nav").first();
+    if (nav.length && !nav.find('a[href="detection_health"]').length) { nav.append('<a href="detection_health">Health</a>'); }
     var status = bar.find(".dei-status").first();
     if (status.length) { status.before(toolbar()); } else { bar.append(toolbar()); }
     applyMode(safeStorageGet(MODE_KEY, "analyst"));

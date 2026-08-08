@@ -289,7 +289,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item), item);
     var esEnabled = window.sessionStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
-    return {
+    var artifact={
       schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft",
       description:item.why, severity:item.severity, capability:item.capability,
       source_readiness:item.readiness, unresolved_fields:unresolvedFields(item), engineering_warnings:engineeringWarnings(item),
@@ -308,10 +308,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         drilldown_search:spl, disabled:true
       } : null
     };
+    artifact.standards=window.DEIDetectionStandards ? window.DEIDetectionStandards.evaluate(artifact) : null;
+    return artifact;
+  }
+
+  function renderStandards(artifact) {
+    var report=window.DEIDetectionStandards ? window.DEIDetectionStandards.evaluate(artifact) : null;
+    if(!report){return;}
+    artifact.standards=report;
+    $("#builder-quality-score").text(report.score+"%");
+    $("#builder-quality-state").attr("data-state",report.status).text(report.status==="passed"?"Production quality passed":report.status==="blocked"?"Blocked — resolve required checks":"Review quality warnings");
+    $("#builder-quality-dimensions").html(Object.keys(report.scores).map(function(key){return "<div><span>"+escapeHtml(key.replace(/_/g," "))+"</span><strong>"+report.scores[key]+"%</strong></div>";}).join(""));
+    $("#builder-quality-issues").html(report.issues.length?report.issues.map(function(item){return "<article data-severity=\""+item.severity+"\"><div><strong>"+escapeHtml(item.title)+"</strong><p>"+escapeHtml(item.detail)+"</p><small>"+escapeHtml(item.remediation)+"</small></div><button type=\"button\" data-quality-focus=\"generator-spl\">Review SPL</button></article>";}).join(""):"<p class=\"dei-quality-clear\">All required SPL engineering checks passed.</p>");
   }
 
   function renderArtifact(artifact) {
     var es = artifact.enterprise_security;
+    renderStandards(artifact);
     $("#generator-empty").hide();
     $("#generator-output").show();
     $("#generator-title").text(artifact.name);
@@ -528,6 +541,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function runValidation() {
     var artifact = saveCurrentDraft();
+    if (artifact && window.DEIDetectionStandards) {
+      artifact.standards=window.DEIDetectionStandards.evaluate(artifact);
+      renderStandards(artifact);
+      if (artifact.standards.status==="blocked") { setFeedback("Quality gate blocked validation. Resolve the required SPL checks shown above.", "error"); return; }
+    }
     var started;
     if (!artifact) { return; }
     $("#builder-run-validation").prop("disabled", true).text("Running…");
