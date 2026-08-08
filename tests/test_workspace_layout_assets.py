@@ -94,5 +94,13 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:2" in stylesheet
     assert ".dei-home-workspace-grid" in stylesheet
+    assert ".dei-official-home .dei-detection-flow{min-height:270px" in stylesheet
+    assert ".dei-official-home .dei-flow-nodes b{width:58px;height:58px" in stylesheet
+    assert "@keyframes dei-home-pipeline-scan" in stylesheet
+    for description in (
+        "Source inventory", "Field evidence", "Readiness gates", "Use-case fit",
+        "Detection logic", "Reviewable SPL", "Test evidence",
+    ):
+        assert description in ElementTree.tostring(home, encoding="unicode")
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None
