@@ -65,6 +65,11 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
         "builder-validation-metrics", "validation-status",
         "validation-result-count", "validation-runtime", "validation-time",
         "builder-validation-results", "validation-result-head", "validation-result-body",
+        "builder-validation-resolution", "builder-validation-resolution-title",
+        "builder-validation-resolution-category", "builder-validation-resolution-summary",
+        "builder-validation-error", "builder-validation-resolution-steps",
+        "builder-apply-validation-fix", "builder-edit-validation-query",
+        "builder-retry-validation",
         "generator-es-output", "copy-generated-spl", "copy-generated-json",
         "download-generated-json",
     ):
@@ -161,9 +166,22 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert 'artifact.status = "testing"' in javascript
     assert "sample_results:rows" in javascript
     assert "saveCurrentDraft" in javascript
+    assert "validationResolution" in javascript
+    assert "renderValidationResolution" in javascript
+    assert "narrow_window" in javascript
+    assert "search_prefix" in javascript
+    assert "Missing command or macro" in javascript
+    assert "Splunk permissions" in javascript
+    assert "Field mapping" in javascript
+    assert "validation_history" in javascript
+    assert "builder-apply-validation-fix" in javascript
+    assert "builder-edit-validation-query" in javascript
+    assert "builder-retry-validation" in javascript
+    assert "Run validation again" in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:
     javascript = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
     assert 'ARTIFACT_KEY = "dei.detectionDraftArtifacts"' in javascript
     assert "DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY" in javascript
+

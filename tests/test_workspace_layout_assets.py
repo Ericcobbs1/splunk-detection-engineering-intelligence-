@@ -94,15 +94,12 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     children = list(shell)
     ids = [child.attrib.get("id") for child in children]
     pipeline_index = ids.index("dei-home-pipeline")
-    hero_index = next(
-        index for index, child in enumerate(children)
-        if "dei-home-hero" in child.attrib.get("class", "").split()
-    )
     workspaces_index = next(
         index for index, child in enumerate(children)
         if "dei-home-workspaces" in child.attrib.get("class", "").split()
     )
-    assert pipeline_index < hero_index < workspaces_index
+    assert pipeline_index < workspaces_index
+    assert shell.find(".//*[@class='dei-hero dei-home-hero']") is None
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
@@ -110,7 +107,8 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "border:0!important" in stylesheet
     assert ".dei-official-home .dei-topology-flow{order:1;flex:1 1 auto" in stylesheet
     assert ".dei-official-home .dei-flow-health-summary{order:2" in stylesheet
-    assert ".dei-official-home>.dei-home-hero{order:2" in stylesheet
+    assert ".dei-home-flow-tags" in stylesheet
+    assert "Move telemetry through a measurable detection pipeline." in ElementTree.tostring(home, encoding="unicode")
     assert "min-height:max(780px,calc(100vh - 108px))" in stylesheet
     assert ".dei-official-home .dei-topology-core{width:340px;height:340px" in stylesheet
     assert ".dei-official-home{max-width:1880px" in stylesheet
@@ -126,6 +124,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'id="dei-home-health"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-use-case-count"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-health-action"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-health-actions"' in ElementTree.tostring(home, encoding="unicode")
+    assert home.attrib["script"].startswith("dei_lifecycle_store_v1.js,")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
     markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
@@ -251,12 +252,35 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
             assert href and href != "#"
 
     for contract in (
-        "advancedPanelMarkup", "openAdvancedTools", "closeAdvancedTools",
-        "[data-dei-focus]", "announceAction", "Advanced tools opened",
-        "Moved to ", "dei-advanced-action-center",
+        "experiencePanelMarkup", "guidedActions", "coverageActions",
+        "openExperienceActions", "openAdvancedTools", "closeAdvancedTools",
+        "[data-dei-focus]", "data-dei-activate", "announceAction",
+        "Guided experience", "Coverage experience", "Moved to ",
+        "dei-advanced-action-center",
     ):
         assert contract in shared
     assert "dei-mitre-next-action" in mitre
     assert "detection_builder?detection=" in mitre
     assert 'document.execCommand("copy")' in builder
     assert "Clipboard access is unavailable" in builder
+
+
+def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    for contract in (
+        "refreshHomeLifecycleRecords", "DEILifecycleStore", "homeLifecycleRecords",
+        "renderHomeHealthActions", "missingHealth", "validation.status===\"failed\"",
+        'qualify:ready>0', "buildable===0", "detection_lifecycle?detection=",
+        "detection_builder?detection=", "homeStageDestination",
+        "#dei-home-health-action", "#dei-home-health-actions-close",
+    ):
+        assert contract in javascript
+    assert 'qualify:ready>0' in lifecycle
+    assert "buildableCount===0" in lifecycle
+    assert "requestedDetection" in lifecycle
+    assert "telemetry ready" in lifecycle
+    assert ".dei-home-health-actions" in stylesheet
+    assert ".dei-topology-node[role=\"link\"]" in stylesheet
+    assert ".dei-topology-flow>.dei-flow-header{position:relative!important" in stylesheet

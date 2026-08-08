@@ -41,6 +41,13 @@
                 <div class="dei-validation-heading"><div><span class="dei-generator-label">Historical validation</span><h3 id="builder-validation-title">Test against Splunk telemetry</h3><p>Runs only the selected draft, applies a hard result cap, and records evidence in the shared lifecycle record.</p></div><button id="builder-run-validation" type="button">Run validation</button></div>
                 <div id="builder-validation-state" class="dei-validation-state idle">Not run</div>
                 <div id="builder-validation-metrics" class="dei-validation-metrics" style="display:none"><div><span>Status</span><strong id="validation-status">—</strong></div><div><span>Results</span><strong id="validation-result-count">0</strong></div><div><span>Runtime</span><strong id="validation-runtime">—</strong></div><div><span>Validated</span><strong id="validation-time">—</strong></div></div>
+                <section id="builder-validation-resolution" class="dei-validation-resolution" hidden="hidden" aria-labelledby="builder-validation-resolution-title">
+                  <div class="dei-validation-resolution-head"><div><span>Validation resolution</span><h4 id="builder-validation-resolution-title">Correct the failed search</h4></div><span id="builder-validation-resolution-category">Review required</span></div>
+                  <p id="builder-validation-resolution-summary"></p>
+                  <pre id="builder-validation-error"></pre>
+                  <ol id="builder-validation-resolution-steps"></ol>
+                  <div class="dei-validation-resolution-actions"><button id="builder-apply-validation-fix" type="button">Apply recommended fix</button><button id="builder-edit-validation-query" type="button">Edit detection SPL</button><button id="builder-retry-validation" type="button">Run validation again</button></div>
+                </section>
                 <div id="builder-validation-results" class="dei-validation-results" style="display:none"><table><thead id="validation-result-head"></thead><tbody id="validation-result-body"></tbody></table></div>
               </section>
               <p class="dei-generator-safety">Drafts and validation evidence are persisted in the shared DEI lifecycle store. DEI does not enable or deploy detections without analyst review.</p>
@@ -58,3 +65,4 @@
     </panel>
   </row>
 </form>
+

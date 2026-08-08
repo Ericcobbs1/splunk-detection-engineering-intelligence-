@@ -4,6 +4,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var MODE_KEY = "dei.workspaceMode";
   var DENSITY_KEY = "dei.workspaceDensity";
   var MODES = ["analyst", "coverage", "engineering"];
+  var homeLifecycleRecords = null;
+  var homeLifecycleLoading = false;
 
   function safeStorageGet(key, fallback) {
     try { return window.localStorage.getItem(key) || fallback; } catch (error) { return fallback; }
@@ -96,46 +98,103 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return actions[workflowPage()] || actions.home;
   }
 
-  function advancedPanelMarkup() {
+  function coverageActions() {
+    var actions={
+      home:[
+        {label:"Review environment intelligence",href:"environment_insights",detail:"Inspect telemetry DNA, readiness, and coverage evidence."},
+        {label:"Investigate MITRE coverage",href:"mitre_coverage",detail:"Filter recommendations and inspect uncovered ATT&CK behavior."},
+        {label:"Review blocked detections",target:"#dei-home-health-action",activate:true,detail:"Open the exact telemetry, validation, and health action items."}
+      ],
+      environment:[
+        {label:"Run intelligence scan",target:"#dei-analyze",detail:"Generate the evidence required for a real coverage assessment."},
+        {label:"Open coverage results",href:"environment_insights",detail:"Review detection potential, telemetry domains, and tactic coverage."},
+        {label:"Investigate MITRE coverage",href:"mitre_coverage",detail:"Inspect technique mappings and protection detail."}
+      ],
+      environment_insights:[
+        {label:"Inspect ATT&CK coverage",href:"mitre_coverage",detail:"Move from summary coverage into tactic and technique evidence."},
+        {label:"Build a coverage-closing detection",href:"detection_builder",detail:"Generate SPL for a qualified recommendation."},
+        {label:"Run a new assessment",href:"command_center#dei-telemetry",detail:"Replace the current coverage snapshot with fresh telemetry."}
+      ],
+      mitre:[
+        {label:"Filter by sourcetype",target:"#mitre-sourcetype-filter",detail:"Find coverage recommendations supported by one telemetry source."},
+        {label:"Inspect the ATT&CK matrix",target:"#mitre-matrix",detail:"Review tactic columns and mapped technique state."},
+        {label:"Build a mapped detection",href:"detection_builder",detail:"Generate SPL with embedded ATT&CK context."}
+      ],
+      builder:[
+        {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Confirm the coverage gap and technique mapping before building."},
+        {label:"Select a detection",target:"#builder-detection-select",detail:"Choose a qualified coverage recommendation."},
+        {label:"Validate coverage logic",target:"#builder-run-validation",detail:"Test the generated query against current Splunk telemetry."}
+      ],
+      lifecycle:[
+        {label:"Filter telemetry-ready work",target:"#lifecycle-readiness",detail:"Narrow the queue to detections ready for engineering."},
+        {label:"Review ATT&CK mappings",href:"mitre_coverage",detail:"Inspect the coverage context behind lifecycle work."},
+        {label:"Review pipeline health",target:".dei-pipeline-section",detail:"Inspect blocked stages and evidence requirements."}
+      ]
+    };
+    return actions[workflowPage()] || actions.home;
+  }
+
+  function guidedActions() {
+    var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*→\s*$/,"");
+    var currentHref=String($("#dei-guided-workflow-cta").attr("href") || "command_center#dei-telemetry");
+    return [
+      {label:currentLabel,href:currentHref,detail:String($("#dei-guided-workflow-help").text() || "Complete the highlighted workflow step.")},
+      {label:"Open step guidance",target:".dei-guided-learning summary",activate:true,detail:"See what this step does, why it matters, and what evidence it creates."},
+      {label:"Review active scan",href:"environment_insights",detail:"Confirm the telemetry and readiness evidence feeding this workflow."}
+    ];
+  }
+
+  function experiencePanelMarkup() {
     return [
       '<section id="dei-advanced-action-center" class="dei-advanced-action-center" hidden="hidden" aria-labelledby="dei-advanced-action-title">',
-      '<div class="dei-advanced-action-head"><div><p class="dei-kicker">Advanced action center</p>',
-      '<h2 id="dei-advanced-action-title">Engineering tools and next steps</h2>',
-      '<p>Every action below opens a workspace or moves focus to a working control.</p></div>',
-      '<button id="dei-advanced-action-close" type="button" aria-label="Close advanced action center">Close</button></div>',
+      '<div class="dei-advanced-action-head"><div><p id="dei-experience-action-kicker" class="dei-kicker">Experience action center</p>',
+      '<h2 id="dei-advanced-action-title">Choose a meaningful next step</h2>',
+      '<p id="dei-experience-action-summary">Every action opens a workspace or moves focus to a working control.</p></div>',
+      '<button id="dei-advanced-action-close" type="button" aria-label="Close experience action center">Close</button></div>',
       '<div id="dei-advanced-action-grid" class="dei-advanced-action-grid"></div></section>'
     ].join("");
   }
 
-  function ensureAdvancedPanel() {
+  function ensureExperiencePanel() {
     if ($("#dei-advanced-action-center").length) { return; }
-    $("#dei-guided-workflow").after(advancedPanelMarkup());
+    $("#dei-guided-workflow").after(experiencePanelMarkup());
   }
 
-  function renderAdvancedActions() {
-    ensureAdvancedPanel();
-    $("#dei-advanced-action-grid").html(advancedActions().map(function (action) {
+  function renderExperienceActions(mode) {
+    var config={
+      analyst:{kicker:"Guided experience",title:"Complete the next required step",summary:"Follow the current evidence gate, or open the explanation before continuing.",actions:guidedActions()},
+      coverage:{kicker:"Coverage experience",title:"Investigate and close detection coverage gaps",summary:"Use current telemetry and ATT&CK evidence to choose the next coverage action.",actions:coverageActions()},
+      engineering:{kicker:"Advanced experience",title:"Engineering tools and next steps",summary:"Open a workspace or move directly to a working engineering control.",actions:advancedActions()}
+    }[mode] || {actions:guidedActions()};
+    ensureExperiencePanel();
+    $("#dei-experience-action-kicker").text(config.kicker);
+    $("#dei-advanced-action-title").text(config.title);
+    $("#dei-experience-action-summary").text(config.summary);
+    $("#dei-advanced-action-grid").html(config.actions.map(function (action) {
       var attrs=action.href ? 'href="'+action.href+'"' :
-        'href="#" role="button" data-dei-focus="'+action.target+'"';
+        'href="#" role="button" data-dei-focus="'+action.target+'"'+(action.activate?' data-dei-activate="true"':'');
       return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>→</b></a>';
     }).join(""));
   }
 
-  function openAdvancedTools() {
-    applyMode("engineering");
+  function openExperienceActions(mode) {
+    applyMode(mode);
     renderGuidedWorkflow();
-    renderAdvancedActions();
-    $("#dei-advanced-action-center").prop("hidden",false);
-    $("#dei-guided-workflow-advanced").text("Hide advanced tools").attr("aria-expanded","true");
+    renderExperienceActions(mode);
+    $("#dei-advanced-action-center").prop("hidden",false).attr("data-experience",mode);
+    $("#dei-guided-workflow-advanced").text(mode==="engineering" ? "Hide advanced tools" : "Show advanced tools")
+      .attr("aria-expanded",mode==="engineering" ? "true" : "false");
     $("#dei-advanced-action-title").attr("tabindex","-1").focus();
-    announceAction("Advanced tools opened. Choose an engineering action or workspace next step.","success");
+    announceAction((mode==="engineering"?"Advanced":mode==="coverage"?"Coverage":"Guided")+" actions opened. Choose a next step below.","success");
   }
+
+  function openAdvancedTools() { openExperienceActions("engineering"); }
 
   function closeAdvancedTools(preserveMode) {
     if (!preserveMode) { applyMode("analyst"); }
     $("#dei-advanced-action-center").prop("hidden",true);
     $("#dei-guided-workflow-advanced").text("Show advanced tools").attr("aria-expanded","false");
-    announceAction("Advanced tools closed. Guided workflow remains active.","info");
+    announceAction("Experience actions closed. The selected workspace view remains available.","info");
   }
 
   function toolbar() {
@@ -152,18 +211,69 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     ].join("");
   }
 
+  function escapeMarkup(value) {
+    return String(value == null ? "" : value).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
   function safeJson(value, fallback) {
     try { return JSON.parse(value || "null") || fallback; } catch (error) { return fallback; }
   }
 
-  function renderHomePipeline() {
+  function refreshHomeLifecycleRecords() {
+    var Store=window.DEILifecycleStore;
+    if (!$("#dei-home-detection-flow").length || homeLifecycleLoading) { return; }
+    if (!Store || !Store.load) {
+      homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
+      renderHomePipeline(true);
+      return;
+    }
+    homeLifecycleLoading=true;
+    Store.load().done(function (records) {
+      homeLifecycleRecords=Array.isArray(records) ? records : [];
+      renderHomePipeline(true);
+    }).fail(function () {
+      homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
+      renderHomePipeline(true);
+    }).always(function () { homeLifecycleLoading=false; });
+  }
+
+  function renderHomeHealthActions(issues, healthState) {
+    var list=$("#dei-home-health-actions-list");
+    if (!list.length) { return; }
+    if (issues.length) {
+      list.html(issues.map(function (issue) {
+        return '<article class="dei-home-health-issue" data-severity="'+escapeMarkup(issue.severity)+'">' +
+          '<div><strong>'+escapeMarkup(issue.name)+'</strong><p>'+escapeMarkup(issue.reason)+'</p></div>' +
+          '<a href="'+escapeMarkup(issue.href)+'">'+escapeMarkup(issue.action)+' →</a></article>';
+      }).join(""));
+      $("#dei-home-health-action").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" →");
+      return;
+    }
+    var empty={
+      awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"command_center#dei-telemetry",action:"Run intelligence scan"},
+      building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_lifecycle",action:"Open lifecycle work queue"},
+      healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_lifecycle",action:"Review monitoring evidence"}
+    }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
+    list.html('<article class="dei-home-health-issue" data-severity="info"><div><strong>'+empty.title+
+      '</strong><p>'+empty.detail+'</p></div><a href="'+empty.href+'">'+empty.action+' →</a></article>');
+    $("#dei-home-health-action").text(empty.action+" →");
+  }
+
+  function renderHomePipeline(skipLifecycleRefresh) {
     var flow=$("#dei-home-detection-flow");
     if (!flow.length) { return; }
+    if (!skipLifecycleRefresh && homeLifecycleRecords===null && !homeLifecycleLoading) {
+      refreshHomeLifecycleRecords();
+    }
     var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var recommendations=report.recommendations || [];
-    var artifacts=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
+    var artifacts=homeLifecycleRecords===null ? [] : homeLifecycleRecords;
     var verified=recommendations.filter(function (item) { return item.field_validation==="passed"; }).length;
     var ready=recommendations.filter(function (item) { return item.readiness==="production_ready"; }).length;
+    var buildable=recommendations.filter(function (item) {
+      return ["production_ready","field_unverified","field_gap"].indexOf(item.readiness)!==-1;
+    }).length;
     var generated=artifacts.filter(function (item) { return !!item.spl; }).length;
     var passed=artifacts.filter(function (item) { return item.validation && item.validation.status==="passed"; }).length;
     var failed=artifacts.filter(function (item) { return item.validation && item.validation.status==="failed"; }).length;
@@ -175,43 +285,65 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var health=item.monitoring && item.monitoring.health;
       return health==="degraded" || health==="failing";
     }).length;
+    var missingHealth=artifacts.filter(function (item) {
+      return (item.state==="production" || item.state==="monitoring") &&
+        !(item.monitoring && item.monitoring.last_checked_at);
+    }).length;
     function itemKey(item,index) {
       return String(item.detection_id || item._key || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
     }
-    var issueKeys={};
+    var issues={};
+    function putIssue(key, issue) {
+      if (!issues[key] || Number(issue.priority||0)>Number(issues[key].priority||0)) { issues[key]=issue; }
+    }
     recommendations.forEach(function (item,index) {
-      if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(item.readiness)!==-1) {
-        issueKeys[itemKey(item,index)]=true;
-      }
+      if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(item.readiness)===-1) { return; }
+      var key=itemKey(item,index);
+      var canBuild=["field_gap","field_unverified"].indexOf(item.readiness)!==-1;
+      putIssue(key,{name:item.name || key,
+        reason:"Readiness is "+String(item.readiness||"unknown").replace(/_/g," ")+". "+(item.next_action || "Resolve the required telemetry or field evidence."),
+        href:canBuild ? "detection_builder?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
+        action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence",severity:"attention",priority:1});
     });
     artifacts.forEach(function (item,index) {
+      var key=itemKey(item,index); var name=item.name || key;
       var health=item.monitoring && item.monitoring.health;
-      if ((item.validation && item.validation.status==="failed") || health==="degraded" || health==="failing") {
-        issueKeys[itemKey(item,index)]=true;
+      if (item.validation && item.validation.status==="failed") {
+        putIssue(key,{name:name,reason:"The latest bounded validation failed. Open Builder to inspect the error, SPL, and schedule.",
+          href:"detection_builder?detection="+encodeURIComponent(key),action:"Repair and validate",severity:"critical",priority:3});
+      }
+      if (health==="degraded" || health==="failing") {
+        putIssue(key,{name:name,reason:"Monitoring health is "+health+". Review result volume, runtime, analyst outcomes, and tuning evidence.",
+          href:"detection_lifecycle?detection="+encodeURIComponent(key),action:"Review health evidence",severity:"critical",priority:3});
+      } else if ((item.state==="production" || item.state==="monitoring") &&
+          !(item.monitoring && item.monitoring.last_checked_at)) {
+        putIssue(key,{name:name,reason:"This operational detection has no recorded monitoring baseline.",
+          href:"detection_lifecycle?detection="+encodeURIComponent(key),action:"Record health baseline",severity:"attention",priority:2});
       }
     });
-    var blocked=Object.keys(issueKeys).length;
+    var issueItems=Object.keys(issues).map(function (key) { return issues[key]; });
+    var blocked=issueItems.length;
     var known={};
-    recommendations.concat(artifacts).forEach(function (item,index) {
-      known[itemKey(item,index)]=true;
-    });
+    recommendations.concat(artifacts).forEach(function (item,index) { known[itemKey(item,index)]=true; });
     var useCases=Object.keys(known).length;
     var healthyOperational=artifacts.filter(function (item) {
-      return item.monitoring && item.monitoring.health==="healthy";
+      return item.monitoring && item.monitoring.health==="healthy" && item.monitoring.last_checked_at;
     }).length;
-    var healthState=!useCases?"awaiting":unhealthy||failed?"critical":blocked?"degraded":production||healthyOperational?"healthy":"building";
+    var healthState=!useCases?"awaiting":unhealthy||failed?"critical":blocked?"degraded":
+      production>0 && healthyOperational===production?"healthy":"building";
     var healthLabel={awaiting:"Awaiting data",critical:"Action required",degraded:"Needs attention",healthy:"Healthy",building:"Engineering active"}[healthState];
-    var healthDetail=!useCases?"Run environment analysis to establish a baseline":
+    var healthDetail=!useCases?"Run an intelligence scan to establish a baseline":
       healthState==="critical"?(unhealthy+failed)+" failing health or validation item"+(unhealthy+failed===1?"":"s"):
-      healthState==="degraded"?blocked+" blocked or incomplete item"+(blocked===1?"":"s"):
-      healthState==="healthy"?production+" production detection"+(production===1?"":"s")+" operating without known failures":
-      active+" detection"+(active===1?"":"s")+" moving through engineering";
+      healthState==="degraded"?blocked+" item"+(blocked===1?" requires":"s require")+" telemetry, field, or monitoring evidence":
+      healthState==="healthy"?healthyOperational+" monitored detection"+(healthyOperational===1?" is":"s are")+" healthy":
+      active+" detection"+(active===1?" is":"s are")+" moving through engineering";
     $("#dei-home-health").text(healthLabel).attr("data-health",healthState).closest(".dei-flow-health-card").attr("data-health",healthState);
     $("#dei-home-health-detail").text(healthDetail);
     $("#dei-home-use-case-count, #dei-topology-core-count").text(useCases);
     $("#dei-home-active-count").text(active);
     $("#dei-home-blocked-count").text(blocked);
     $("#dei-home-production-count").text(production);
+    renderHomeHealthActions(issueItems,healthState);
     var stageCounts={
       discover:Number(report.observed_source_count || 0),
       profile:verified,
@@ -228,7 +360,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var signals={
       discover:Number(report.observed_source_count || 0)>0,
       profile:verified>0,
-      qualify:verified>0,
+      qualify:ready>0,
       recommend:recommendations.length>0,
       design:artifacts.length>0,
       generate:generated>0,
@@ -241,10 +373,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
     stages.forEach(function (stage,index) {
       var state=signals[stage]?"complete":(index===current?"current":"upcoming");
-      if (state==="current" && ((stage==="qualify" && recommendations.length>0 && verified===0) ||
-          (stage==="design" && recommendations.length>0 && ready===0) ||
+      if (state==="current" && ((stage==="profile" && recommendations.length>0 && verified===0) ||
+          (stage==="qualify" && recommendations.length>0 && ready===0) ||
+          (stage==="design" && recommendations.length>0 && buildable===0) ||
           (stage==="validate" && failed>0 && passed===0))) { state="blocked"; }
-      flow.find('[data-home-flow-stage="'+stage+'"]').attr("data-pipeline-state",state);
+      flow.find('[data-home-flow-stage="'+stage+'"]').attr("data-pipeline-state",state)
+        .attr("role","link").attr("tabindex","0");
     });
     var progress=current===-1 ? 100 : Math.round((current/(stages.length-1))*100);
     var currentNode=current===-1 ? $() : flow.find('[data-home-flow-stage="'+stages[current]+'"]');
@@ -482,17 +616,30 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     showOnboarding();
   }
 
+  function homeStageDestination(stage) {
+    return {discover:"command_center#dei-telemetry",profile:"environment_insights",qualify:"environment_insights",
+      recommend:"mitre_coverage",design:"detection_builder",generate:"detection_builder",
+      validate:"detection_builder#builder-validation-title"}[stage] || "detection_lifecycle";
+  }
+
+  $(document).on("click keydown", "[data-home-flow-stage]", function (event) {
+    if (event.type==="keydown" && event.key!=="Enter" && event.key!==" ") { return; }
+    if (event.type==="keydown") { event.preventDefault(); }
+    window.location.href=homeStageDestination(String($(this).data("home-flow-stage") || ""));
+  });
+
+  $(document).on("click", "#dei-home-health-action", function () {
+    var panel=$("#dei-home-health-actions"); var open=panel.prop("hidden");
+    panel.prop("hidden",!open); $(this).attr("aria-expanded",open?"true":"false");
+    if (open) { $("#dei-home-health-actions-title").attr("tabindex","-1").focus(); }
+  });
+  $(document).on("click", "#dei-home-health-actions-close", function () {
+    $("#dei-home-health-actions").prop("hidden",true);
+    $("#dei-home-health-action").attr("aria-expanded","false").focus();
+  });
+
   $(document).on("click", ".dei-view-mode button", function () {
-    var mode=String($(this).data("mode") || "analyst");
-    applyMode(mode);
-    if (mode==="engineering") {
-      openAdvancedTools();
-    } else {
-      closeAdvancedTools(true);
-      announceAction(mode==="coverage" ?
-        "Coverage experience active. Coverage-focused panels and ATT&CK context are prioritized." :
-        "Guided experience active. Follow the highlighted next best action.","success");
-    }
+    openExperienceActions(String($(this).data("mode") || "analyst"));
   });
 
   $(document).on("keydown", ".dei-view-mode button", function (event) {
@@ -528,9 +675,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     target[0].scrollIntoView({behavior:"smooth",block:"center"});
+    var activate=String($(this).attr("data-dei-activate") || "")==="true";
     window.setTimeout(function () {
-      target.focus();
+      target.attr("tabindex","-1").focus();
       target.addClass("dei-action-target");
+      if (activate) { target.trigger("click"); }
       window.setTimeout(function () { target.removeClass("dei-action-target"); },1800);
     },350);
     announceAction("Moved to "+$(this).find("strong").text()+". Complete the highlighted control.","success");
@@ -555,6 +704,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $(document).on("dei:environment-refreshed dei:environment-cleared dei:detection-artifacts-changed", function () {
+    homeLifecycleRecords=null;
     renderHomePipeline();
     renderGuidedWorkflow();
     renderEnvironmentSplitState();
@@ -564,6 +714,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-home-detection-flow").attr("data-flow-state", "active");
     $("#dei-home-flow-status").text("Environment analysis is moving through telemetry discovery");
   });
+  $(window).on("focus", function () {
+    if ($("#dei-home-detection-flow").length) { homeLifecycleRecords=null; renderHomePipeline(); }
+  });
+
   $(window).on("storage", function (event) {
     var key=event.originalEvent && event.originalEvent.key;
     if (!key || key==="dei.latestRecommendationReport" || key==="dei.detectionDraftArtifacts") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); renderScanContext(); }

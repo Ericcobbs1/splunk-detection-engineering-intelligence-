@@ -112,6 +112,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var verified=items.filter(function (item) { return item.field_validation==="passed"; }).length;
     var mapped=items.filter(function (item) { return (item.mitre_techniques||[]).length>0; }).length;
     var ready=items.filter(function (item) { return item.readiness==="production_ready"; }).length;
+    var buildableCount=items.filter(buildable).length;
     var passed=records.filter(function (record) { return record.validation && record.validation.status==="passed"; }).length;
     var maturity=(report?4:0)+(records.length?1:0)+(passed?1:0)+(countState("production")||countState("monitoring")?1:0);
     $("#life-sources").text(sources); $("#life-opportunities").text(mergedQueue().length);
@@ -119,20 +120,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#life-telemetry-ready").text(ready); $("#life-spl-generated").text(records.length);
     $("#lifecycle-maturity-percent").text(Math.round((maturity/7)*100)+"%");
     $("#stage-discover").text(sources+" sources"); $("#stage-profile").text(verified+" profiled");
-    $("#stage-qualify").text(verified+" verified"); $("#stage-recommend").text(items.length+" use cases");
+    $("#stage-qualify").text(ready+" telemetry ready"); $("#stage-recommend").text(items.length+" use cases");
     $("#stage-design").text(records.length+" designed"); $("#stage-generate").text(records.length+" SPL");
     $("#stage-validate").text(passed+" passed");
     var failed=records.filter(function (record) { return record.validation && record.validation.status==="failed"; }).length;
     renderPipelineState({
       discover:!!report && sources>0,
       profile:verified>0,
-      qualify:verified>0,
+      qualify:ready>0,
       recommend:items.length>0,
       design:records.length>0,
       generate:records.length>0,
       validate:passed>0,
       qualificationBlocked:!!report && items.length>0 && verified===0,
-      designBlocked:items.length>0 && ready===0,
+      designBlocked:items.length>0 && buildableCount===0,
       validationBlocked:failed>0 && passed===0
     });
     $("#state-draft").text(countState("draft")); $("#state-testing").text(countState("testing"));
@@ -344,11 +345,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
+  function requestedDetection() {
+    var match=String(window.location.search||"").match(/[?&]detection=([^&]+)/);
+    if (!match) { return ""; }
+    try { return decodeURIComponent(match[1]); } catch (error) { return match[1]; }
+  }
+
   function render() { loadReport(); renderMetrics(); renderQueue(); }
   function reloadRecords() {
     Store.load().done(function (loaded) {
       records=loaded||[]; render();
-      if (selectedRecord) { selectRecord(recordKey(selectedRecord)); }
+      var requested=requestedDetection();
+      if (requested) {
+        selectRecord(requested);
+        if (selectedRecord) {
+          document.querySelector("#lifecycle-action-center").scrollIntoView({behavior:"smooth",block:"start"});
+        }
+      } else if (selectedRecord) {
+        selectRecord(recordKey(selectedRecord));
+      }
     });
   }
   function initialize(attempt) {
@@ -383,3 +398,4 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(window).on("storage",function (event) { if(!event.originalEvent||event.originalEvent.key===REPORT_KEY){render();} });
   initialize(0);
 });
+
