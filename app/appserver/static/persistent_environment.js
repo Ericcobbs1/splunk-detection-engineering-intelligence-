@@ -15,9 +15,34 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var button = $("#dei-refresh-environment");
     globalRefreshInProgress = active;
     button.prop("disabled", active).attr("aria-busy", active ? "true" : "false");
+    $("#dei-clear-environment").prop("disabled", active);
     button.html(active
       ? "<span>⟳</span> Refreshing entire page..."
       : "<span>↻</span> Refresh environment");
+  }
+
+  function clearPersistedDashboard() {
+    [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY].forEach(function (key) {
+      try { window.localStorage.removeItem(key); } catch (error) {
+        // Storage failures must not prevent the visible dashboard reset.
+      }
+    });
+    forceRefresh = false;
+    setGlobalRefreshState(false);
+    $("#metric-sources, #metric-ready, #metric-partial").text("0");
+    $("#metric-understanding, #metric-potential, #coverage-value").text("0%");
+    $("#coverage-ring").css("--dei-coverage", "0%");
+    $("#coverage-label").text("Not analyzed");
+    $("#portfolio-total").text("0 opportunities");
+    $("#portfolio-ready, #portfolio-partial, #portfolio-field-gaps, #portfolio-unverified").text("0");
+    $("#dei-sources").val("");
+    $("#dei-es-enabled").prop("checked", false);
+    $("#recommendations").empty();
+    $("#recommendation-count").text("");
+    $("#environment-snapshot-age").text("No saved snapshot");
+    $("#dei-analyze").prop("disabled", false).html("<span>Analyze environment</span><b>→</b>");
+    $("#dei-feedback").text("Dashboard cleared. Select Analyze environment to run a new query.");
+    $(document).trigger("dei:environment-cleared");
   }
 
   function safeJson(value) {
@@ -189,6 +214,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setGlobalRefreshState(false);
       $("#dei-analyze").find("span").text("Refresh environment");
     }, 0);
+  });
+
+  $("#dei-clear-environment").on("click", function () {
+    if (globalRefreshInProgress) { return; }
+    clearPersistedDashboard();
   });
 
   $("#dei-refresh-environment").on("click", function () {
