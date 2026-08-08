@@ -123,10 +123,16 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert len([element for element in connections.iter() if element.tag.endswith("path")]) == 14
     geo_map = topology.find(".//*[@id='dei-global-secops-map']")
     assert geo_map is not None
-    assert len(geo_map.findall(".//*[@class='dei-geo-land']/*")) == 6
+    land = geo_map.find(".//*[@class='dei-geo-land dei-geo-land-accurate']")
+    borders = geo_map.find(".//*[@class='dei-geo-borders']")
+    assert land is not None and len(list(land)) == 1
+    assert borders is not None and len(list(borders)) == 1
+    assert "Natural Earth 1:110m" in ElementTree.tostring(geo_map, encoding="unicode")
     assert len(geo_map.findall(".//*[@class='dei-geo-points']/*")) == 5
     assert len(geo_map.findall(".//*[@class='dei-geo-hotspots']/*")) == 5
     assert ".dei-geo-map" in stylesheet
+    assert ".dei-geo-land-accurate" in stylesheet
+    assert ".dei-geo-borders" in stylesheet
     assert "@keyframes dei-geo-pulse" in stylesheet
     assert "@keyframes dei-geo-arc" in stylesheet
     assert "@keyframes dei-geo-hotspot-bloom" in stylesheet

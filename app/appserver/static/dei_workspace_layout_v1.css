@@ -315,7 +315,7 @@
 }
 
 /* Original low-contrast global SecOps map backdrop. */
-.dei-geo-map{position:absolute;inset:12px 3% 10px;width:94%;height:440px;z-index:0;overflow:visible;opacity:.34;filter:drop-shadow(0 0 12px rgba(60,124,255,.08));pointer-events:none}
+.dei-geo-map{position:absolute;inset:12px 3% 10px;width:94%;height:440px;z-index:0;overflow:visible;opacity:.44;filter:drop-shadow(0 0 12px rgba(60,124,255,.08));pointer-events:none}
 .dei-geo-grid ellipse,.dei-geo-grid path{fill:none;stroke:rgba(110,168,255,.16);stroke-width:1;vector-effect:non-scaling-stroke}
 .dei-geo-grid ellipse{stroke-dasharray:2 9}
 .dei-geo-land path{fill:rgba(53,91,121,.14);stroke:rgba(110,168,255,.25);stroke-width:1.15;vector-effect:non-scaling-stroke}
@@ -340,3 +340,7 @@
 @keyframes dei-geo-hotspot-bloom{0%,100%{opacity:.06;transform:scale(.72)}50%{opacity:.22;transform:scale(1.35)}}
 @keyframes dei-geo-reticle{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.dei-geo-hotspot .target-halo,.dei-geo-hotspot .target-ring{animation:none!important}}
+
+/* Accurate Natural Earth land geometry and sovereign boundary detail. */
+.dei-geo-land-accurate path{fill:rgba(43,83,111,.2);stroke:rgba(110,168,255,.34);stroke-width:.8;vector-effect:non-scaling-stroke}
+.dei-geo-borders path{fill:none;stroke:rgba(123,166,201,.19);stroke-width:.55;vector-effect:non-scaling-stroke}
