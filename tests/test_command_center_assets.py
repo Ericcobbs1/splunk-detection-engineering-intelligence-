@@ -126,4 +126,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "@keyframes deiSignalWave" in polish_css
     assert ".dei-orbit-one" in polish_css
     assert "prefers-reduced-motion" in polish_css
+    assert "Enterprise Security-style readable type scale" in polish_css
+    assert ".dei-metric span { font-size: 13px; }" in polish_css
+    assert ".dei-env-card-head p { font-size: 12px; }" in polish_css
     assert ".dei-clear-button-v2" in premium_css
