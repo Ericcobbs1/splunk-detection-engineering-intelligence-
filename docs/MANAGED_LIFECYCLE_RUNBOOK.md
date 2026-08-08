@@ -14,6 +14,33 @@ Lifecycle records are stored in the Splunk KV Store collection
 The browser cache is a resilience fallback. The Lifecycle status badge identifies
 whether the active source is Splunk KV Store or browser fallback.
 
+
+## Using the Lifecycle Action Center
+
+Select **Manage** beside a persisted Work Queue item. The Action Center identifies the
+current gate, responsible role, required evidence, exact next steps, and the outcome of
+the available decision.
+
+1. **Testing:** the detection engineer reviews validation evidence, enters the required
+   handoff note, and submits the version for peer review.
+2. **Peer Review:** a DEI lifecycle reviewer inspects the Builder artifact and either
+   approves it with rationale or returns it with specific changes.
+3. **Approved Peer Review:** the deployment owner deploys through the organization's
+   normal change process, then records the target environment and exact saved-search,
+   ES detection, or external object reference.
+4. **Production:** the detection owner records the initial health baseline, result
+   volume, runtime, and observed analyst outcomes to begin Monitoring.
+5. **Monitoring:** the owner records periodic health evidence, opens a controlled
+   tuning version, or retires the detection with a reason.
+6. **Tuning:** DEI archives the prior version's validation, approval, deployment, and
+   monitoring evidence. The new version must be revised, validated, reviewed, and
+   deployed through the same gates.
+7. **Retired:** the record becomes immutable while the complete audit history remains
+   available.
+
+DEI records lifecycle decisions; it does not replace the organization's deployment,
+change-management, or peer-approval process.
+
 ## End-to-end analyst workflow
 
 ### 1. Recommendation to Draft
