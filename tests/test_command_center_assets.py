@@ -5,6 +5,7 @@ from xml.etree import ElementTree
 
 APP_ROOT = Path("app")
 VIEW_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "command_center.xml"
+INSIGHTS_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "environment_insights.xml"
 NAV_PATH = APP_ROOT / "default" / "data" / "ui" / "nav" / "default.xml"
 STATIC_ROOT = APP_ROOT / "appserver" / "static"
 
@@ -22,26 +23,51 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
         "dei_visual_polish_v1.css,dei_workspace_layout_v1.css"
     )
     for element_id in (
-        "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
-        "dei-coverage-section", "metric-understanding", "portfolio-total",
-        "portfolio-field-gaps", "portfolio-unverified", "dei-refresh-environment",
-        "dei-clear-environment",
-        "environment-snapshot-age", "coverage-ring", "coverage-domains",
-        "env-tactics-covered", "env-tactics-partial", "env-tactics-uncovered",
-        "env-tactic-donut", "env-top-domains", "env-domain-donut",
-        "env-domain-count", "env-domain-legend", "env-tactic-bars",
-        "env-index-count", "env-source-count", "env-event-count",
-        "env-detection-count", "env-es-state",
+        "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
+        "dei-analyze", "dei-feedback", "dei-discovery-next",
+        "dei-discovery-result-state", "dei-open-environment-insights",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
-    assert root.find(".//*[@id='dei-mitre-section']") is None
-    assert root.find(".//*[@id='dei-advisor-section']") is None
+    for moved_id in (
+        "dei-portfolio-section", "dei-coverage-section",
+        "metric-sources", "dei-refresh-environment", "dei-clear-environment",
+    ):
+        assert root.find(f".//*[@id='{moved_id}']") is None
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
-    lifecycle_link = root.find(".//a[@href='detection_lifecycle']")
-    assert lifecycle_link is not None
+    insights_link = root.find(".//a[@href='environment_insights']")
+    assert insights_link is not None
 
+
+def test_environment_insights_contains_saved_results_without_discovery_form() -> None:
+    root = ElementTree.parse(INSIGHTS_PATH).getroot()
+    assert root.tag == "form"
+    assert root.attrib["script"] == (
+        "dashboard_state_v2.js,command_center.js,analysis_bridge.js,"
+        "environment_intelligence_v2.js,dei_workspace_layout_v1.js"
+    )
+    assert root.attrib["stylesheet"] == (
+        "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
+        "dei_visual_polish_v1.css,dei_workspace_layout_v1.css"
+    )
+    for element_id in (
+        "dei-environment-insights", "metric-sources",
+        "metric-understanding", "metric-ready", "metric-partial", "metric-potential",
+        "dei-portfolio-section", "portfolio-total", "portfolio-ready",
+        "portfolio-partial", "portfolio-field-gaps", "portfolio-unverified",
+        "dei-coverage-section", "environment-snapshot-age",
+        "dei-clear-environment", "dei-refresh-environment", "coverage-ring",
+        "coverage-domains", "env-tactics-covered", "env-tactics-partial",
+        "env-tactics-uncovered", "env-tactic-donut", "env-top-domains",
+        "env-domain-donut", "env-domain-count", "env-domain-legend",
+        "env-tactic-bars", "env-index-count", "env-source-count",
+        "env-event-count", "env-detection-count", "env-es-state",
+    ):
+        assert root.find(f".//*[@id='{element_id}']") is not None
+    assert root.find(".//*[@id='dei-telemetry']") is None
+    assert root.find(".//*[@id='dei-analyze']") is None
+    assert root.find(".//a[@href='command_center#dei-telemetry']") is not None
 
 def test_dei_home_is_default_navigation_view_and_workspaces_are_registered() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
