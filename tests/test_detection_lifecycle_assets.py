@@ -111,6 +111,9 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
     assert "platformMitreMetadata" in javascript
+    assert "attachPlatformMitreMetadata" in javascript
+    assert "enforcePlatformMitreMetadata" in javascript
+    assert "mitreMetadataMigrated" in javascript
     assert "mitre_attack_framework" in javascript
     assert "mitre_attack_technique_id" in javascript
     assert "mitre_attack_mapping_status" in javascript
@@ -120,7 +123,7 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "mitre_attack_tactic_name" in javascript
     assert "mitre_attack_platform" in javascript
     assert "mitre_attack_detection_guidance" in javascript
-    assert '+ "\\n" + platformMitreMetadata(item)' in javascript
+    assert "var spl = attachPlatformMitreMetadata" in javascript
     assert "mitre_attack:item.mitre_techniques" in javascript
     assert 'cron:"*/5 * * * *"' in javascript
     assert "SplunkEnterpriseSecuritySuite" in javascript
