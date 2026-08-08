@@ -17,6 +17,23 @@
             <div class="dei-hero-visual" aria-hidden="true"><div class="dei-orbit dei-orbit-one"></div><div class="dei-orbit dei-orbit-two"></div><div class="dei-core-mark"><span>DEI</span><small>INTELLIGENCE</small></div></div>
           </section>
 
+          <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
+            <div class="dei-home-flow-heading"><div><p class="dei-eyebrow">Detection Engineering Pipeline</p><h2 id="dei-home-flow-title">From telemetry to validated detection coverage</h2><p>Live evidence flow across the DEI engineering process. Open Lifecycle to inspect blockers and take action.</p></div><a class="dei-link-button" href="detection_lifecycle">Open lifecycle workspace →</a></div>
+            <div id="dei-home-detection-flow" class="dei-detection-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
+              <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Detection intelligence flow</strong></div><span id="dei-home-flow-status">Awaiting environment evidence</span></div>
+              <div class="dei-flow-rail" aria-hidden="true"><span class="dei-flow-complete-track"></span><i class="dei-flow-packet packet-one"></i><i class="dei-flow-packet packet-two"></i><i class="dei-flow-packet packet-three"></i></div>
+              <div class="dei-flow-nodes" aria-label="Detection engineering pipeline stages">
+                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small></span>
+                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small></span>
+                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small></span>
+                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small></span>
+                <span data-home-flow-stage="design"><b>05</b><small>Design</small></span>
+                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small></span>
+                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small></span>
+              </div>
+            </div>
+          </section>
+
           <section class="dei-metrics" aria-label="Detection intelligence summary">
             <article class="dei-metric metric-primary"><span>Observed sources</span><strong id="metric-sources">0</strong><small>active telemetry</small></article>
             <article class="dei-metric"><span>Telemetry understanding</span><strong id="metric-understanding">0%</strong><small>mapped source types</small></article>
