@@ -26,6 +26,11 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
     assert "window.localStorage.setItem" in javascript
     assert "Compact spacing" in javascript
     assert "Comfortable spacing" in javascript
+    assert "renderHomePipeline" in javascript
+    assert "dei.latestRecommendationReport" in javascript
+    assert "dei.detectionDraftArtifacts" in javascript
+    assert "dei:environment-refreshed" in javascript
+    assert "dei:detection-artifacts-changed" in javascript
 
 
 def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> None:
@@ -66,3 +71,27 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
     analyst_queue = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:4}')
     assert analyst_pipeline >= 0 and analyst_queue > analyst_pipeline
     assert "position:sticky" in stylesheet
+
+
+def test_command_center_pipeline_is_immediately_visible_and_data_driven() -> None:
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
+    shell = command_center.find(".//*[@id='dei-command-center']")
+    assert shell is not None
+    children = list(shell)
+    ids = [child.attrib.get("id") for child in children]
+    pipeline_index = ids.index("dei-home-pipeline")
+    metrics_index = next(
+        index for index, child in enumerate(children)
+        if "dei-metrics" in child.attrib.get("class", "").split()
+    )
+    hero_index = next(
+        index for index, child in enumerate(children)
+        if "dei-hero" in child.attrib.get("class", "").split()
+    )
+    assert hero_index < pipeline_index < metrics_index
+    assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
+    assert shell.find(".//*[@id='dei-home-flow-status']") is not None
+    assert "#dei-command-center>.dei-home-flow-section{order:2}" in stylesheet
+    assert "#dei-command-center>.dei-metrics{order:3}" in stylesheet
+    assert ".dei-home-flow-heading" in stylesheet
