@@ -226,3 +226,26 @@
 @media(prefers-reduced-motion:reduce){
   .dei-official-home .dei-detection-flow:before{animation:none!important;display:none}
 }
+
+/* At-a-glance detection pipeline health and workload. */
+.dei-flow-health-summary{display:grid;grid-template-columns:minmax(240px,1.35fr) repeat(4,minmax(145px,.65fr));gap:10px;margin-top:24px}
+.dei-flow-health-summary article{min-width:0;padding:15px 16px;border:1px solid rgba(110,168,255,.18);border-radius:11px;background:linear-gradient(145deg,rgba(12,29,44,.94),rgba(7,18,29,.94));box-shadow:inset 0 1px rgba(255,255,255,.025)}
+.dei-flow-health-summary article>span{display:block;color:#8399ab;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.dei-flow-health-summary article>strong{display:block;margin-top:7px;color:#edf5fb;font-size:24px;line-height:1.1}
+.dei-flow-health-summary article>small{display:block;overflow:hidden;margin-top:5px;color:#8196a8;font-size:10px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.dei-flow-health-summary .dei-flow-health-card{position:relative;overflow:hidden}
+.dei-flow-health-summary .dei-flow-health-card:after{content:"";position:absolute;top:0;right:0;bottom:0;width:4px;background:#607488}
+#dei-home-health[data-health="healthy"]{color:#75e4c4}
+.dei-flow-health-card[data-health="healthy"]:after{background:#5ce1c2;box-shadow:0 0 18px #5ce1c2}
+#dei-home-health[data-health="building"]{color:#b9d6ff}
+.dei-flow-health-card[data-health="building"]:after{background:#6ea8ff;box-shadow:0 0 18px #6ea8ff}
+#dei-home-health[data-health="degraded"]{color:#f5bf6a}
+.dei-flow-health-card[data-health="degraded"]:after{background:#f5bf6a;box-shadow:0 0 18px #f5bf6a}
+#dei-home-health[data-health="critical"]{color:#ff8293}
+.dei-flow-health-card[data-health="critical"]:after{background:#ff6b7d;box-shadow:0 0 18px #ff6b7d}
+.dei-flow-stage-count{display:grid;place-items:center;min-width:30px;height:20px;margin-top:2px;padding:0 7px;border:1px solid rgba(110,168,255,.22);border-radius:999px;background:#0b1a29;color:#d9e8f4;font-size:11px;font-style:normal;font-weight:850;box-shadow:0 4px 12px rgba(0,0,0,.22)}
+.dei-flow-nodes [data-pipeline-state="complete"] .dei-flow-stage-count{border-color:rgba(92,225,194,.32);color:#75e4c4}
+.dei-flow-nodes [data-pipeline-state="current"] .dei-flow-stage-count{border-color:rgba(110,168,255,.46);color:#b9d6ff}
+.dei-flow-nodes [data-pipeline-state="blocked"] .dei-flow-stage-count{border-color:rgba(245,191,106,.45);color:#f5bf6a}
+@media(max-width:1200px){.dei-flow-health-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.dei-flow-health-summary .dei-flow-health-card{grid-column:1/-1}}
+@media(max-width:700px){.dei-flow-health-summary{grid-template-columns:1fr}.dei-flow-health-summary .dei-flow-health-card{grid-column:auto}}
