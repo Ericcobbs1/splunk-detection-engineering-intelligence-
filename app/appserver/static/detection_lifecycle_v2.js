@@ -345,6 +345,32 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
+  function requestedPipelineStage() {
+    var match=String(window.location.search||"").match(/[?&]pipeline=([^&]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
+  function applyRequestedPipelineStage() {
+    var requested=requestedPipelineStage();
+    var filters={
+      profile:{stage:"recommendation",readiness:"field_unverified"},
+      qualify:{stage:"recommendation",readiness:"production_ready"},
+      design:{stage:"draft",readiness:"all"},
+      generate:{stage:"draft",readiness:"all"},
+      validate:{stage:"testing",readiness:"all"}
+    };
+    var config=filters[requested];
+    if(!config){return false;}
+    $("#lifecycle-stage").val(config.stage);
+    $("#lifecycle-readiness").val(config.readiness);
+    $(".dei-pipeline-stage").removeClass("dei-action-target").filter('[data-stage="'+requested+'"]').addClass("dei-action-target");
+    renderQueue();
+    var labels={profile:"field-evidence verification",qualify:"telemetry-ready qualification",design:"detection design artifacts",generate:"generated SPL artifacts",validate:"historical validation evidence"};
+    $("#lifecycle-action-feedback").removeClass("error").addClass("ready").text("Showing "+labels[requested]+". Use the filtered work queue to open the exact detection and required next action.");
+    window.setTimeout(function(){var section=document.querySelector(".dei-lifecycle-queue-section");if(section){section.scrollIntoView({behavior:"smooth",block:"start"});}},250);
+    return true;
+  }
+
   function requestedDetection() {
     var match=String(window.location.search||"").match(/[?&]detection=([^&]+)/);
     if (!match) { return ""; }
@@ -355,6 +381,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function reloadRecords() {
     Store.load().done(function (loaded) {
       records=loaded||[]; render();
+      applyRequestedPipelineStage();
       var requested=requestedDetection();
       if (requested) {
         selectRecord(requested);

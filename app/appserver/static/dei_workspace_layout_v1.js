@@ -620,10 +620,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function homeStageDestination(stage) {
-    return {discover:"command_center#dei-telemetry",profile:"environment_insights#dei-coverage-section",
-      qualify:"environment_insights#recommendations",recommend:"mitre_coverage#mitre-detection-list",
-      design:"detection_builder#builder-detection-select",generate:"detection_builder#detection-generator",
-      validate:"detection_builder#builder-validation-title"}[stage] || "detection_lifecycle";
+    return {discover:"command_center#dei-telemetry",profile:"detection_lifecycle?pipeline=profile",
+      qualify:"detection_lifecycle?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
+      design:"detection_lifecycle?pipeline=design",generate:"detection_lifecycle?pipeline=generate",
+      validate:"detection_lifecycle?pipeline=validate"}[stage] || "detection_lifecycle";
   }
 
   function focusDeepLinkedWorkspace() {

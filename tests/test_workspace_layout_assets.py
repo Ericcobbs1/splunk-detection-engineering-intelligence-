@@ -280,12 +280,15 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert 'qualify:ready>0' in lifecycle
     assert "buildableCount===0" in lifecycle
     assert "requestedDetection" in lifecycle
+    assert "requestedPipelineStage" in lifecycle
+    assert "applyRequestedPipelineStage" in lifecycle
+    assert "field-evidence verification" in lifecycle
     assert "telemetry ready" in lifecycle
     for destination in (
-        "command_center#dei-telemetry", "environment_insights#dei-coverage-section",
-        "environment_insights#recommendations", "mitre_coverage#mitre-detection-list",
-        "detection_builder#builder-detection-select", "detection_builder#detection-generator",
-        "detection_builder#builder-validation-title",
+        "command_center#dei-telemetry", "detection_lifecycle?pipeline=profile",
+        "detection_lifecycle?pipeline=qualify", "mitre_coverage#mitre-detection-list",
+        "detection_lifecycle?pipeline=design", "detection_lifecycle?pipeline=generate",
+        "detection_lifecycle?pipeline=validate",
     ):
         assert destination in javascript
     assert "focusDeepLinkedWorkspace" in javascript
