@@ -82,7 +82,7 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "nextAction" in javascript
     assert "detection_builder?detection=" in javascript
     assert "dei.selectedDetectionDraft" in javascript
-    assert "dei.detectionDraftArtifacts" in javascript
+    assert "DEILifecycleStore" in javascript
     assert '$("#life-spl-generated").text(records.length)' in javascript
     assert '$("#stage-generate").text(records.length+" SPL")' in javascript
     assert '$("#stage-validate").text(passed+" passed")' in javascript
