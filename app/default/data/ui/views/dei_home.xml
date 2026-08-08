@@ -22,13 +22,13 @@
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Detection intelligence flow</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-flow-rail" aria-hidden="true"><span class="dei-flow-complete-track"></span><i class="dei-flow-packet packet-one"></i><i class="dei-flow-packet packet-two"></i><i class="dei-flow-packet packet-three"></i></div>
               <div class="dei-flow-nodes" aria-label="Detection engineering pipeline stages">
-                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small></span>
-                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small></span>
-                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small></span>
-                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small></span>
-                <span data-home-flow-stage="design"><b>05</b><small>Design</small></span>
-                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small></span>
-                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small></span>
+                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small><em>Source inventory</em></span>
+                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small><em>Field evidence</em></span>
+                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small><em>Readiness gates</em></span>
+                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small><em>Use-case fit</em></span>
+                <span data-home-flow-stage="design"><b>05</b><small>Design</small><em>Detection logic</em></span>
+                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small><em>Reviewable SPL</em></span>
+                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small><em>Test evidence</em></span>
               </div>
             </div>
           </section>
