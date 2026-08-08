@@ -7,6 +7,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
   var VALIDATION_RESULT_LIMIT = 25;
   var VALIDATION_TIMEOUT_MS = 60000;
+  var ATTACK_SNAPSHOT = "MITRE ATT&CK Enterprise bundled reference reviewed 2026-08-07";
+  var MITRE_TACTIC_NAMES = {"TA0043":"Reconnaissance","TA0042":"Resource Development","TA0001":"Initial Access","TA0002":"Execution","TA0003":"Persistence","TA0004":"Privilege Escalation","TA0005":"Defense Evasion","TA0112":"Defense Evasion","TA0006":"Credential Access","TA0007":"Discovery","TA0008":"Lateral Movement","TA0009":"Collection","TA0011":"Command and Control","TA0010":"Exfiltration","TA0040":"Impact"};
+  var MITRE_REFERENCE = {"T1021":{"name":"Remote Services","tactics":["TA0008"],"platforms":"ESXi, IaaS, Linux, Windows, macOS","summary":"Remote access services such as RDP, SSH, SMB, WinRM, VNC, or cloud remote services are used to move between systems or services.","detection":"Correlate remote logons with unusual source hosts, accounts, time windows, service use, privileged activity, and subsequent process execution.","mitigation":"Restrict remote administration paths, segment management networks, require MFA where supported, and limit privileged remote-service access.","version":"1.6","modified":"24 October 2025"},"T1041":{"name":"Exfiltration Over C2 Channel","tactics":["TA0010"],"platforms":"Linux, Network Devices, Windows, macOS","summary":"Data is stolen using an existing command-and-control channel instead of establishing a separate exfiltration path.","detection":"Measure unusual outbound transfer volume, encoded or staged data, beacon channels that shift to sustained transfer, and sensitive-host egress to C2 infrastructure.","mitigation":"Restrict egress, inspect known C2 patterns, segment sensitive systems, and reduce access to data that compromised processes can read."},"T1059.001":{"name":"PowerShell","parent":"T1059","tactics":["TA0002"],"platforms":"Windows","summary":"PowerShell commands, scripts, or the underlying automation interfaces are abused to execute code, perform discovery, or retrieve payloads.","detection":"Inspect script-block content, encoded or obfuscated commands, unusual parent/child process relationships, remote invocation, and network activity associated with PowerShell execution.","mitigation":"Constrain administrative scripting, apply application control, enable detailed PowerShell logging, and limit privileged use.","modified":"12 May 2026"},"T1071.004":{"name":"DNS","parent":"T1071","tactics":["TA0011"],"platforms":"ESXi, Linux, Network Devices, Windows, macOS","summary":"DNS is abused for command-and-control traffic by embedding commands or data within otherwise common DNS queries and responses.","detection":"Detect high-volume or encoded subdomains, unusual query length or entropy, rare resolvers, beaconing patterns, and non-standard processes issuing DNS queries.","mitigation":"Force approved resolvers, filter untrusted domains, use DNS monitoring/NIDS, and restrict direct external DNS where practical.","strategy":"DET0400","version":"1.4","modified":"12 May 2026"},"T1078":{"name":"Valid Accounts","tactics":["TA0001","TA0003","TA0004","TA0005"],"platforms":"Containers, ESXi, IaaS, Identity Provider, Linux, Network Devices, Office Suite, SaaS, Windows, macOS","summary":"Legitimate credentials are abused to gain access, persist, elevate privileges, or blend into normal activity.","detection":"Identify anomalous login geography, time, device, protocol, privilege use, service-account behavior, and activity inconsistent with the account baseline.","mitigation":"Use MFA, conditional access, credential rotation, privileged-account controls, and rapid retirement of inactive accounts.","strategy":"DET0560","version":"3.0","modified":"12 May 2026"},"T1078.004":{"name":"Cloud Accounts","parent":"T1078","tactics":["TA0001","TA0003","TA0004","TA0005"],"platforms":"IaaS, Identity Provider, Office Suite, SaaS","summary":"Compromised or misused cloud identities are used to access services and maintain trusted-looking access.","detection":"Look for impossible travel, legacy authentication, abnormal API scope, unusual privileged activity, and cloud-service usage that departs from the user baseline.","mitigation":"Require MFA, conditional access, modern authentication, routine privilege review, JIT access, and unique rotated credentials.","strategy":"DET0546","modified":"12 May 2026"},"T1098":{"name":"Account Manipulation","tactics":["TA0003","TA0004"],"platforms":"Containers, ESXi, IaaS, Identity Provider, Linux, Network Devices, Office Suite, SaaS, Windows, macOS","summary":"Accounts, credentials, groups, roles, or permissions are changed to preserve access or obtain stronger privileges.","detection":"Correlate account and role changes with unusual timing, initiating principals, processes, privilege transitions, or API activity.","mitigation":"Apply least privilege, MFA, privileged-account management, user-account governance, segmentation, and tight control over account modification rights.","strategy":"DET0096","version":"2.8","modified":"12 May 2026"},"T1110":{"name":"Brute Force","tactics":["TA0006"],"platforms":"Containers, ESXi, IaaS, Identity Provider, Linux, Network Devices, Office Suite, SaaS, Windows, macOS","summary":"Systematic credential guessing or cracking used to obtain valid account access.","detection":"Look for repeated or distributed authentication failures, unusual account targeting, and credential-use patterns that deviate from baseline.","mitigation":"Use MFA, strong password policy, account-use controls, and lockout/conditional-access protections.","version":"2.8","modified":"12 May 2026"},"T1110.003":{"name":"Password Spraying","parent":"T1110","tactics":["TA0006"],"platforms":"Containers, ESXi, IaaS, Identity Provider, Linux, Network Devices, Office Suite, SaaS, Windows, macOS","summary":"A small set of commonly used passwords is tried across many accounts to obtain valid credentials while reducing per-account lockout risk.","detection":"Correlate authentication failures across many identities from common infrastructure or repeated password patterns within a bounded time window.","mitigation":"Use MFA, conditional access, account-use policy, strong passwords, and carefully tuned lockout controls.","strategy":"DET0487","version":"1.8","modified":"24 October 2025"},"T1190":{"name":"Exploit Public-Facing Application","tactics":["TA0001"],"platforms":"Containers, IaaS, Linux, Network Devices, Windows, macOS","summary":"Internet-facing applications or services are exploited through software weaknesses or unsafe exposed functionality to gain access.","detection":"Correlate suspicious requests and application errors with post-exploitation process creation, outbound connections, or new persistence behavior.","mitigation":"Patch exposed software rapidly, scan continuously, segment public services, minimize service-account privilege, and use protective gateway controls.","strategy":"DET0080","modified":"12 May 2026"},"T1530":{"name":"Data from Cloud Storage","tactics":["TA0009"],"platforms":"IaaS, Office Suite, SaaS","summary":"Cloud object or document storage is accessed to collect sensitive organizational data.","detection":"Monitor unusual object reads, bulk downloads, atypical API access, new principals, abnormal locations, and access to sensitive storage outside established patterns.","mitigation":"Apply least privilege, private-by-default storage controls, strong identity protection, access reviews, and monitoring for public or overly broad permissions.","version":"2.2","modified":"12 May 2026"},"T1548.003":{"name":"Sudo and Sudo Caching","parent":"T1548","tactics":["TA0004"],"platforms":"Linux, macOS","summary":"Sudo configuration, cached authorization, or elevated command execution is abused to gain higher privileges.","detection":"Monitor unusual sudo invocation, unexpected users gaining elevation, changes to sudoers policy, and privileged commands inconsistent with normal administration.","mitigation":"Restrict sudoers policy, minimize broad NOPASSWD rules, require strong authentication, and audit privileged command use.","modified":"12 May 2026"},"T1558.003":{"name":"Kerberoasting","parent":"T1558","tactics":["TA0006"],"platforms":"Windows","summary":"Service tickets are requested for SPNs so service-account material can be attacked offline and potentially expose reusable credentials.","detection":"Monitor anomalous Kerberos TGS requests, especially RC4/etype 0x17 use, unusual ticket volume, and service accounts requested outside normal baselines.","mitigation":"Prefer AES Kerberos encryption, use long managed service-account credentials, rotate secrets, and minimize service-account privilege.","strategy":"DET0157","version":"1.3","modified":"24 October 2025"},"T1562.008":{"name":"Disable or Modify Cloud Log","currentId":"T1685.002","parent":"T1685","tactics":["TA0112"],"platforms":"IaaS, Identity Provider, Office Suite, SaaS","summary":"Cloud logging or audit integrations are disabled or altered to reduce defensive visibility before or during malicious activity.","detection":"Alert on API or administrative events that stop, delete, downgrade, bypass, or materially change cloud audit and logging services.","mitigation":"Limit permissions to change logging, continuously validate required audit settings, and protect central log destinations from administrative tampering.","strategy":"DET0289","version":"1.0","modified":"12 May 2026","superseded":"Catalog mapping T1562.008 now resolves to current ATT&CK T1685.002."},"T1566":{"name":"Phishing","tactics":["TA0001"],"platforms":"Identity Provider, Linux, Office Suite, SaaS, Windows, macOS","summary":"Electronically delivered social engineering is used to induce a victim to open content, follow a link, call an adversary, or otherwise enable access.","detection":"Correlate suspicious inbound mail, links, attachments, sender anomalies, and subsequent endpoint or network behavior after message delivery.","mitigation":"Use secure mail controls, sender authentication, user training, attachment/link analysis, and protective isolation for untrusted content.","strategy":"DET0070","version":"2.7","modified":"12 May 2026"},"T1567":{"name":"Exfiltration Over Web Service","tactics":["TA0010"],"platforms":"ESXi, Linux, Office Suite, SaaS, Windows, macOS","summary":"Legitimate external web services are used as a channel to move data out of the organization and blend with expected encrypted traffic.","detection":"Look for unusual upload volume, new web-service destinations, atypical user agents, suspicious processes initiating transfers, and deviations from normal egress behavior.","mitigation":"Control approved web services, inspect egress where appropriate, apply DLP, and restrict unsanctioned external storage or webhook destinations.","version":"1.5","modified":"12 May 2026","subtechniques":[{"id":"T1567.001","name":"Exfiltration to Code Repository"},{"id":"T1567.002","name":"Exfiltration to Cloud Storage"},{"id":"T1567.003","name":"Exfiltration to Text Storage Sites"},{"id":"T1567.004","name":"Exfiltration Over Webhook"}]},"T1610":{"name":"Deploy Container","tactics":["TA0002"],"platforms":"Containers","summary":"A new container or workload is deployed to execute malicious code, bypass controls, or establish access within containerized infrastructure.","detection":"Detect unapproved images, privileged containers, risky host mounts/namespaces, unusual principals, and suspicious create-to-start-to-network or process chains.","mitigation":"Apply least privilege and RBAC, restrict privileged runtime settings, enforce approved images, segment workloads, and monitor control-plane changes.","strategy":"DET0249","version":"2.0","modified":"12 May 2026"}};
   var selected = null;
   var generatedBaseline = null;
   var Store = null;
@@ -162,15 +165,65 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return {cron:"*/15 * * * *", earliest:"-20m@m", latest:"-2m@m"};
   }
 
+  function uniqueValues(values) {
+    var seen = {};
+    return values.filter(function (value) {
+      var key = String(value || "");
+      if (!key || seen[key]) { return false; }
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function multivalueLiteral(values, fallback) {
+    var cleaned = uniqueValues(values || []);
+    return cleaned.length ? "split(" + quote(cleaned.join("||")) + ', "||")' : quote(fallback || "Unknown");
+  }
+
+  function techniqueUrl(id) {
+    var parts = String(id || "").split(".");
+    return "https://attack.mitre.org/techniques/" + parts[0] + (parts[1] ? "/" + parts[1] : "") + "/";
+  }
+
+  function tacticUrl(id) {
+    return "https://attack.mitre.org/tactics/" + String(id || "") + "/";
+  }
+
   function platformMitreMetadata(item) {
     var techniques = item.mitre_techniques || [];
-    var techniqueValue = techniques.length ?
-      "split(" + quote(techniques.join(",")) + ', ",")' : quote("Unmapped");
+    var references = techniques.map(function (id) {
+      return $.extend({id:id, name:"Unknown ATT&CK technique", tactics:[], platforms:"",
+        summary:"No bundled ATT&CK description is available.", detection:"Review the current MITRE ATT&CK technique guidance."},
+        MITRE_REFERENCE[id] || {});
+    });
+    var tactics = uniqueValues([].concat.apply([], references.map(function (entry) { return entry.tactics || []; })));
+    var subtechniques = [].concat.apply([], references.map(function (entry) { return entry.subtechniques || []; }));
+    var platforms = uniqueValues([].concat.apply([], references.map(function (entry) {
+      return String(entry.platforms || "").split(/,\\s*/).filter(Boolean);
+    })));
+    var parentIds = uniqueValues(references.map(function (entry) { return entry.parent || ""; }));
+    var summaries = references.map(function (entry) { return entry.id + ": " + entry.summary; });
+    var guidance = references.map(function (entry) { return entry.id + ": " + entry.detection; });
     return "| eval dei_detection_id=" + quote(item.detection_id) +
       ", dei_detection_name=" + quote(item.name) +
-      ", mitre_attack_framework=" + quote("MITRE ATT&CK") +
-      ", mitre_attack_technique_id=" + techniqueValue +
-      ", mitre_attack_mapping_status=" + quote(techniques.length ? "mapped" : "unmapped");
+      ", mitre_attack_framework=" + quote("MITRE ATT&CK Enterprise") +
+      ", mitre_attack_reference_snapshot=" + quote(ATTACK_SNAPSHOT) +
+      ", mitre_attack_mapping_status=" + quote(techniques.length ? "mapped" : "unmapped") +
+      ", mitre_attack_technique_id=" + multivalueLiteral(techniques, "Unmapped") +
+      ", mitre_attack_technique_name=" + multivalueLiteral(references.map(function (entry) { return entry.name; })) +
+      ", mitre_attack_technique_url=" + multivalueLiteral(techniques.map(techniqueUrl)) +
+      ", mitre_attack_parent_technique_id=" + multivalueLiteral(parentIds, "Not applicable") +
+      ", mitre_attack_subtechnique_id=" + multivalueLiteral(subtechniques.map(function (entry) { return entry.id; }), "None") +
+      ", mitre_attack_subtechnique_name=" + multivalueLiteral(subtechniques.map(function (entry) { return entry.name; }), "None") +
+      ", mitre_attack_subtechnique_url=" + multivalueLiteral(subtechniques.map(function (entry) { return techniqueUrl(entry.id); }), "None") +
+      ", mitre_attack_tactic_id=" + multivalueLiteral(tactics) +
+      ", mitre_attack_tactic_name=" + multivalueLiteral(tactics.map(function (id) { return MITRE_TACTIC_NAMES[id] || id; })) +
+      ", mitre_attack_tactic_url=" + multivalueLiteral(tactics.map(tacticUrl)) +
+      ", mitre_attack_platform=" + multivalueLiteral(platforms) +
+      ", mitre_attack_description=" + multivalueLiteral(summaries) +
+      ", mitre_attack_detection_guidance=" + multivalueLiteral(guidance) +
+      ", mitre_attack_version=" + multivalueLiteral(references.map(function (entry) { return entry.version || "Not recorded"; })) +
+      ", mitre_attack_last_modified=" + multivalueLiteral(references.map(function (entry) { return entry.modified || "Not recorded"; }));
   }
 
   function readinessLabel(value) {
@@ -357,13 +410,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function resultColumns(rows) {
-    var preferred = ["_time", "user", "src_ip", "dest_ip", "host", "action", "count",
-      "dei_detection_id", "dei_detection_name", "mitre_attack_technique_id", "mitre_attack_mapping_status"];
+    var preferred = ["_time", "dei_detection_name", "mitre_attack_technique_id",
+      "mitre_attack_technique_name", "mitre_attack_tactic_name", "mitre_attack_platform",
+      "mitre_attack_subtechnique_id", "mitre_attack_mapping_status", "user", "src_ip",
+      "dest_ip", "host", "action", "count", "dei_detection_id"];
     var found = {};
     rows.forEach(function (row) { Object.keys(row || {}).forEach(function (key) { found[key] = true; }); });
     return preferred.filter(function (key) { return found[key]; }).concat(
       Object.keys(found).filter(function (key) { return preferred.indexOf(key) === -1 && key !== "_raw"; }).sort()
-    ).slice(0, 8);
+    ).slice(0, 12);
   }
 
   function renderValidationRows(rows) {
