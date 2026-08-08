@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("command_center", "mitre_coverage", "detection_lifecycle", "detection_builder"):
+    for view in ("dei_home", "command_center", "mitre_coverage", "detection_lifecycle", "detection_builder"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
@@ -26,6 +26,11 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
     assert "window.localStorage.setItem" in javascript
     assert "Compact spacing" in javascript
     assert "Comfortable spacing" in javascript
+    assert "renderHomePipeline" in javascript
+    assert "dei.latestRecommendationReport" in javascript
+    assert "dei.detectionDraftArtifacts" in javascript
+    assert "dei:environment-refreshed" in javascript
+    assert "dei:detection-artifacts-changed" in javascript
 
 
 def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> None:
@@ -66,3 +71,28 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
     analyst_queue = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:4}')
     assert analyst_pipeline >= 0 and analyst_queue > analyst_pipeline
     assert "position:sticky" in stylesheet
+
+
+def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    shell = home.find(".//*[@id='dei-home-page']")
+    assert shell is not None
+    children = list(shell)
+    ids = [child.attrib.get("id") for child in children]
+    pipeline_index = ids.index("dei-home-pipeline")
+    hero_index = next(
+        index for index, child in enumerate(children)
+        if "dei-home-hero" in child.attrib.get("class", "").split()
+    )
+    workspaces_index = next(
+        index for index, child in enumerate(children)
+        if "dei-home-workspaces" in child.attrib.get("class", "").split()
+    )
+    assert hero_index < pipeline_index < workspaces_index
+    assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
+    assert shell.find(".//*[@id='dei-home-flow-status']") is not None
+    assert ".dei-official-home>.dei-home-flow-section{order:2" in stylesheet
+    assert ".dei-home-workspace-grid" in stylesheet
+    command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
+    assert command_center.find(".//*[@id='dei-home-pipeline']") is None

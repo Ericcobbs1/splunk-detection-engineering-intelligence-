@@ -1,6 +1,7 @@
 <nav search_view="search">
-  <view name="command_center" default="true" />
+  <view name="dei_home" default="true" />
   <collection label="Intelligence">
+    <view name="dei_home" />
     <view name="command_center" />
     <view name="mitre_coverage" />
     <view name="detection_lifecycle" />

@@ -43,11 +43,12 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     assert lifecycle_link is not None
 
 
-def test_command_center_is_default_navigation_view_and_mitre_is_registered() -> None:
+def test_dei_home_is_default_navigation_view_and_workspaces_are_registered() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
-    command_center = root.find("./view[@name='command_center']")
-    assert command_center is not None
-    assert command_center.attrib["default"] == "true"
+    home = root.find("./view[@name='dei_home']")
+    assert home is not None
+    assert home.attrib["default"] == "true"
+    assert root.find(".//view[@name='command_center']") is not None
     assert root.find(".//view[@name='mitre_coverage']") is not None
     assert root.find(".//view[@name='detection_lifecycle']") is not None
 
@@ -137,3 +138,22 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "font-size: 14px" in polish_css
     assert "-webkit-font-smoothing: auto" in polish_css
     assert ".dei-clear-button-v2" in premium_css
+
+
+def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
+    home_path = APP_ROOT / "default" / "data" / "ui" / "views" / "dei_home.xml"
+    root = ElementTree.parse(home_path).getroot()
+    assert root.attrib["script"] == "dei_workspace_layout_v1.js"
+    assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
+    for element_id in (
+        "dei-home-page", "dei-home-pipeline", "dei-home-flow-title",
+        "dei-home-detection-flow", "dei-home-flow-status", "dei-home-workspaces-title",
+    ):
+        assert root.find(f".//*[@id='{element_id}']") is not None
+    for destination in (
+        "command_center", "mitre_coverage", "detection_lifecycle", "detection_builder",
+    ):
+        assert root.find(f".//a[@href='{destination}']") is not None
+    assert root.find(".//*[@id='dei-telemetry']") is None
+    assert root.find(".//*[@id='dei-portfolio-section']") is None
+    assert root.find(".//*[@id='dei-coverage-section']") is None
