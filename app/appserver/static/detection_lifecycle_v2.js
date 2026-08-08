@@ -146,36 +146,75 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).join("") : '<p class="dei-empty">No lifecycle history recorded.</p>';
   }
 
+  function workflowProgress(record) {
+    var states=[
+      {id:"draft",label:"Draft"},{id:"testing",label:"Testing"},{id:"peer_review",label:"Peer review"},
+      {id:"production",label:"Production"},{id:"monitoring",label:"Monitoring"},
+      {id:"tuning",label:"Tuning"},{id:"retired",label:"Retired"}
+    ];
+    var current=Math.max(0,STATE_ORDER.indexOf(record.state));
+    return '<div class="dei-lifecycle-progress">'+states.map(function (state,index) {
+      var status=index<current?"complete":(index===current?"current":"future");
+      return '<div class="dei-progress-step '+status+'"><span>'+(status==="complete"?"✓":String(index+1))+'</span><strong>'+esc(state.label)+'</strong></div>';
+    }).join("")+"</div>";
+  }
+
+  function gateGuidance(record) {
+    var approved=record.review && record.review.decision==="approved";
+    var guides={
+      draft:{gate:"Gate 1 · Detection design",owner:"Detection engineer",required:"Complete and save the SPL, schedule, telemetry mappings, and ATT&CK context.",steps:["Open Detection Builder.","Review or edit the generated platform SPL and optional ES artifact.","Run bounded historical validation."],outcome:"A successful validation advances the record to Testing.",instruction:"Open Builder and complete bounded validation before continuing."},
+      testing:{gate:"Gate 2 · Validation handoff",owner:"Detection engineer",required:"A passed validation result and a review-submission note.",steps:["Review the sampled results and runtime evidence.","Describe the analytic intent, expected behavior, and known limitations.","Submit the validated version for peer review."],outcome:"The record becomes available to a reviewer in Peer Review.",instruction:"Document the validation evidence, then submit this version for peer review."},
+      peer_review:approved?{gate:"Gate 4 · Controlled deployment record",owner:"Deployment owner",required:"The exact deployed saved-search, ES detection, or external object reference.",steps:["Deploy the approved artifact through the normal change process.","Select the deployment target and environment.","Record the exact object name/ID and optional change ticket."],outcome:"Recording deployment advances the detection to Production; DEI does not silently deploy it.",instruction:"Peer review is approved. Record the real deployment reference to enter Production."}:{gate:"Gate 3 · Independent peer review",owner:"DEI lifecycle reviewer",required:"A written approval rationale or specific change request.",steps:["Open Builder and inspect SPL, ATT&CK mapping, schedule, warnings, and validation evidence.","Confirm the logic is safe, scoped, and operationally actionable.","Approve this version or return it to Draft with required changes."],outcome:"Approval unlocks deployment recording; returned work reopens Draft.",instruction:"A reviewer must approve or return this version with written rationale."},
+      production:{gate:"Gate 5 · Production health baseline",owner:"Detection owner / SOC",required:"Initial health, result volume, runtime, and analyst outcome evidence.",steps:["Confirm the deployed object is scheduled and enabled through the target platform.","Measure result volume and search runtime.","Record initial true-positive and false-positive observations."],outcome:"The first health measurement advances the record to Monitoring.",instruction:"Record the first production health measurement to begin Monitoring."},
+      monitoring:{gate:"Gate 6 · Continuous detection operations",owner:"Detection owner / SOC",required:"Periodic health and analyst outcome evidence.",steps:["Record current health, result volume, runtime, and analyst outcomes.","Continue monitoring when performance remains acceptable.","Start Tuning for logic changes or Retire with a documented reason."],outcome:"Each decision is retained in the audit history.",instruction:"Record health, open a tuning version, or retire the detection with evidence."},
+      tuning:{gate:"Gate 7 · Controlled tuning cycle",owner:"Detection engineer",required:"A revised version followed by fresh validation and peer review.",steps:["Open Builder and revise the SPL or schedule.","Run bounded validation; prior approval cannot be reused.","Submit the new version through peer review and deployment again."],outcome:"Successful validation returns the new version to Testing.",instruction:"Open Builder, revise this version, and complete fresh validation."},
+      retired:{gate:"Lifecycle closed · Retired",owner:"Detection governance",required:"No further action; retained history is immutable.",steps:["Review the retirement reason and replacement context.","Retain deployment, monitoring, and approval evidence for audit.","Create a new recommendation or draft if the capability is needed again."],outcome:"The detection remains retired with its complete history preserved.",instruction:"Lifecycle complete. The retired record is retained for audit."}
+    };
+    return guides[record.state]||guides.draft;
+  }
+
+  function renderGateGuide(record) {
+    var guide=gateGuidance(record);
+    var deployment=record.deployment||{}; var monitoring=record.monitoring||{};
+    var facts=[];
+    if (deployment.external_object_id) { facts.push("Deployment: "+deployment.external_object_id); }
+    if (monitoring.last_checked_at) { facts.push("Last health: "+label(monitoring.health)+" · "+new Date(monitoring.last_checked_at).toLocaleString()); }
+    if (record.retirement && record.retirement.reason) { facts.push("Retired: "+record.retirement.reason); }
+    return workflowProgress(record)+'<div class="dei-gate-guide"><div><span class="dei-generator-label">Current gate</span><h3>'+esc(guide.gate)+'</h3><p>'+esc(guide.required)+'</p><dl><dt>Responsible role</dt><dd>'+esc(guide.owner)+'</dd><dt>Gate outcome</dt><dd>'+esc(guide.outcome)+'</dd></dl></div><div><span class="dei-generator-label">What to do next</span><ol>'+guide.steps.map(function (step) { return "<li>"+esc(step)+"</li>"; }).join("")+"</ol>"+(facts.length?'<div class="dei-gate-facts">'+facts.map(function (fact) { return "<span>"+esc(fact)+"</span>"; }).join("")+"</div>":"")+"</div></div>";
+  }
+
   function fieldMarkup(record) {
     if (record.state==="testing") {
-      return '<label class="dei-action-field"><span>Review submission note</span><textarea id="lifecycle-action-comment" placeholder="Summarize validation evidence and expected analyst behavior."></textarea></label>';
+      return '<label class="dei-action-field"><span>Review submission note *</span><textarea id="lifecycle-action-comment" placeholder="Summarize validation evidence, analytic intent, expected analyst behavior, and known limitations."></textarea></label>';
     }
     if (record.state==="peer_review") {
       if (record.review && record.review.decision==="approved") {
-        return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>External object ID or saved-search name</span><input id="lifecycle-external-id" type="text" placeholder="Required deployment reference"/></label></div>';
+        return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" placeholder="Exact deployed object reference"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional change request, deployment evidence, or required rationale when reopening Draft."></textarea></label>';
       }
-      return '<label class="dei-action-field"><span>Peer-review comments</span><textarea id="lifecycle-action-comment" placeholder="Required approval rationale or requested changes."></textarea></label>';
+      return '<label class="dei-action-field"><span>Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" placeholder="Document why this version is approved or list the exact changes required."></textarea></label>';
     }
     if (record.state==="production" || record.state==="monitoring") {
-      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health</span><select id="lifecycle-health"><option value="healthy">Healthy</option><option value="degraded">Degraded</option><option value="failing">Failing</option></select></label><label class="dei-action-field"><span>Result volume</span><input id="lifecycle-result-volume" type="number" min="0" value="0"/></label><label class="dei-action-field"><span>Runtime ms</span><input id="lifecycle-runtime" type="number" min="0" value="0"/></label></div><label class="dei-action-field"><span>Monitoring, tuning, or retirement note</span><textarea id="lifecycle-action-comment" placeholder="Document health context, tuning rationale, or the required retirement reason."></textarea></label>';
+      var prior=record.monitoring||{};
+      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health *</span><select id="lifecycle-health"><option value="healthy"'+(prior.health==="healthy"?" selected":"")+'>Healthy</option><option value="degraded"'+(prior.health==="degraded"?" selected":"")+'>Degraded</option><option value="failing"'+(prior.health==="failing"?" selected":"")+'>Failing</option></select></label><label class="dei-action-field"><span>Result volume *</span><input id="lifecycle-result-volume" type="number" min="0" value="'+esc(prior.result_volume||0)+'"/></label><label class="dei-action-field"><span>Runtime ms *</span><input id="lifecycle-runtime" type="number" min="0" value="'+esc(prior.runtime_ms||0)+'"/></label><label class="dei-action-field"><span>True positives</span><input id="lifecycle-true-positives" type="number" min="0" value="'+esc(prior.true_positives||0)+'"/></label><label class="dei-action-field"><span>False positives</span><input id="lifecycle-false-positives" type="number" min="0" value="'+esc(prior.false_positives||0)+'"/></label></div><label class="dei-action-field"><span>Operational note</span><textarea id="lifecycle-action-comment" placeholder="Document health context. A rationale is required when starting Tuning or retiring."></textarea></label>';
     }
-    if (record.state==="retired") { return '<p class="dei-empty">This record is immutable. History and evidence are retained.</p>'; }
+    if (record.state==="tuning") { return '<label class="dei-action-field"><span>Tuning or retirement note *</span><textarea id="lifecycle-action-comment" placeholder="Document the revision objective before opening Builder, or provide the retirement reason."></textarea></label>'; }
+    if (record.state==="retired") { return '<p class="dei-empty">This lifecycle record is complete and immutable. Deployment, monitoring, decisions, and retirement evidence remain available in Audit history.</p>'; }
     return '<label class="dei-action-field"><span>Lifecycle note</span><textarea id="lifecycle-action-comment" placeholder="Document the engineering decision."></textarea></label>';
   }
 
   function buttonMarkup(record) {
-    if (record.state==="draft") { return '<button data-action="open_builder">Open Builder</button>'; }
+    if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open Builder</button>'; }
     if (record.state==="testing") {
-      return (record.validation && record.validation.status==="passed" ? '<button data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open Builder</button>';
+      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open Builder</button>';
     }
     if (record.state==="peer_review") {
       return record.review && record.review.decision==="approved" ?
-        '<button data-action="record_deployment">Record deployment</button><button data-action="return_draft">Reopen draft</button>' :
-        '<button data-action="approve_review">Approve</button><button data-action="return_draft">Return for changes</button>';
+        '<button class="primary" data-action="record_deployment">Record deployment and enter Production</button><button data-action="return_draft">Reopen draft</button>' :
+        '<button class="primary" data-action="approve_review">Approve version</button><button class="danger" data-action="return_draft">Return for changes</button><button data-action="open_builder">Inspect in Builder</button>';
     }
-    if (record.state==="production") { return '<button data-action="record_health">Start monitoring</button><button data-action="retire">Retire</button>'; }
-    if (record.state==="monitoring") { return '<button data-action="record_health">Record health</button><button data-action="start_tuning">Start tuning</button><button data-action="retire">Retire</button>'; }
-    if (record.state==="tuning") { return '<button data-action="open_builder">Open Builder</button><button data-action="retire">Retire</button>'; }
+    if (record.state==="production") { return '<button class="primary" data-action="record_health">Record baseline and start Monitoring</button><button class="danger" data-action="retire">Retire</button>'; }
+    if (record.state==="monitoring") { return '<button class="primary" data-action="record_health">Record health</button><button data-action="start_tuning">Start tuning version</button><button class="danger" data-action="retire">Retire</button>'; }
+    if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open Builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
     return "";
   }
 
@@ -185,11 +224,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#lifecycle-action-center").show(); $("#lifecycle-action-title").text(selectedRecord.name);
     $("#lifecycle-action-state").text(label(selectedRecord.state)+" · v"+(selectedRecord.version||1));
     $("#lifecycle-action-summary").text(nextAction(selectedRecord,selectedRecord));
+    $("#lifecycle-action-progress").html(renderGateGuide(selectedRecord));
     $("#lifecycle-action-evidence").html(evidence(selectedRecord));
     $("#lifecycle-action-fields").html(fieldMarkup(selectedRecord));
     $("#lifecycle-action-buttons").html(buttonMarkup(selectedRecord));
     $("#lifecycle-action-history").html(history(selectedRecord));
-    $("#lifecycle-action-feedback").removeClass("error success").addClass("ready").text("Complete the required evidence before advancing this record.");
+    $("#lifecycle-action-feedback").removeClass("error success").addClass("ready").text(gateGuidance(selectedRecord).instruction);
     document.getElementById("lifecycle-action-center").scrollIntoView({behavior:"smooth",block:"start"});
   }
 
@@ -238,19 +278,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null}),"Returned to Draft."); return;
     }
     if (action==="record_deployment") {
-      var target=String($("#lifecycle-deployment-target").val()||""); var external=String($("#lifecycle-external-id").val()||"").trim();
+      var target=String($("#lifecycle-deployment-target").val()||""); var environment=String($("#lifecycle-deployment-environment").val()||"production"); var external=String($("#lifecycle-external-id").val()||"").trim();
       if (!external) { $("#lifecycle-action-feedback").addClass("error").text("A deployment object ID or saved-search name is required."); return; }
-      saveAndReload(transition(record,"production","deployment_recorded",target+": "+external,{deployment:{target:target,external_object_id:external,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded."); return;
+      saveAndReload(transition(record,"production","deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""),{deployment:{target:target,environment:environment,external_object_id:external,change_reference:comment,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded."); return;
     }
     if (action==="record_health") {
-      var health=String($("#lifecycle-health").val()||"healthy"); var volume=Number($("#lifecycle-result-volume").val()||0); var runtime=Number($("#lifecycle-runtime").val()||0);
-      if (!isFinite(volume) || volume<0 || !isFinite(runtime) || runtime<0) { $("#lifecycle-action-feedback").addClass("error").text("Result volume and runtime must be non-negative numbers."); return; }
-      var monitoring={health:health,result_volume:volume,runtime_ms:runtime,last_checked_at:new Date().toISOString(),checked_by:Store.username()};
+      var health=String($("#lifecycle-health").val()||"healthy"); var volume=Number($("#lifecycle-result-volume").val()||0); var runtime=Number($("#lifecycle-runtime").val()||0); var truePositives=Number($("#lifecycle-true-positives").val()||0); var falsePositives=Number($("#lifecycle-false-positives").val()||0);
+      if (![volume,runtime,truePositives,falsePositives].every(function (value) { return isFinite(value) && value>=0; })) { $("#lifecycle-action-feedback").addClass("error").text("Volume, runtime, and analyst outcome counts must be non-negative numbers."); return; }
+      var monitoring={health:health,result_volume:volume,runtime_ms:runtime,true_positives:truePositives,false_positives:falsePositives,note:comment,last_checked_at:new Date().toISOString(),checked_by:Store.username()};
       saveAndReload(transition(record,"monitoring","health_measured",health+", "+volume+" results, "+runtime+" ms",{monitoring:monitoring}),"Monitoring evidence recorded."); return;
     }
     if (action==="start_tuning") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A tuning rationale is required."); return; }
-      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null}),"Tuning version opened."); return;
+      var previousVersion={version:Number(record.version||1),spl:record.spl,schedule:record.schedule,validation:record.validation,review:record.review,deployment:record.deployment,monitoring:record.monitoring,closed_at:new Date().toISOString()};
+      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. Prior operational evidence was archived."); return;
     }
     if (action==="retire") {
       var reason=comment; if (!reason) { $("#lifecycle-action-feedback").addClass("error").text("A retirement reason is required in Lifecycle note."); return; }
