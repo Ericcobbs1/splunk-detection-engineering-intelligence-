@@ -441,3 +441,130 @@
   .dei-official-home .dei-flow-health-summary{grid-template-columns:1fr}
   .dei-official-home .dei-flow-health-summary article{border-left:0}
 }
+
+/* Guided end-to-end analyst workflow. */
+.dei-guided-workflow{position:relative;display:grid;grid-template-columns:minmax(250px,.8fr) minmax(560px,1.8fr) auto;align-items:center;gap:22px;padding:18px 20px;border:1px solid rgba(110,168,255,.2);border-radius:14px;background:linear-gradient(145deg,rgba(10,24,38,.98),rgba(7,17,28,.98));box-shadow:0 14px 32px rgba(0,0,0,.2)}
+.dei-guided-workflow-copy .dei-kicker{margin:0 0 4px;color:#5ce1c2;font-size:9px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.dei-guided-workflow-copy h2{margin:0;color:#eef5fa;font-size:17px}
+.dei-guided-workflow-copy>p:last-child{margin:5px 0 0;color:#8fa4b6;font-size:10px;line-height:1.4}
+.dei-guided-workflow-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:0;padding:0;list-style:none}
+.dei-guided-workflow-steps li{position:relative;min-width:0}
+.dei-guided-workflow-steps li:after{content:"";position:absolute;top:16px;right:-50%;left:50%;z-index:0;height:2px;background:#24394d}
+.dei-guided-workflow-steps li:last-child:after{display:none}
+.dei-guided-workflow-steps a{position:relative;z-index:1;display:grid;justify-items:center;gap:6px;color:#71879a;text-align:center;text-decoration:none}
+.dei-guided-workflow-steps a>span{display:grid;place-items:center;width:32px;height:32px;border:2px solid #30475c;border-radius:50%;background:#091522;color:#7890a4;font-size:10px;font-weight:850;box-shadow:0 0 0 5px #091522}
+.dei-guided-workflow-steps a strong,.dei-guided-workflow-steps a small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dei-guided-workflow-steps a strong{font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.dei-guided-workflow-steps a small{margin-top:2px;font-size:9px}
+.dei-guided-workflow-steps li[data-workflow-state="complete"] a{color:#75e4c4}
+.dei-guided-workflow-steps li[data-workflow-state="complete"] a>span{border-color:#5ce1c2;background:#12362f;color:#e3fff8;box-shadow:0 0 0 5px #091522,0 0 15px rgba(92,225,194,.4)}
+.dei-guided-workflow-steps li[data-workflow-state="complete"]:after{background:linear-gradient(90deg,#5ce1c2,#4e83b6)}
+.dei-guided-workflow-steps li[data-workflow-state="current"] a{color:#c5ddff}
+.dei-guided-workflow-steps li[data-workflow-state="current"] a>span{border-color:#6ea8ff;background:#173757;color:#edf5ff;box-shadow:0 0 0 5px #091522,0 0 20px rgba(110,168,255,.58);animation:dei-flow-current-node 1.7s ease-in-out infinite}
+.dei-guided-workflow-steps li[data-workflow-state="upcoming"]{opacity:.66}
+.dei-guided-workflow-action{display:grid;justify-items:end;gap:7px;min-width:165px}
+.dei-guided-workflow-action>span{color:#8398aa;font-size:9px;font-weight:750;text-transform:uppercase;letter-spacing:.07em}
+.dei-guided-workflow-action>a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border:1px solid rgba(92,225,194,.4);border-radius:8px;background:rgba(92,225,194,.08);color:#86efd5;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}
+.dei-guided-workflow-action>a:hover,.dei-guided-workflow-action>a:focus-visible{border-color:#5ce1c2;color:#e3fff8;outline:0;box-shadow:0 0 0 3px rgba(92,225,194,.08)}
+
+/* Workflow-first page ordering. */
+#dei-home-page>#dei-home-pipeline{order:1!important}
+#dei-home-page>.dei-guided-workflow{order:2!important}
+#dei-home-page>.dei-home-hero{order:3!important}
+#dei-home-page>.dei-home-workspaces{order:4!important}
+#dei-command-center>.dei-product-bar{order:0!important}
+#dei-command-center>.dei-guided-workflow{order:1!important}
+#dei-command-center>#dei-telemetry{order:2!important}
+#dei-command-center>.dei-metrics{order:3!important}
+#dei-command-center>#dei-coverage-section{order:4!important}
+#dei-command-center>#dei-portfolio-section{order:5!important}
+#dei-command-center>.dei-hero{order:6!important}
+#dei-mitre-page{display:flex;flex-direction:column}
+#dei-mitre-page>.dei-product-bar{order:0!important}
+#dei-mitre-page>.dei-guided-workflow{order:1!important}
+#dei-mitre-page>.dei-mitre-page-head{order:2!important}
+#dei-mitre-page>.dei-mitre-layout{order:3!important}
+#dei-detection-builder-page>.dei-product-bar{order:0!important}
+#dei-detection-builder-page>.dei-guided-workflow{order:1!important}
+#dei-detection-builder-page>.dei-builder-selector-section{order:2!important}
+#dei-detection-builder-page>#detection-generator{order:3!important}
+#dei-detection-builder-page>.dei-lifecycle-capabilities{order:4!important}
+#dei-detection-builder-page>.dei-builder-hero{order:5!important}
+#dei-lifecycle-page>.dei-product-bar{order:0!important}
+#dei-lifecycle-page>.dei-guided-workflow{order:1!important}
+#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:2!important}
+#dei-lifecycle-page>.dei-pipeline-section{order:3!important}
+#dei-lifecycle-page>.dei-state-section{order:4!important}
+#dei-lifecycle-page>.dei-lifecycle-metrics{order:5!important}
+#dei-lifecycle-page>.dei-lifecycle-hero{order:6!important}
+@media(max-width:1250px){
+  .dei-guided-workflow{grid-template-columns:1fr;gap:14px}
+  .dei-guided-workflow-copy{text-align:center}
+  .dei-guided-workflow-action{justify-items:center}
+}
+@media(max-width:720px){
+  .dei-guided-workflow-steps{grid-template-columns:1fr;gap:8px}
+  .dei-guided-workflow-steps li:after{display:none}
+  .dei-guided-workflow-steps a{grid-template-columns:32px 1fr;justify-items:start;text-align:left}
+  .dei-guided-workflow-steps a>div{align-self:center}
+}
+@media(prefers-reduced-motion:reduce){.dei-guided-workflow-steps a>span{animation:none!important}}
+
+/* Progressive disclosure for new analysts. */
+.dei-guided-learning{margin-top:8px;color:#8ea4b6;font-size:10px}
+.dei-guided-learning summary{display:inline-flex;align-items:center;gap:5px;color:#9fc2e6;font-weight:750;cursor:pointer;list-style:none}
+.dei-guided-learning summary::-webkit-details-marker{display:none}
+.dei-guided-learning summary:before{content:"+";display:grid;place-items:center;width:15px;height:15px;border:1px solid rgba(110,168,255,.28);border-radius:50%;font-size:10px}
+.dei-guided-learning[open] summary:before{content:"−"}
+.dei-guided-learning p{margin:7px 0 0;padding:8px 10px;border-left:2px solid rgba(110,168,255,.3);background:rgba(110,168,255,.035);color:#8fa6b8;line-height:1.5}
+#dei-guided-workflow-advanced{border:0;background:transparent;color:#829bb0;padding:2px 4px;font-family:inherit;font-size:9px;font-weight:750;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#dei-guided-workflow-advanced:hover,#dei-guided-workflow-advanced:focus-visible{color:#c2d9ec;outline:0}
+.dei-shell[data-dei-workspace-mode="analyst"] .dei-guided-workflow{border-color:rgba(92,225,194,.22)}
+.dei-shell[data-dei-workspace-mode="engineering"] .dei-guided-workflow{border-color:rgba(110,168,255,.38);box-shadow:0 14px 34px rgba(0,0,0,.24),inset 0 2px rgba(110,168,255,.18)}
+
+/* First-session guided welcome dialog. */
+body.dei-onboarding-open{overflow:hidden}
+.dei-onboarding-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:28px;background:rgba(1,7,12,.78);backdrop-filter:blur(8px)}
+.dei-onboarding-dialog{position:relative;width:min(940px,96vw);max-height:92vh;overflow:auto;padding:30px;border:1px solid rgba(110,168,255,.34);border-radius:14px;background:radial-gradient(circle at 80% 0,rgba(110,168,255,.12),transparent 38%),linear-gradient(145deg,#0b1826,#07111c);box-shadow:0 34px 90px rgba(0,0,0,.55),inset 0 1px rgba(255,255,255,.04);color:#dfeaf3}
+.dei-onboarding-close{position:absolute;top:14px;right:16px;display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(168,190,214,.2);border-radius:7px;background:#0a1622;color:#a9bac8;font-size:20px;cursor:pointer}
+.dei-onboarding-close:hover,.dei-onboarding-close:focus-visible{border-color:#6ea8ff;color:#fff;outline:0}
+.dei-onboarding-heading{max-width:720px}
+.dei-onboarding-heading .dei-kicker{margin:0 0 6px;color:#5ce1c2;font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
+.dei-onboarding-heading h2{margin:0;color:#f3f8fc;font-size:28px;letter-spacing:-.02em}
+.dei-onboarding-heading>p:last-child{margin:9px 0 0;color:#9fb2c2;font-size:13px;line-height:1.55}
+.dei-onboarding-path{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:24px 0 0;padding:0;list-style:none}
+.dei-onboarding-path li{position:relative;min-width:0;padding:15px 13px;border:1px solid rgba(110,168,255,.16);border-radius:10px;background:rgba(8,20,32,.78)}
+.dei-onboarding-path li>span{display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(92,225,194,.4);border-radius:50%;background:rgba(92,225,194,.08);color:#75e4c4;font-size:10px;font-weight:850}
+.dei-onboarding-path strong{display:block;margin-top:11px;color:#e5eef5;font-size:12px}
+.dei-onboarding-path p{margin:5px 0 0;color:#8399ab;font-size:10px;line-height:1.45}
+.dei-onboarding-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(168,190,214,.14)}
+.dei-onboarding-foot>label{display:flex;align-items:center;gap:7px;color:#a9bac7;font-size:11px;cursor:pointer}
+.dei-onboarding-foot input{accent-color:#5ce1c2}
+.dei-onboarding-foot>div{display:flex;align-items:center;gap:8px}
+#dei-onboarding-not-now,#dei-onboarding-start{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border-radius:8px;font-family:inherit;font-size:10px;font-weight:800;text-decoration:none;cursor:pointer}
+#dei-onboarding-not-now{border:1px solid rgba(168,190,214,.2);background:#0a1622;color:#a9bac8}
+#dei-onboarding-start{border:1px solid rgba(92,225,194,.44);background:rgba(92,225,194,.1);color:#86efd5}
+#dei-onboarding-not-now:hover,#dei-onboarding-not-now:focus-visible,#dei-onboarding-start:hover,#dei-onboarding-start:focus-visible{outline:0;filter:brightness(1.18)}
+@media(max-width:850px){.dei-onboarding-path{grid-template-columns:1fr 1fr}.dei-onboarding-foot{align-items:flex-start;flex-direction:column}.dei-onboarding-foot>div{width:100%}}
+@media(max-width:560px){.dei-onboarding-overlay{padding:12px}.dei-onboarding-dialog{padding:24px 18px}.dei-onboarding-path{grid-template-columns:1fr}.dei-onboarding-foot>div{align-items:stretch;flex-direction:column}.dei-onboarding-foot>div>*{width:100%}}
+@media(prefers-reduced-motion:reduce){.dei-onboarding-overlay{backdrop-filter:none}}
+
+/* Orbital cyber-communications depth layer. */
+.dei-geo-network-chords path{fill:none;stroke:rgba(110,168,255,.34);stroke-width:.9;stroke-linecap:round;stroke-dasharray:2 8;vector-effect:non-scaling-stroke;animation:dei-geo-network-signal 9s linear infinite}
+.dei-geo-network-chords path:nth-child(2n){stroke:rgba(92,225,194,.3);animation-duration:13s;animation-direction:reverse}
+.dei-geo-network-chords path:nth-child(3n){animation-delay:-4s}
+.dei-geo-orbit-tracks path{fill:none;stroke:rgba(132,178,214,.18);stroke-width:.8;stroke-dasharray:3 12;vector-effect:non-scaling-stroke}
+.dei-geo-satellites{color:#9ed0ff;opacity:.8;filter:drop-shadow(0 0 6px rgba(110,168,255,.68))}
+.dei-geo-satellite .sat-body{fill:#102c42;stroke:#9ed0ff;stroke-width:1}
+.dei-geo-satellite .sat-panel{fill:rgba(92,225,194,.22);stroke:#75e4c4;stroke-width:.8}
+.dei-geo-satellite path{fill:none;stroke:currentColor;stroke-width:.8;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.dei-geo-satellite.satellite-two{color:#75e4c4;filter:drop-shadow(0 0 6px rgba(92,225,194,.68))}
+.dei-geo-satellite.satellite-three{opacity:.66}
+.dei-geo-satellite .sat-body{animation:dei-satellite-beacon 2.6s ease-in-out infinite}
+.dei-geo-satellite.satellite-two .sat-body{animation-delay:-.9s}.dei-geo-satellite.satellite-three .sat-body{animation-delay:-1.8s}
+@keyframes dei-geo-network-signal{to{stroke-dashoffset:-90}}
+@keyframes dei-satellite-beacon{0%,100%{filter:brightness(.8)}50%{filter:brightness(1.5)}}
+@media(prefers-reduced-motion:reduce){
+  .dei-geo-network-chords path,.dei-geo-satellite .sat-body{animation:none!important}
+  .dei-geo-satellites animateMotion{display:none}
+}

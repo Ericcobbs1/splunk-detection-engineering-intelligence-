@@ -8,7 +8,7 @@
         <div id="dei-mitre-page" class="dei-shell dei-mitre-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>MITRE ATT&amp;CK Coverage</span></div></div>
-            <nav class="dei-workspace-nav"><a href="command_center">Command Center</a><a class="active" href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a class="active" href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
             <div id="mitre-data-status" class="dei-status">Analysis: checking</div>
           </section>
 

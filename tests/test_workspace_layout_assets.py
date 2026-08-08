@@ -26,6 +26,12 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
     assert "window.localStorage.setItem" in javascript
     assert "Compact spacing" in javascript
     assert "Comfortable spacing" in javascript
+    assert ">Guided</button>" in javascript
+    assert ">Advanced</button>" in javascript
+    assert "renderGuidedWorkflow" in javascript
+    assert "workflowSnapshot" in javascript
+    assert "dei-guided-learning-text" in javascript
+    assert "Show advanced tools" in javascript
     assert "renderHomePipeline" in javascript
     assert "dei.latestRecommendationReport" in javascript
     assert "dei.detectionDraftArtifacts" in javascript
@@ -138,6 +144,11 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "Natural Earth 1:110m" in ElementTree.tostring(geo_map, encoding="unicode")
     assert len(geo_map.findall(".//*[@class='dei-geo-points']/*")) == 5
     assert len(geo_map.findall(".//*[@class='dei-geo-hotspots']/*")) == 5
+    assert len(geo_map.findall(".//*[@class='dei-geo-network-chords']/*")) == 7
+    assert len(geo_map.findall(".//*[@class='dei-geo-orbit-tracks']/*")) == 3
+    satellites = geo_map.find(".//*[@class='dei-geo-satellites']")
+    assert satellites is not None and len(list(satellites)) == 3
+    assert len([element for element in satellites.iter() if element.tag.endswith("animateMotion")]) == 3
     assert ".dei-geo-map" in stylesheet
     assert ".dei-geo-land-accurate" in stylesheet
     assert ".dei-geo-borders" in stylesheet
@@ -145,6 +156,45 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-geo-arc" in stylesheet
     assert "@keyframes dei-geo-hotspot-bloom" in stylesheet
     assert "@keyframes dei-geo-reticle" in stylesheet
+    assert "@keyframes dei-geo-network-signal" in stylesheet
+    assert "@keyframes dei-satellite-beacon" in stylesheet
+    assert ".dei-geo-satellites" in stylesheet
     assert shell.find(".//*[@id='dei-topology-core-count']") is not None
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None
+
+
+def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() -> None:
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    for stage in ("discover", "review", "build", "validate", "operate"):
+        assert f'key:"{stage}"' in javascript
+    for selector in (
+        "#dei-home-page>.dei-guided-workflow{order:2!important}",
+        "#dei-command-center>#dei-telemetry{order:2!important}",
+        "#dei-mitre-page>.dei-guided-workflow{order:1!important}",
+        "#dei-detection-builder-page>.dei-builder-selector-section{order:2!important}",
+        "#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:2!important}",
+    ):
+        assert selector in stylesheet
+    assert ".dei-guided-learning" in stylesheet
+    assert "#dei-guided-workflow-advanced" in stylesheet
+    assert "How this step works" in javascript
+    assert "run telemetry discovery" in javascript
+    assert "Filter Detection Advisor by sourcetype" in javascript
+    assert "Select a qualified recommendation" in javascript
+
+
+def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    for value in (
+        "dei.onboardingDismissed.v1", "dei.onboardingSeen.session",
+        'role="dialog"', 'aria-modal="true"', "Do not show this welcome guide again",
+        "Start telemetry discovery", "closeOnboarding", 'event.key==="Escape"',
+        'event.key==="Tab"',
+    ):
+        assert value in javascript
+    assert ".dei-onboarding-overlay" in stylesheet
+    assert ".dei-onboarding-dialog" in stylesheet
+    assert "body.dei-onboarding-open" in stylesheet
