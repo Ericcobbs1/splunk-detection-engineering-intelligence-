@@ -9,6 +9,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var DISCOVERY_TOKEN = "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype";
   var originalAjax = $.ajax;
   var forceRefresh = false;
+  var globalRefreshInProgress = false;
+
+  function setGlobalRefreshState(active) {
+    var button = $("#dei-refresh-environment");
+    globalRefreshInProgress = active;
+    button.prop("disabled", active).attr("aria-busy", active ? "true" : "false");
+    button.html(active
+      ? "<span>⟳</span> Refreshing entire page..."
+      : "<span>↻</span> Refresh environment");
+  }
 
   function safeJson(value) {
     try { return JSON.parse(value || "null"); } catch (error) { return null; }
@@ -165,20 +175,35 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (!payload || !payload.recommendations) { return; }
     try {
+      window.localStorage.setItem(REPORT_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()));
       window.localStorage.setItem(ES_KEY, $("#dei-es-enabled").is(":checked") ? "true" : "false");
     } catch (error) {
       // Storage failures must not affect analysis.
     }
     window.setTimeout(function () {
       renderSavedReport(payload);
+      renderSavedDiscovery();
       renderSnapshotAge();
+      $(document).trigger("dei:environment-refreshed", [payload]);
+      setGlobalRefreshState(false);
       $("#dei-analyze").find("span").text("Refresh environment");
     }, 0);
   });
 
   $("#dei-refresh-environment").on("click", function () {
+    if (globalRefreshInProgress) { return; }
     forceRefresh = true;
+    setGlobalRefreshState(true);
+    $(document).trigger("dei:environment-refresh-started");
     $("#dei-analyze").trigger("click");
+  });
+
+  $(document).ajaxError(function (_event, _xhr, settings) {
+    var url = String(settings && settings.url || "");
+    if (globalRefreshInProgress && url.indexOf("/dei/v1/recommendations") !== -1) {
+      setGlobalRefreshState(false);
+    }
   });
 
   $("#dei-analyze").on("click", function () {
