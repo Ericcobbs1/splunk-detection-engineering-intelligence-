@@ -32,7 +32,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
-        "lifecycle-action-history",
+        "lifecycle-action-history", "lifecycle-action-progress",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -93,6 +93,11 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "record_health" in javascript
     assert "start_tuning" in javascript
     assert "detection_retired" in javascript
+    assert "workflowProgress" in javascript
+    assert "gateGuidance" in javascript
+    assert "renderGateGuide" in javascript
+    assert "Record deployment and enter Production" in javascript
+    assert "Record baseline and start Monitoring" in javascript
     assert ".dei-pipeline-grid" in stylesheet
     assert ".dei-state-grid" in stylesheet
     assert ".dei-lifecycle-table" in stylesheet
