@@ -45,6 +45,16 @@ def test_lifecycle_state_transitions_require_evidence() -> None:
     assert "A deployment reference is required before production." in javascript
     assert "Health evidence is required before monitoring." in javascript
     assert "A retirement reason is required." in javascript
+    assert "Gate 3 · Independent peer review" in javascript
+    assert "Gate 4 · Controlled deployment record" in javascript
+    assert "Gate 5 · Production health baseline" in javascript
+    assert "Gate 6 · Continuous detection operations" in javascript
+    assert "Gate 7 · Controlled tuning cycle" in javascript
+    assert "lifecycle-deployment-environment" in javascript
+    assert "true_positives:truePositives" in javascript
+    assert "false_positives:falsePositives" in javascript
+    assert "previous_versions" in javascript
+    assert "deployment:null,monitoring:null" in javascript
 
 
 def test_work_queue_joins_recommendations_and_records() -> None:
