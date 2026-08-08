@@ -186,3 +186,66 @@
 .dei-home-workspace-grid p{margin:6px 0 0;color:#9fb2c3;font-size:12px;line-height:1.5}
 .dei-home-workspace-grid>a>b{color:#79e8cd;font-size:11px;white-space:nowrap}
 @media(max-width:900px){.dei-home-workspace-grid{grid-template-columns:1fr}}
+
+/* Large-format operational pipeline focus. */
+.dei-official-home>.dei-home-flow-section{position:relative;overflow:hidden;padding:30px;border-color:rgba(110,168,255,.34);background:radial-gradient(circle at 50% 10%,rgba(60,124,255,.12),transparent 38%),linear-gradient(145deg,#0a1725,#06101b);box-shadow:inset 0 1px rgba(255,255,255,.04),0 22px 54px rgba(0,0,0,.28)}
+.dei-official-home .dei-home-flow-heading{align-items:center}
+.dei-official-home .dei-home-flow-heading>div{max-width:980px}
+.dei-official-home .dei-home-flow-heading h2{font-size:30px;letter-spacing:-.025em}
+.dei-official-home .dei-home-flow-heading p:last-child{max-width:860px;font-size:14px}
+.dei-official-home .dei-home-flow-link{min-height:42px;padding:0 18px;font-size:12px}
+.dei-official-home .dei-detection-flow{min-height:270px;margin-top:24px;padding:25px 30px 30px;border-color:rgba(110,168,255,.34);background:radial-gradient(circle at var(--dei-flow-progress) 52%,rgba(92,225,194,.17),transparent 22%),linear-gradient(155deg,#081725,#0a1c2b 52%,#07131f);box-shadow:inset 0 1px rgba(255,255,255,.05),inset 0 -22px 55px rgba(0,0,0,.18),0 18px 42px rgba(0,0,0,.28)}
+.dei-official-home .dei-detection-flow:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 0,transparent 42%,rgba(110,168,255,.055) 48%,rgba(92,225,194,.08) 50%,rgba(110,168,255,.055) 52%,transparent 58%,transparent 100%);transform:translateX(-75%);animation:dei-home-pipeline-scan 7s ease-in-out infinite}
+.dei-official-home .dei-flow-header{position:relative;z-index:3;margin-bottom:36px}
+.dei-official-home .dei-flow-header strong{font-size:15px}
+.dei-official-home .dei-flow-header>span{font-size:12px}
+.dei-official-home .dei-flow-live-dot{width:10px;height:10px}
+.dei-official-home .dei-flow-rail{top:111px;right:68px;left:68px;height:10px;border-color:rgba(110,168,255,.4);background:#0b1b2a;box-shadow:inset 0 3px 7px rgba(0,0,0,.58),0 0 20px rgba(60,124,255,.12)}
+.dei-official-home .dei-flow-complete-track{box-shadow:0 0 11px rgba(92,225,194,.9),0 0 30px rgba(60,124,255,.38)}
+.dei-official-home .dei-flow-packet{width:17px;height:17px;margin-top:-8.5px;border-width:3px}
+.dei-official-home .dei-flow-nodes{gap:8px}
+.dei-official-home .dei-flow-nodes>span{gap:9px}
+.dei-official-home .dei-flow-nodes b{width:58px;height:58px;border-width:3px;font-size:13px;box-shadow:0 0 0 9px #091725}
+.dei-official-home .dei-flow-nodes small{font-size:12px;letter-spacing:.055em}
+.dei-official-home .dei-flow-nodes em{color:#7890a4;font-size:10px;font-style:normal;font-weight:650;line-height:1.25}
+.dei-official-home .dei-flow-nodes [data-pipeline-state="complete"] b{box-shadow:0 0 0 9px #091725,0 0 26px rgba(92,225,194,.62)}
+.dei-official-home .dei-flow-nodes [data-pipeline-state="current"] b{box-shadow:0 0 0 9px #091725,0 0 0 13px rgba(110,168,255,.1),0 0 34px rgba(110,168,255,.68)}
+.dei-official-home .dei-flow-nodes [data-pipeline-state="blocked"] b{box-shadow:0 0 0 9px #091725,0 0 30px rgba(245,191,106,.58)}
+@keyframes dei-home-pipeline-scan{0%,15%{transform:translateX(-75%);opacity:0}30%{opacity:1}72%{opacity:1}90%,100%{transform:translateX(75%);opacity:0}}
+@media(max-width:1100px){
+  .dei-official-home .dei-home-flow-heading{align-items:flex-start;flex-direction:column}
+  .dei-official-home .dei-detection-flow{overflow-x:auto}
+  .dei-official-home .dei-flow-nodes{min-width:900px}
+  .dei-official-home .dei-flow-rail{right:76px;left:76px;min-width:760px}
+}
+@media(max-width:700px){
+  .dei-official-home>.dei-home-flow-section{padding:20px}
+  .dei-official-home .dei-home-flow-heading h2{font-size:24px}
+  .dei-official-home .dei-detection-flow{min-height:250px;padding-right:20px;padding-left:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dei-official-home .dei-detection-flow:before{animation:none!important;display:none}
+}
+
+/* At-a-glance detection pipeline health and workload. */
+.dei-flow-health-summary{display:grid;grid-template-columns:minmax(240px,1.35fr) repeat(4,minmax(145px,.65fr));gap:10px;margin-top:24px}
+.dei-flow-health-summary article{min-width:0;padding:15px 16px;border:1px solid rgba(110,168,255,.18);border-radius:11px;background:linear-gradient(145deg,rgba(12,29,44,.94),rgba(7,18,29,.94));box-shadow:inset 0 1px rgba(255,255,255,.025)}
+.dei-flow-health-summary article>span{display:block;color:#8399ab;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.dei-flow-health-summary article>strong{display:block;margin-top:7px;color:#edf5fb;font-size:24px;line-height:1.1}
+.dei-flow-health-summary article>small{display:block;overflow:hidden;margin-top:5px;color:#8196a8;font-size:10px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.dei-flow-health-summary .dei-flow-health-card{position:relative;overflow:hidden}
+.dei-flow-health-summary .dei-flow-health-card:after{content:"";position:absolute;top:0;right:0;bottom:0;width:4px;background:#607488}
+#dei-home-health[data-health="healthy"]{color:#75e4c4}
+.dei-flow-health-card[data-health="healthy"]:after{background:#5ce1c2;box-shadow:0 0 18px #5ce1c2}
+#dei-home-health[data-health="building"]{color:#b9d6ff}
+.dei-flow-health-card[data-health="building"]:after{background:#6ea8ff;box-shadow:0 0 18px #6ea8ff}
+#dei-home-health[data-health="degraded"]{color:#f5bf6a}
+.dei-flow-health-card[data-health="degraded"]:after{background:#f5bf6a;box-shadow:0 0 18px #f5bf6a}
+#dei-home-health[data-health="critical"]{color:#ff8293}
+.dei-flow-health-card[data-health="critical"]:after{background:#ff6b7d;box-shadow:0 0 18px #ff6b7d}
+.dei-flow-stage-count{display:grid;place-items:center;min-width:30px;height:20px;margin-top:2px;padding:0 7px;border:1px solid rgba(110,168,255,.22);border-radius:999px;background:#0b1a29;color:#d9e8f4;font-size:11px;font-style:normal;font-weight:850;box-shadow:0 4px 12px rgba(0,0,0,.22)}
+.dei-flow-nodes [data-pipeline-state="complete"] .dei-flow-stage-count{border-color:rgba(92,225,194,.32);color:#75e4c4}
+.dei-flow-nodes [data-pipeline-state="current"] .dei-flow-stage-count{border-color:rgba(110,168,255,.46);color:#b9d6ff}
+.dei-flow-nodes [data-pipeline-state="blocked"] .dei-flow-stage-count{border-color:rgba(245,191,106,.45);color:#f5bf6a}
+@media(max-width:1200px){.dei-flow-health-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.dei-flow-health-summary .dei-flow-health-card{grid-column:1/-1}}
+@media(max-width:700px){.dei-flow-health-summary{grid-template-columns:1fr}.dei-flow-health-summary .dei-flow-health-card{grid-column:auto}}

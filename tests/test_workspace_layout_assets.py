@@ -31,6 +31,10 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
     assert "dei.detectionDraftArtifacts" in javascript
     assert "dei:environment-refreshed" in javascript
     assert "dei:detection-artifacts-changed" in javascript
+    assert "dei-home-health" in javascript
+    assert "dei-home-use-case-count" in javascript
+    assert "dei-home-blocked-count" in javascript
+    assert "stageCounts" in javascript
 
 
 def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> None:
@@ -94,5 +98,19 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:2" in stylesheet
     assert ".dei-home-workspace-grid" in stylesheet
+    assert ".dei-official-home .dei-detection-flow{min-height:270px" in stylesheet
+    assert ".dei-official-home .dei-flow-nodes b{width:58px;height:58px" in stylesheet
+    assert "@keyframes dei-home-pipeline-scan" in stylesheet
+    assert ".dei-flow-health-summary" in stylesheet
+    assert ".dei-flow-stage-count" in stylesheet
+    assert 'id="dei-home-health"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-use-case-count"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
+    assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
+    for description in (
+        "Source inventory", "Field evidence", "Readiness gates", "Use-case fit",
+        "Detection logic", "Reviewable SPL", "Test evidence",
+    ):
+        assert description in ElementTree.tostring(home, encoding="unicode")
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None

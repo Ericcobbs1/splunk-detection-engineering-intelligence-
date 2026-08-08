@@ -72,6 +72,63 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var generated=artifacts.filter(function (item) { return !!item.spl; }).length;
     var passed=artifacts.filter(function (item) { return item.validation && item.validation.status==="passed"; }).length;
     var failed=artifacts.filter(function (item) { return item.validation && item.validation.status==="failed"; }).length;
+    var production=artifacts.filter(function (item) { return item.state==="production" || item.state==="monitoring"; }).length;
+    var active=artifacts.filter(function (item) {
+      return ["draft","testing","peer_review","tuning"].indexOf(item.state)!==-1;
+    }).length;
+    var unhealthy=artifacts.filter(function (item) {
+      var health=item.monitoring && item.monitoring.health;
+      return health==="degraded" || health==="failing";
+    }).length;
+    function itemKey(item,index) {
+      return String(item.detection_id || item._key || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
+    }
+    var issueKeys={};
+    recommendations.forEach(function (item,index) {
+      if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(item.readiness)!==-1) {
+        issueKeys[itemKey(item,index)]=true;
+      }
+    });
+    artifacts.forEach(function (item,index) {
+      var health=item.monitoring && item.monitoring.health;
+      if ((item.validation && item.validation.status==="failed") || health==="degraded" || health==="failing") {
+        issueKeys[itemKey(item,index)]=true;
+      }
+    });
+    var blocked=Object.keys(issueKeys).length;
+    var known={};
+    recommendations.concat(artifacts).forEach(function (item,index) {
+      known[itemKey(item,index)]=true;
+    });
+    var useCases=Object.keys(known).length;
+    var healthyOperational=artifacts.filter(function (item) {
+      return item.monitoring && item.monitoring.health==="healthy";
+    }).length;
+    var healthState=!useCases?"awaiting":unhealthy||failed?"critical":blocked?"degraded":production||healthyOperational?"healthy":"building";
+    var healthLabel={awaiting:"Awaiting data",critical:"Action required",degraded:"Needs attention",healthy:"Healthy",building:"Engineering active"}[healthState];
+    var healthDetail=!useCases?"Run environment analysis to establish a baseline":
+      healthState==="critical"?(unhealthy+failed)+" failing health or validation item"+(unhealthy+failed===1?"":"s"):
+      healthState==="degraded"?blocked+" blocked or incomplete item"+(blocked===1?"":"s"):
+      healthState==="healthy"?production+" production detection"+(production===1?"":"s")+" operating without known failures":
+      active+" detection"+(active===1?"":"s")+" moving through engineering";
+    $("#dei-home-health").text(healthLabel).attr("data-health",healthState).closest(".dei-flow-health-card").attr("data-health",healthState);
+    $("#dei-home-health-detail").text(healthDetail);
+    $("#dei-home-use-case-count").text(useCases);
+    $("#dei-home-active-count").text(active);
+    $("#dei-home-blocked-count").text(blocked);
+    $("#dei-home-production-count").text(production);
+    var stageCounts={
+      discover:Number(report.observed_source_count || 0),
+      profile:verified,
+      qualify:ready,
+      recommend:recommendations.length,
+      design:artifacts.length,
+      generate:generated,
+      validate:passed
+    };
+    Object.keys(stageCounts).forEach(function (stage) {
+      flow.find('[data-home-flow-stage="'+stage+'"] .dei-flow-stage-count').text(stageCounts[stage]);
+    });
     var stages=["discover","profile","qualify","recommend","design","generate","validate"];
     var signals={
       discover:Number(report.observed_source_count || 0)>0,
