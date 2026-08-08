@@ -13,8 +13,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (!payload || !payload.recommendations) { return; }
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      window.localStorage.setItem(STORAGE_TIME_KEY, String(Date.now()));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      window.sessionStorage.setItem(STORAGE_TIME_KEY, String(Date.now()));
     } catch (error) {
       // Storage failures must never interfere with the primary analysis workflow.
     }
