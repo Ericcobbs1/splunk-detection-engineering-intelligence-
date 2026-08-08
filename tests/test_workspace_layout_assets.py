@@ -144,6 +144,11 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "Natural Earth 1:110m" in ElementTree.tostring(geo_map, encoding="unicode")
     assert len(geo_map.findall(".//*[@class='dei-geo-points']/*")) == 5
     assert len(geo_map.findall(".//*[@class='dei-geo-hotspots']/*")) == 5
+    assert len(geo_map.findall(".//*[@class='dei-geo-network-chords']/*")) == 7
+    assert len(geo_map.findall(".//*[@class='dei-geo-orbit-tracks']/*")) == 3
+    satellites = geo_map.find(".//*[@class='dei-geo-satellites']")
+    assert satellites is not None and len(list(satellites)) == 3
+    assert len([element for element in satellites.iter() if element.tag.endswith("animateMotion")]) == 3
     assert ".dei-geo-map" in stylesheet
     assert ".dei-geo-land-accurate" in stylesheet
     assert ".dei-geo-borders" in stylesheet
@@ -151,6 +156,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-geo-arc" in stylesheet
     assert "@keyframes dei-geo-hotspot-bloom" in stylesheet
     assert "@keyframes dei-geo-reticle" in stylesheet
+    assert "@keyframes dei-geo-network-signal" in stylesheet
+    assert "@keyframes dei-satellite-beacon" in stylesheet
+    assert ".dei-geo-satellites" in stylesheet
     assert shell.find(".//*[@id='dei-topology-core-count']") is not None
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None
