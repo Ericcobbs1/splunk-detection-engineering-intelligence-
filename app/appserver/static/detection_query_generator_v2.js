@@ -226,6 +226,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       ", mitre_attack_last_modified=" + multivalueLiteral(references.map(function (entry) { return entry.modified || "Not recorded"; }));
   }
 
+  function attachPlatformMitreMetadata(spl, item) {
+    var analyticSpl = String(spl || "").replace(/(?:\\r?\\n)?\\| eval dei_detection_id=[^\\r\\n]*/g, "").trim();
+    return analyticSpl + "\\n" + platformMitreMetadata(item);
+  }
+
+  function artifactRecommendation(artifact) {
+    return {
+      detection_id:String(artifact.id || artifact.detection_id || "").replace(/^dei-/, ""),
+      name:artifact.name,
+      mitre_techniques:artifact.mitre_attack || []
+    };
+  }
+
+  function enforcePlatformMitreMetadata(artifact, item) {
+    var enriched = attachPlatformMitreMetadata(artifact.spl, item || artifactRecommendation(artifact));
+    var changed = enriched !== artifact.spl;
+    artifact.spl = enriched;
+    if (artifact.enterprise_security) { artifact.enterprise_security.drilldown_search = enriched; }
+    return changed;
+  }
+
   function readinessLabel(value) {
     var labels = {
       production_ready:"Telemetry ready",
@@ -263,8 +284,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
     var sources = observedSourcetypes(item, report);
     var timing = schedule(item);
-    var spl = "search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
-      "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item) + "\n" + platformMitreMetadata(item);
+    var spl = attachPlatformMitreMetadata("search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
+      "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item), item);
     var esEnabled = window.localStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     return {
@@ -352,7 +373,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function currentArtifact() {
     if (!selected) { return null; }
     var artifact = $.extend(true, {}, selected);
-    artifact.spl = String($("#generator-spl").val() || "").trim();
+    artifact.spl = attachPlatformMitreMetadata(String($("#generator-spl").val() || "").trim(), artifactRecommendation(artifact));
     artifact.schedule = {
       cron:String($("#builder-cron").val() || "").trim(),
       earliest:String($("#builder-earliest").val() || "").trim(),
@@ -387,6 +408,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var error = artifact ? validateDraftInputs(artifact) : "Generate a detection draft first.";
     if (error) { setFeedback(error, "error"); return null; }
     selected = artifact;
+    $("#generator-spl").val(artifact.spl);
     saveArtifact(artifact);
     setFeedback("Draft saved at " + new Date(artifact.updated_at).toLocaleString() + ".", "success");
     return artifact;
@@ -554,7 +576,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
       // Generation remains available when browser storage is unavailable.
     }
-    var artifact = storedArtifact("dei-" + item.detection_id) || buildArtifact(item);
+    var existingArtifact = storedArtifact("dei-" + item.detection_id);
+    var artifact = existingArtifact || buildArtifact(item);
+    var mitreMetadataMigrated = enforcePlatformMitreMetadata(artifact, item);
     generatedBaseline = buildArtifact(item);
     artifact.source_readiness = item.readiness;
     artifact.unresolved_fields = unresolvedFields(item);
@@ -563,7 +587,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
       return;
     }
-    if (!storedArtifact(artifact.id)) { saveArtifact(artifact); }
+    if (!existingArtifact || mitreMetadataMigrated) { saveArtifact(artifact); }
     renderArtifact(artifact);
   }
 
