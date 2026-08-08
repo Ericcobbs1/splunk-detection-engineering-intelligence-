@@ -5,7 +5,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
   var REPORT_KEY = "dei.latestRecommendationReport";
   var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
+  var VALIDATION_RESULT_LIMIT = 25;
+  var VALIDATION_TIMEOUT_MS = 60000;
   var selected = null;
+  var generatedBaseline = null;
+
+  function searchExportEndpoint() {
+    return Splunk.util.make_url("splunkd", "__raw", "services", "search", "jobs", "export");
+  }
 
   function safeJson(value, fallback) {
     try { return JSON.parse(value || "null") || fallback; } catch (error) { return fallback; }
@@ -32,6 +39,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function sourceClause(sources) {
     return sources.map(function (source) { return "sourcetype=" + quote(source); }).join(" OR ");
+  }
+
+  function parseExportRows(text) {
+    var rows = [];
+    String(text || "").split(/\r?\n/).forEach(function (line) {
+      var parsed;
+      if (!line.trim()) { return; }
+      try { parsed = JSON.parse(line); } catch (error) { return; }
+      if (parsed && parsed.result) { rows.push(parsed.result); }
+    });
+    return rows;
+  }
+
+  function storedArtifacts() {
+    return safeJson(window.localStorage.getItem(ARTIFACT_KEY), []);
+  }
+
+  function storedArtifact(id) {
+    return storedArtifacts().filter(function (entry) { return entry.id === id; })[0] || null;
   }
 
   function normalizedPrelude(item) {
@@ -147,7 +173,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft",
       description:item.why, severity:item.severity, capability:item.capability,
       sourcetypes:sources, mitre_attack:item.mitre_techniques || [], spl:spl,
-      schedule:timing, generated_at:new Date().toISOString(), enterprise_security: esEnabled ? {
+      schedule:timing, generated_at:new Date().toISOString(), updated_at:new Date().toISOString(),
+      validation:null, enterprise_security: esEnabled ? {
         app:"SplunkEnterpriseSecuritySuite", search_type:"Correlation", security_domain:
           item.pack_id === "network" ? "network" : item.pack_id === "identity" ? "identity" : item.pack_id === "endpoint" || item.pack_id === "windows" ? "endpoint" : "threat",
         alert_type:"always", alert_comparator:"greater than", alert_threshold:"0",
@@ -169,9 +196,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#generator-title").text(artifact.name);
     $("#generator-badges").html('<span>' + escapeHtml(artifact.status) + '</span><span>' +
       escapeHtml(artifact.severity) + '</span><span>' + escapeHtml(artifact.mitre_attack.join(" · ") || "No MITRE mapping") + '</span>');
-    $("#generator-schedule").text(artifact.schedule.cron);
-    $("#generator-window").text(artifact.schedule.earliest + " → " + artifact.schedule.latest);
-    $("#generator-spl").text(artifact.spl);
+    $("#builder-cron").val(artifact.schedule.cron);
+    $("#builder-earliest").val(artifact.schedule.earliest);
+    $("#builder-latest").val(artifact.schedule.latest);
+    $("#generator-spl").val(artifact.spl);
     $("#generator-es-state").text(es ? "Enterprise Security configuration ready" : "Platform SPL · ES enhancement unavailable");
     $("#generator-es-output").html(es ? [
       "<dl>",
@@ -183,14 +211,146 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "</dl>"
     ].join("") : '<p>Enable Enterprise Security during environment analysis to generate correlation-search, finding/notable, and RBA parameters.</p>');
     selected = artifact;
+    renderValidation(artifact.validation);
+    setFeedback(artifact.updated_at ? "Saved draft loaded. Review or validate it against current telemetry." : "Generated draft is ready for review.", "ready");
   }
 
   function saveArtifact(artifact) {
-    var artifacts = safeJson(window.localStorage.getItem(ARTIFACT_KEY), []);
+    var artifacts = storedArtifacts();
     artifacts = artifacts.filter(function (entry) { return entry.id !== artifact.id; });
     artifacts.push(artifact);
     window.localStorage.setItem(ARTIFACT_KEY, JSON.stringify(artifacts));
     $(document).trigger("dei:detection-artifacts-changed", [artifacts]);
+  }
+
+  function setFeedback(message, state) {
+    $("#builder-feedback").removeClass("ready working success error").addClass(state || "ready").text(message);
+  }
+
+  function currentArtifact() {
+    if (!selected) { return null; }
+    var artifact = $.extend(true, {}, selected);
+    artifact.spl = String($("#generator-spl").val() || "").trim();
+    artifact.schedule = {
+      cron:String($("#builder-cron").val() || "").trim(),
+      earliest:String($("#builder-earliest").val() || "").trim(),
+      latest:String($("#builder-latest").val() || "").trim()
+    };
+    if (artifact.spl !== selected.spl || artifact.schedule.cron !== selected.schedule.cron ||
+        artifact.schedule.earliest !== selected.schedule.earliest || artifact.schedule.latest !== selected.schedule.latest) {
+      artifact.validation = null;
+      artifact.status = "draft";
+    }
+    artifact.updated_at = new Date().toISOString();
+    return artifact;
+  }
+
+  function validateDraftInputs(artifact) {
+    if (!artifact.spl) { return "Detection SPL is required."; }
+    if (!/^(search\s|\|)/i.test(artifact.spl)) { return "Detection SPL must begin with search or a generating command (|)."; }
+    if (artifact.schedule.cron.split(/\s+/).length !== 5) { return "Cron schedule must contain five fields."; }
+    if (!artifact.schedule.earliest || !artifact.schedule.latest) { return "Earliest and latest validation times are required."; }
+    if (!/^-\d+[smhdw](?:@[smhdw])?$/i.test(artifact.schedule.earliest)) {
+      return "Earliest time must be a bounded relative value such as -15m@m or -24h@h.";
+    }
+    if (!/^(?:now|-\d+[smhdw](?:@[smhdw])?)$/i.test(artifact.schedule.latest)) {
+      return "Latest time must be now or a bounded relative value such as -2m@m.";
+    }
+    return "";
+  }
+
+  function saveCurrentDraft() {
+    var artifact = currentArtifact();
+    var error = artifact ? validateDraftInputs(artifact) : "Generate a detection draft first.";
+    if (error) { setFeedback(error, "error"); return null; }
+    selected = artifact;
+    saveArtifact(artifact);
+    setFeedback("Draft saved at " + new Date(artifact.updated_at).toLocaleString() + ".", "success");
+    return artifact;
+  }
+
+  function renderValidation(validation) {
+    var state = $("#builder-validation-state");
+    if (!validation) {
+      state.removeClass("running passed failed").addClass("idle").text("Not run");
+      $("#builder-validation-metrics, #builder-validation-results").hide();
+      return;
+    }
+    state.removeClass("idle running passed failed").addClass(validation.status)
+      .text(validation.status === "passed" ? "Search completed" : "Validation failed");
+    $("#validation-status").text(validation.status);
+    $("#validation-result-count").text(validation.result_count);
+    $("#validation-runtime").text(validation.runtime_ms + " ms");
+    $("#validation-time").text(new Date(validation.validated_at).toLocaleString());
+    $("#builder-validation-metrics").show();
+    renderValidationRows(validation.sample_results || []);
+  }
+
+  function resultColumns(rows) {
+    var preferred = ["_time", "user", "src_ip", "dest_ip", "host", "action", "count"];
+    var found = {};
+    rows.forEach(function (row) { Object.keys(row || {}).forEach(function (key) { found[key] = true; }); });
+    return preferred.filter(function (key) { return found[key]; }).concat(
+      Object.keys(found).filter(function (key) { return preferred.indexOf(key) === -1 && key !== "_raw"; }).sort()
+    ).slice(0, 8);
+  }
+
+  function renderValidationRows(rows) {
+    var columns = resultColumns(rows);
+    if (!rows.length || !columns.length) { $("#builder-validation-results").hide(); return; }
+    $("#validation-result-head").html("<tr>" + columns.map(function (column) {
+      return "<th>" + escapeHtml(column) + "</th>";
+    }).join("") + "</tr>");
+    $("#validation-result-body").html(rows.map(function (row) {
+      return "<tr>" + columns.map(function (column) {
+        var value = Array.isArray(row[column]) ? row[column].join(", ") : row[column];
+        value = String(value == null ? "" : value);
+        return '<td title="' + escapeHtml(value) + '">' + escapeHtml(value.slice(0, 180)) + "</td>";
+      }).join("") + "</tr>";
+    }).join(""));
+    $("#builder-validation-results").show();
+  }
+
+  function validationError(xhr, status) {
+    var response = safeJson(xhr && xhr.responseText, {});
+    return response.messages && response.messages[0] ? response.messages[0].text :
+      (status === "timeout" ? "Validation exceeded the 60 second safety timeout." : "Splunk rejected or could not execute the search.");
+  }
+
+  function runValidation() {
+    var artifact = saveCurrentDraft();
+    var started;
+    if (!artifact) { return; }
+    $("#builder-run-validation").prop("disabled", true).text("Running…");
+    $("#builder-validation-state").removeClass("idle passed failed").addClass("running").text("Running bounded search…");
+    setFeedback("Submitting the draft to Splunk for bounded historical validation.", "working");
+    started = Date.now();
+    $.ajax({
+      url:searchExportEndpoint(), method:"POST", dataType:"text", timeout:VALIDATION_TIMEOUT_MS,
+      headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},
+      data:{search:artifact.spl + "\n| head " + VALIDATION_RESULT_LIMIT, output_mode:"json", preview:"0",
+        earliest_time:artifact.schedule.earliest, latest_time:artifact.schedule.latest}
+    }).done(function (text) {
+      var rows = parseExportRows(text);
+      artifact.validation = {status:"passed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
+        result_count:rows.length, result_limit:VALIDATION_RESULT_LIMIT, sample_results:rows};
+      artifact.status = "testing";
+      artifact.updated_at = artifact.validation.validated_at;
+      selected = artifact;
+      saveArtifact(artifact);
+      renderArtifact(artifact);
+      setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
+    }).fail(function (xhr, status) {
+      artifact.validation = {status:"failed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
+        result_count:0, result_limit:VALIDATION_RESULT_LIMIT, sample_results:[], error:validationError(xhr, status)};
+      artifact.updated_at = artifact.validation.validated_at;
+      selected = artifact;
+      saveArtifact(artifact);
+      renderValidation(artifact.validation);
+      setFeedback(artifact.validation.error, "error");
+    }).always(function () {
+      $("#builder-run-validation").prop("disabled", false).text("Run validation");
+    });
   }
 
   function copyText(value, button) {
@@ -245,8 +405,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
       // Generation remains available when browser storage is unavailable.
     }
-    var artifact = buildArtifact(item);
-    saveArtifact(artifact);
+    var artifact = storedArtifact("dei-" + item.detection_id) || buildArtifact(item);
+    generatedBaseline = buildArtifact(item);
+    if (!artifact.sourcetypes || !artifact.sourcetypes.length) {
+      setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
+      return;
+    }
+    if (!storedArtifact(artifact.id)) { saveArtifact(artifact); }
     renderArtifact(artifact);
   }
 
@@ -254,19 +419,36 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#builder-generate").prop("disabled", !$(this).val());
   });
   $("#builder-generate").on("click", generateSelectedDetection);
+  $("#builder-save-draft").on("click", saveCurrentDraft);
+  $("#builder-run-validation").on("click", runValidation);
+  $("#builder-reset-draft").on("click", function () {
+    if (!generatedBaseline) { return; }
+    selected = $.extend(true, {}, generatedBaseline);
+    saveArtifact(selected);
+    renderArtifact(selected);
+    setFeedback("Draft reset to the current generated values.", "success");
+  });
+  $("#generator-spl, #builder-cron, #builder-earliest, #builder-latest").on("input", function () {
+    if (selected) { setFeedback("Unsaved changes. Save the draft or run validation to persist them.", "ready"); }
+  });
   $("#lifecycle-workspace-menu").on("change", function () {
     var destination = String($(this).val() || "");
     if (destination && destination !== "detection_builder") { window.location.href = destination; }
   });
 
-  $("#copy-generated-spl").on("click", function () { if (selected) { copyText(selected.spl, $(this)); } });
-  $("#copy-generated-json").on("click", function () { if (selected) { copyText(JSON.stringify(selected, null, 2), $(this)); } });
+  $("#copy-generated-spl").on("click", function () {
+    var artifact = currentArtifact(); if (artifact) { copyText(artifact.spl, $(this)); }
+  });
+  $("#copy-generated-json").on("click", function () {
+    var artifact = currentArtifact(); if (artifact) { copyText(JSON.stringify(artifact, null, 2), $(this)); }
+  });
   $("#download-generated-json").on("click", function () {
-    if (!selected) { return; }
-    var blob = new Blob([JSON.stringify(selected, null, 2)], {type:"application/json"});
+    var artifact = currentArtifact();
+    if (!artifact) { return; }
+    var blob = new Blob([JSON.stringify(artifact, null, 2)], {type:"application/json"});
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = selected.id + ".json";
+    link.download = artifact.id + ".json";
     link.click();
     window.setTimeout(function () { URL.revokeObjectURL(link.href); }, 0);
   });
