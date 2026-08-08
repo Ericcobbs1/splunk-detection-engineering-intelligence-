@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="persistent_environment.js,command_center.js,analysis_bridge.js" stylesheet="command_center_v2.css,environment_intelligence.css">
+<form version="1.1" theme="dark" script="persistent_environment.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css">
   <label>DEI Command Center</label>
   <description>Telemetry intelligence and detection readiness overview.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -37,20 +37,51 @@
             <div class="dei-portfolio-grid"><article class="portfolio-ready"><span class="dei-dot ready"></span><div><strong id="portfolio-ready">0</strong><small>Production ready</small></div></article><article class="portfolio-partial"><span class="dei-dot partial"></span><div><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></div></article><article class="portfolio-gap"><span class="dei-dot gap"></span><div><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></div></article><article class="portfolio-unverified"><span class="dei-dot unverified"></span><div><strong id="portfolio-unverified">0</strong><small>Field unverified</small></div></article></div>
           </section>
 
-          <section id="dei-coverage-section" class="dei-panel dei-environment-intelligence" aria-label="Environment coverage intelligence">
-            <div class="dei-section-heading dei-environment-heading">
-              <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and direct access to ATT&amp;CK effectiveness analysis.</p></div>
-              <div class="dei-environment-actions"><span id="environment-snapshot-age" class="dei-chip">No saved snapshot</span><button id="dei-refresh-environment" class="dei-refresh-button" type="button"><span>Refresh environment</span><b>↻</b></button></div>
+          <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&CK coverage intelligence">
+            <div class="dei-env-titlebar">
+              <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and ATT&amp;CK effectiveness analysis.</p></div>
+              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-refresh-environment" class="dei-refresh-button-v2" type="button"><span>↻</span> Refresh environment</button></div>
             </div>
-            <div class="dei-environment-grid">
-              <div class="dei-environment-coverage">
-                <div class="dei-ring-wrap"><div id="coverage-ring" class="dei-ring"><span id="coverage-value">0%</span><small>potential</small></div><div class="dei-environment-copy"><span id="coverage-label" class="dei-chip">Not analyzed</span><strong>Telemetry DNA</strong><p>Detection opportunity distribution across understood telemetry domains. This snapshot remains unchanged as you navigate the app.</p></div></div>
-                <div id="coverage-domains" class="dei-domain-list"></div>
-              </div>
-              <div class="dei-environment-mitre">
-                <span class="dei-environment-icon">ATT&amp;CK</span><h3>Detection effectiveness workspace</h3><p>Use the same saved environment snapshot to inspect tactic and technique coverage, offline ATT&amp;CK context, and what each detection protects.</p><a class="dei-link-button dei-mitre-workspace-button" href="mitre_coverage">Open MITRE ATT&amp;CK workspace →</a><small>Data will remain loaded when you move between pages. Use Refresh environment only when you want a new snapshot.</small>
-              </div>
+
+            <div class="dei-env-summary-card">
+              <article class="dei-env-summary-section dei-env-potential">
+                <h3>Detection Potential</h3>
+                <div class="dei-potential-content"><div id="coverage-ring" class="dei-ring dei-ring-v2"><span id="coverage-value">0%</span><small>potential</small></div><div><span id="coverage-label" class="dei-state-label">Not analyzed</span><p>Weighted readiness across evaluated detection opportunities.</p></div></div>
+              </article>
+              <article class="dei-env-summary-section dei-env-attack-summary">
+                <h3>ATT&amp;CK Coverage <small>by tactic</small></h3>
+                <div class="dei-attack-summary-grid"><div class="covered"><strong id="env-tactics-covered">0</strong><span>Covered</span></div><div class="partial"><strong id="env-tactics-partial">0</strong><span>Partial</span></div><div class="uncovered"><strong id="env-tactics-uncovered">0</strong><span>Not covered</span></div><div id="env-tactic-donut" class="dei-tactic-donut"><strong>15</strong><span>Total tactics</span></div></div>
+              </article>
+              <article class="dei-env-summary-section dei-env-top-domains">
+                <h3>Top Telemetry Domains</h3>
+                <div id="env-top-domains" class="dei-top-domain-list"><p class="dei-empty">Analyze the environment to populate domains.</p></div>
+              </article>
+              <article class="dei-env-summary-section dei-env-mitre-cta">
+                <span class="dei-env-kicker">ATT&amp;CK</span><h3>Detection effectiveness workspace</h3><p>Inspect tactic and technique coverage, mapped detections, offline framework context, and protection detail.</p><a class="dei-mitre-glow-button" href="mitre_coverage">Open MITRE ATT&amp;CK <b>↗</b></a>
+              </article>
             </div>
+
+            <div class="dei-env-detail-grid">
+              <article class="dei-env-detail-card dei-domain-distribution-card">
+                <div class="dei-env-card-head"><div><h3>Telemetry Domain Distribution</h3><p>Detection opportunities grouped by telemetry domain.</p></div></div>
+                <div class="dei-domain-distribution-body"><div id="env-domain-donut" class="dei-domain-donut"><strong id="env-domain-count">0</strong><span>domains</span></div><div id="env-domain-legend" class="dei-domain-legend"></div></div>
+                <div id="coverage-domains" class="dei-domain-list dei-domain-list-compact"></div>
+              </article>
+
+              <article class="dei-env-detail-card dei-tactic-coverage-card">
+                <div class="dei-env-card-head"><div><h3>ATT&amp;CK Coverage by Tactic</h3><p>Weighted readiness across mapped detections for the 15 Enterprise ATT&amp;CK tactics.</p></div><span class="dei-mode-pill">Coverage %</span></div>
+                <div id="env-tactic-bars" class="dei-tactic-bars"><p class="dei-empty">Analyze the environment to calculate tactic coverage.</p></div>
+                <div class="dei-tactic-legend"><span class="covered">Covered</span><span class="partial">Partial</span><span class="uncovered">Not covered</span><span class="nodata">No mapped detections</span></div>
+                <a class="dei-view-mitre-button" href="mitre_coverage">View in MITRE ATT&amp;CK workspace <b>↗</b></a>
+              </article>
+
+              <aside class="dei-env-detail-card dei-snapshot-card">
+                <div class="dei-env-card-head"><div><h3>Snapshot Details</h3><p>Current persisted environment analysis.</p></div></div>
+                <dl class="dei-snapshot-list"><div><dt>Index scope</dt><dd id="env-index-count">0 indexes</dd></div><div><dt>Source types</dt><dd id="env-source-count">0 source types</dd></div><div><dt>Time range</dt><dd>Last 7 days</dd></div><div><dt>Total events</dt><dd id="env-event-count">0</dd></div><div><dt>Detections evaluated</dt><dd id="env-detection-count">0</dd></div><div><dt>Enterprise Security</dt><dd id="env-es-state">Not enabled</dd></div></dl>
+              </aside>
+            </div>
+
+            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Data refreshes only when you select <strong>Refresh environment</strong> or intentionally run a new analysis.</div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>
