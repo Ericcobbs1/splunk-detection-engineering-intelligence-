@@ -8,7 +8,7 @@
         <div id="dei-command-center" class="dei-shell">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Command Center</span></div></div>
-            <nav class="dei-workspace-nav"><a class="active" href="#dei-overview">Overview</a><a href="#dei-telemetry">Telemetry</a><a href="#dei-portfolio-section">Portfolio</a><a href="#dei-coverage-section">Coverage</a><a href="mitre_coverage">MITRE ATT&amp;CK</a></nav>
+            <nav class="dei-workspace-nav"><a class="active" href="#dei-overview">Overview</a><a href="#dei-telemetry">Telemetry</a><a href="#dei-portfolio-section">Portfolio</a><a href="#dei-coverage-section">Coverage</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 
