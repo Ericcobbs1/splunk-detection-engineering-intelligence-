@@ -12,13 +12,13 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "mitre_workspace.js"
+    assert root.attrib["script"] == "mitre_workspace_v2.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css"
     )
     for element_id in (
         "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
-        "mitre-readiness-filter", "mitre-detection-list", "mitre-matrix",
+        "mitre-readiness-filter", "mitre-sourcetype-filter", "mitre-detection-list", "mitre-matrix",
         "mitre-covered-tactics", "mitre-inspector-title", "mitre-inspector-body",
         "mitre-coverage-donut", "mitre-coverage-percent", "mitre-portfolio-covered",
     ):
@@ -32,7 +32,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
 
 
 def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
-    javascript = (STATIC_ROOT / "mitre_workspace.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "mitre_workspace_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "mitre_workspace.css").read_text(encoding="utf-8")
     readability = (STATIC_ROOT / "mitre_workspace_readability.css").read_text(encoding="utf-8")
     assert 'id:"TA0043", name:"Reconnaissance", count:12' in javascript
@@ -50,6 +50,11 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert "The live MITRE record is authoritative" in javascript
     assert "Open live MITRE ATT&amp;CK" in javascript
     assert "renderPortfolioCoverage" in javascript
+    assert "populateSourcetypeFilter" in javascript
+    assert "canonicalSourcesForObserved" in javascript
+    assert "observedSourcetypesForDetection" in javascript
+    assert '#mitre-sourcetype-filter' in javascript
+    assert "selectedCanonical" in javascript
     assert "actionable[item.readiness]" in javascript
     assert "dei.latestRecommendationReport" in javascript
     assert ".dei-mitre-layout" in stylesheet
@@ -60,6 +65,7 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert ".dei-coverage-donut" in stylesheet
     assert "conic-gradient" in stylesheet
     assert ".dei-attack-live-button" in stylesheet
+    assert ".dei-advisor-sources" in stylesheet
     assert "deiMitrePulse" in stylesheet
     assert "prefers-reduced-motion" in stylesheet
 
