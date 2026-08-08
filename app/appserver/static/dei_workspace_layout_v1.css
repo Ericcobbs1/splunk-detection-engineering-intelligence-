@@ -51,15 +51,24 @@
 #dei-command-center{display:flex;flex-direction:column}
 #dei-command-center>.dei-product-bar{order:0}
 #dei-command-center>.dei-hero{order:1}
-#dei-command-center>.dei-metrics{order:2}
-#dei-command-center>#dei-portfolio-section{order:3}
-#dei-command-center>#dei-coverage-section{order:4}
-#dei-command-center>#dei-telemetry{order:5}
-#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-coverage-section{order:3}
-#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-portfolio-section{order:4}
-#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-telemetry{order:3}
-#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-portfolio-section{order:4}
-#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-coverage-section{order:5}
+#dei-command-center>.dei-home-flow-section{order:2}
+#dei-command-center>.dei-metrics{order:3}
+#dei-command-center>#dei-portfolio-section{order:4}
+#dei-command-center>#dei-coverage-section{order:5}
+#dei-command-center>#dei-telemetry{order:6}
+#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-coverage-section{order:4}
+#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-portfolio-section{order:5}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-telemetry{order:4}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-portfolio-section{order:5}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-coverage-section{order:6}
+.dei-home-flow-section{margin:16px 0 0;padding:20px 22px;border:1px solid rgba(110,168,255,.22);border-radius:16px;background:linear-gradient(145deg,rgba(10,22,35,.98),rgba(7,16,26,.98));box-shadow:0 16px 38px rgba(0,0,0,.2)}
+.dei-home-flow-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.dei-home-flow-heading>div{max-width:820px}
+.dei-home-flow-heading .dei-kicker{margin:0 0 6px;color:#5ce1c2;font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
+.dei-home-flow-heading h2{margin:0;color:#f0f5fa;font-size:22px;line-height:1.25}
+.dei-home-flow-heading p{margin:7px 0 0;color:#9fb2c3;font-size:13px;line-height:1.55}
+.dei-home-flow-link{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border:1px solid rgba(110,168,255,.36);border-radius:9px;color:#b9d6ff;font-size:11px;font-weight:750;text-decoration:none;white-space:nowrap}
+.dei-home-flow-link:hover,.dei-home-flow-link:focus-visible{border-color:#6ea8ff;color:#e5f0ff;outline:0;box-shadow:0 0 0 3px rgba(110,168,255,.09)}
 
 /* MITRE focus modes. */
 #dei-mitre-page[data-dei-workspace-mode="analyst"] .dei-mitre-layout{grid-template-columns:330px minmax(0,1fr);height:auto;min-height:680px}
@@ -107,6 +116,8 @@
   #dei-mitre-page[data-dei-workspace-mode] .dei-mitre-advisor{position:static;max-height:520px}
 }
 @media(max-width:700px){
+  .dei-home-flow-heading{flex-direction:column}
+  .dei-home-flow-link{width:100%}
   .dei-workspace-controls{align-items:stretch;flex-direction:column}
   .dei-view-mode{display:grid;grid-template-columns:repeat(3,1fr)}
   .dei-density-toggle{width:100%;margin-left:0}
