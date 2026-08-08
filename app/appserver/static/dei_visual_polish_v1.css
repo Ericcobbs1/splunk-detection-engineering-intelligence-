@@ -237,6 +237,119 @@
   }
 }
 
+/* Enterprise Security-style readable type scale. */
+.dei-shell {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.dei-product-brand strong { font-size: 14px; }
+.dei-product-brand div > span { font-size: 12px; }
+.dei-workspace-nav a { font-size: 13px; }
+.dei-status,
+.dei-chip,
+.dei-control-note { font-size: 12px; }
+
+.dei-eyebrow { font-size: 12px; }
+.dei-subtitle { font-size: 16px; }
+.dei-hero-tags span { font-size: 12px; }
+
+.dei-metric span { font-size: 13px; }
+.dei-metric small { font-size: 12px; }
+.dei-metric strong { font-size: 32px; }
+
+.dei-control-header h2,
+.dei-portfolio-heading h2,
+.dei-panel h2 { font-size: 21px; }
+
+.dei-control-header p:last-child,
+.dei-portfolio-heading p:last-child,
+.dei-section-heading p:last-child,
+.dei-feedback,
+.dei-empty { font-size: 13px; }
+
+.dei-source-frame-head { font-size: 12px; }
+#dei-sources { font-size: 13px; }
+.dei-toggle,
+#dei-analyze { font-size: 13px; }
+
+.dei-portfolio-grid strong { font-size: 25px; }
+.dei-portfolio-grid small { font-size: 12px; }
+
+.dei-env-titlebar h2 { font-size: 24px; }
+.dei-env-titlebar p:last-child { font-size: 13px; }
+.dei-env-summary-section h3 { font-size: 15px; }
+.dei-env-summary-section h3 small { font-size: 12px; }
+.dei-state-label { font-size: 12px; }
+.dei-potential-content p { font-size: 12px; }
+.dei-attack-summary-grid > div > span { font-size: 11px; }
+.dei-top-domain span,
+.dei-top-domain strong { font-size: 12px; }
+.dei-env-mitre-cta p { font-size: 12px; }
+.dei-mitre-glow-button { font-size: 13px; }
+.dei-env-card-head h3 { font-size: 18px; }
+.dei-env-card-head p { font-size: 12px; }
+.dei-mode-pill { font-size: 11px; }
+.dei-domain-legend-row span,
+.dei-domain-legend-row strong { font-size: 11px; }
+.dei-domain-list-compact .dei-domain-row { font-size: 10px; }
+.dei-tactic-bar-value { font-size: 10px; }
+.dei-tactic-bar-label { font-size: 8px; }
+.dei-tactic-legend span { font-size: 10px; }
+.dei-view-mitre-button { font-size: 11px; }
+.dei-snapshot-list dt { font-size: 10px; }
+.dei-snapshot-list dd { font-size: 14px; }
+.dei-env-persistence-note { font-size: 11px; }
+
+.dei-mitre-page-head h1 { font-size: 30px; }
+.dei-mitre-head-copy > p:last-of-type { font-size: 14px; }
+.dei-link-button { font-size: 13px; }
+.dei-coverage-summary-copy > span { font-size: 11px; }
+.dei-coverage-summary-copy > strong { font-size: 17px; }
+.dei-coverage-summary-copy > small,
+.dei-coverage-summary-copy > p { font-size: 11px; }
+.dei-pane-head h2 { font-size: 18px; }
+.dei-pane-head p:last-child { font-size: 12px; }
+
+.dei-filter-stack input,
+.dei-filter-stack select {
+  min-height: 38px;
+  font-size: 13px;
+}
+
+.dei-advisor-item strong { font-size: 13px; }
+.dei-advisor-item small { font-size: 11px; }
+.dei-severity,
+.dei-readiness,
+.dei-field-state,
+.dei-technique { font-size: 10px; }
+
+.dei-matrix-tactic-head span { font-size: 10px; }
+.dei-matrix-tactic-head strong { font-size: 13px; }
+.dei-matrix-tactic-head b { font-size: 10px; }
+.dei-matrix-tactic > p { font-size: 11px; }
+.dei-matrix-techniques > small { font-size: 10px; }
+.dei-mapped-technique span,
+.dei-inspector-technique span { font-size: 10px; }
+.dei-mapped-technique strong,
+.dei-inspector-technique strong { font-size: 11px; }
+
+.dei-inspector-section > p { font-size: 12px; }
+.dei-inspector-section h3 { font-size: 15px; }
+.dei-inspector-outcome strong { font-size: 12px; }
+.dei-inspector-outcome p { font-size: 11px; }
+.dei-protection-label,
+.dei-reference-grid span,
+.dei-reference-narrative > span { font-size: 10px; }
+.dei-reference-grid strong,
+.dei-reference-narrative p { font-size: 11px; }
+.dei-offline-reference-head h3 { font-size: 16px; }
+.dei-offline-badge { font-size: 10px; }
+.dei-framework-notice { font-size: 11px; }
+.dei-snapshot-note,
+.dei-live-link-note { font-size: 10px; }
+.dei-attack-live-button { font-size: 12px; }
+
 @media (prefers-reduced-motion: reduce) {
   .dei-orbit-one,
   .dei-orbit-two,
