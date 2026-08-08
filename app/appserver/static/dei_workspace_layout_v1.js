@@ -47,6 +47,97 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     safeStorageSet(DENSITY_KEY, value);
   }
 
+  function announceAction(message, state) {
+    var notice=$("#dei-interaction-status");
+    if (!notice.length) {
+      shell().append('<div id="dei-interaction-status" class="dei-interaction-status" role="status" aria-live="polite"></div>');
+      notice=$("#dei-interaction-status");
+    }
+    notice.attr("data-state",state || "info").text(message).addClass("visible");
+    window.clearTimeout(announceAction.timer);
+    announceAction.timer=window.setTimeout(function () { notice.removeClass("visible"); },4200);
+  }
+
+  function advancedActions() {
+    var actions={
+      home:[
+        {label:"Run an environment scan",href:"command_center#dei-telemetry",detail:"Collect current telemetry and field evidence."},
+        {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped tactics and recommended use cases."},
+        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate and validate reviewable SPL."},
+        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Advance drafts through approval and monitoring."}
+      ],
+      environment:[
+        {label:"Run intelligence scan",target:"#dei-analyze",detail:"Start a fresh seven-day telemetry and field scan."},
+        {label:"View intelligence results",href:"environment_insights",detail:"Open readiness, coverage, and telemetry DNA results."},
+        {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Continue from telemetry evidence to ATT&CK mapping."}
+      ],
+      environment_insights:[
+        {label:"Run a new scan",href:"command_center#dei-telemetry",detail:"Replace the active session intelligence with fresh evidence."},
+        {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped techniques and Detection Advisor recommendations."},
+        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL from a telemetry-supported recommendation."}
+      ],
+      mitre:[
+        {label:"Filter Detection Advisor",target:"#mitre-sourcetype-filter",detail:"Narrow recommendations to one observed sourcetype."},
+        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL for a selected qualified recommendation."},
+        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Review work-queue readiness and evidence gates."}
+      ],
+      builder:[
+        {label:"Select a recommendation",target:"#builder-detection-select",detail:"Choose a scan-supported detection use case."},
+        {label:"Generate detection draft",target:"#builder-generate",detail:"Build editable SPL, MITRE metadata, and schedule guidance."},
+        {label:"Run validation",target:"#builder-run-validation",detail:"Execute a bounded historical test after generating a draft."},
+        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Submit validated evidence for review and deployment."}
+      ],
+      lifecycle:[
+        {label:"Search the work queue",target:"#lifecycle-search",detail:"Find a recommendation or persisted detection record."},
+        {label:"Reset work-queue filters",target:"#lifecycle-reset-filters",detail:"Restore the complete actionable work queue."},
+        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate or revise the selected detection artifact."}
+      ]
+    };
+    return actions[workflowPage()] || actions.home;
+  }
+
+  function advancedPanelMarkup() {
+    return [
+      '<section id="dei-advanced-action-center" class="dei-advanced-action-center" hidden="hidden" aria-labelledby="dei-advanced-action-title">',
+      '<div class="dei-advanced-action-head"><div><p class="dei-kicker">Advanced action center</p>',
+      '<h2 id="dei-advanced-action-title">Engineering tools and next steps</h2>',
+      '<p>Every action below opens a workspace or moves focus to a working control.</p></div>',
+      '<button id="dei-advanced-action-close" type="button" aria-label="Close advanced action center">Close</button></div>',
+      '<div id="dei-advanced-action-grid" class="dei-advanced-action-grid"></div></section>'
+    ].join("");
+  }
+
+  function ensureAdvancedPanel() {
+    if ($("#dei-advanced-action-center").length) { return; }
+    $("#dei-guided-workflow").after(advancedPanelMarkup());
+  }
+
+  function renderAdvancedActions() {
+    ensureAdvancedPanel();
+    $("#dei-advanced-action-grid").html(advancedActions().map(function (action) {
+      var attrs=action.href ? 'href="'+action.href+'"' :
+        'href="#" role="button" data-dei-focus="'+action.target+'"';
+      return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>→</b></a>';
+    }).join(""));
+  }
+
+  function openAdvancedTools() {
+    applyMode("engineering");
+    renderGuidedWorkflow();
+    renderAdvancedActions();
+    $("#dei-advanced-action-center").prop("hidden",false);
+    $("#dei-guided-workflow-advanced").text("Hide advanced tools").attr("aria-expanded","true");
+    $("#dei-advanced-action-title").attr("tabindex","-1").focus();
+    announceAction("Advanced tools opened. Choose an engineering action or workspace next step.","success");
+  }
+
+  function closeAdvancedTools(preserveMode) {
+    if (!preserveMode) { applyMode("analyst"); }
+    $("#dei-advanced-action-center").prop("hidden",true);
+    $("#dei-guided-workflow-advanced").text("Show advanced tools").attr("aria-expanded","false");
+    announceAction("Advanced tools closed. Guided workflow remains active.","info");
+  }
+
   function toolbar() {
     return [
       '<div class="dei-workspace-controls" aria-label="Workspace layout controls">',
@@ -220,7 +311,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '</ol>',
       '<div class="dei-guided-workflow-action"><span id="dei-guided-workflow-status">Step 1 of 5</span>',
       '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry →</a>',
-      '<button id="dei-guided-workflow-advanced" type="button">Show advanced tools</button></div>',
+      '<button id="dei-guided-workflow-advanced" type="button" aria-expanded="false" aria-controls="dei-advanced-action-center">Show advanced tools</button></div>',
       '</section>'
     ].join("");
   }
@@ -392,7 +483,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   $(document).on("click", ".dei-view-mode button", function () {
-    applyMode(String($(this).data("mode") || "analyst"));
+    var mode=String($(this).data("mode") || "analyst");
+    applyMode(mode);
+    if (mode==="engineering") {
+      openAdvancedTools();
+    } else {
+      closeAdvancedTools(true);
+      announceAction(mode==="coverage" ?
+        "Coverage experience active. Coverage-focused panels and ATT&CK context are prioritized." :
+        "Guided experience active. Follow the highlighted next best action.","success");
+    }
   });
 
   $(document).on("keydown", ".dei-view-mode button", function (event) {
@@ -404,12 +504,36 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $(document).on("click", "#dei-density-toggle", function () {
-    applyDensity(shell().attr("data-dei-density") === "compact" ? "comfortable" : "compact");
+    var next=shell().attr("data-dei-density") === "compact" ? "comfortable" : "compact";
+    applyDensity(next);
+    announceAction((next==="compact" ? "Compact" : "Comfortable")+" spacing applied.","success");
   });
 
   $(document).on("click", "#dei-guided-workflow-advanced", function () {
-    applyMode(shell().attr("data-dei-workspace-mode")==="engineering" ? "analyst" : "engineering");
-    renderGuidedWorkflow();
+    if ($("#dei-advanced-action-center").is(":visible")) {
+      closeAdvancedTools(false);
+    } else {
+      openAdvancedTools();
+    }
+  });
+
+  $(document).on("click", "#dei-advanced-action-close", function () { closeAdvancedTools(false); });
+
+  $(document).on("click", "[data-dei-focus]", function (event) {
+    event.preventDefault();
+    var selector=String($(this).attr("data-dei-focus") || "");
+    var target=$(selector).first();
+    if (!target.length) {
+      announceAction("That control is not available on this page. Use the workspace link shown with the action.","error");
+      return;
+    }
+    target[0].scrollIntoView({behavior:"smooth",block:"center"});
+    window.setTimeout(function () {
+      target.focus();
+      target.addClass("dei-action-target");
+      window.setTimeout(function () { target.removeClass("dei-action-target"); },1800);
+    },350);
+    announceAction("Moved to "+$(this).find("strong").text()+". Complete the highlighted control.","success");
   });
 
   $(document).on("click", "#dei-onboarding-close, #dei-onboarding-not-now", closeOnboarding);
