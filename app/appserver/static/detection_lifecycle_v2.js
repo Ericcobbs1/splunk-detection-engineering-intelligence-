@@ -12,7 +12,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function safeJson(value) { try { return JSON.parse(value || "null"); } catch (error) { return null; } }
   function esc(value) { return String(value == null ? "" : value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
-  function label(value) { return String(value || "unknown").replace(/_/g," ").replace(/w/g,function (c) { return c.toUpperCase(); }); }
+  function label(value) { return String(value || "unknown").replace(/\\b\\w/g,function (c) { return c.toUpperCase(); }); }
   function recommendations() { return report && report.recommendations ? report.recommendations : []; }
   function sourceMappings() { return report && report.source_mappings ? report.source_mappings : []; }
   function recordKey(item) { return String(item && (item.detection_id || item._key || item.id) || "").replace(/^dei-/,""); }
@@ -157,7 +157,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return '<label class="dei-action-field"><span>Peer-review comments</span><textarea id="lifecycle-action-comment" placeholder="Required approval rationale or requested changes."></textarea></label>';
     }
     if (record.state==="production" || record.state==="monitoring") {
-      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health</span><select id="lifecycle-health"><option value="healthy">Healthy</option><option value="degraded">Degraded</option><option value="failing">Failing</option></select></label><label class="dei-action-field"><span>Result volume</span><input id="lifecycle-result-volume" type="number" min="0" value="0"/></label><label class="dei-action-field"><span>Runtime ms</span><input id="lifecycle-runtime" type="number" min="0" value="0"/></label></div>';
+      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health</span><select id="lifecycle-health"><option value="healthy">Healthy</option><option value="degraded">Degraded</option><option value="failing">Failing</option></select></label><label class="dei-action-field"><span>Result volume</span><input id="lifecycle-result-volume" type="number" min="0" value="0"/></label><label class="dei-action-field"><span>Runtime ms</span><input id="lifecycle-runtime" type="number" min="0" value="0"/></label></div><label class="dei-action-field"><span>Monitoring, tuning, or retirement note</span><textarea id="lifecycle-action-comment" placeholder="Document health context, tuning rationale, or the required retirement reason."></textarea></label>';
     }
     if (record.state==="retired") { return '<p class="dei-empty">This record is immutable. History and evidence are retained.</p>'; }
     return '<label class="dei-action-field"><span>Lifecycle note</span><textarea id="lifecycle-action-comment" placeholder="Document the engineering decision."></textarea></label>';
