@@ -1,0 +1,249 @@
+/* Shared Enterprise Security-aligned visual polish for DEI workspaces. */
+:root {
+  --dei-border: rgba(168, 190, 214, 0.21);
+  --dei-border-strong: rgba(168, 190, 214, 0.34);
+  --dei-text: #f7f9fc;
+  --dei-muted: #aab9c9;
+  --dei-soft: #8295a9;
+}
+
+.dei-shell {
+  font-family: "Splunk Platform Sans", "Splunk Data Sans", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.dei-shell button,
+.dei-shell input,
+.dei-shell select,
+.dei-shell textarea {
+  font-family: inherit;
+  font-synthesis: none;
+}
+
+.dei-shell strong,
+.dei-shell h1,
+.dei-shell h2,
+.dei-shell h3 {
+  text-rendering: optimizeLegibility;
+}
+
+.dei-product-brand strong,
+.dei-control-header h2,
+.dei-portfolio-heading h2,
+.dei-panel h2,
+.dei-rec-title,
+.dei-state-label,
+.dei-mitre-glow-button,
+.dei-clear-button-v2,
+.dei-refresh-button-v2,
+#dei-analyze {
+  font-weight: 700;
+}
+
+.dei-metric strong,
+.dei-ring span,
+.dei-score-block strong,
+.dei-mitre-page-head h1,
+.dei-coverage-summary-copy > strong,
+.dei-pane-head h2 {
+  font-weight: 700;
+}
+
+.dei-product-bar {
+  border-bottom-color: rgba(168, 190, 214, 0.24);
+  background: rgba(7, 12, 20, 0.97);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+.dei-hero,
+.dei-control-panel,
+.dei-portfolio,
+.dei-panel,
+.dei-env-summary-card,
+.dei-env-detail-card,
+.dei-mitre-advisor,
+.dei-mitre-matrix-pane,
+.dei-mitre-inspector,
+.dei-coverage-summary {
+  border-color: rgba(168, 190, 214, 0.22);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+}
+
+.dei-metric,
+.dei-portfolio-grid article,
+.dei-advisor-item,
+.dei-reference-grid > div,
+.dei-inspector-outcome {
+  border-color: rgba(168, 190, 214, 0.17);
+}
+
+.dei-subtitle,
+.dei-rec-why,
+.dei-mitre-head-copy > p:last-of-type,
+.dei-inspector-section > p,
+.dei-reference-narrative p {
+  color: #bdc9d5;
+}
+
+.dei-env-summary-section h3,
+.dei-env-card-head p,
+.dei-potential-content p,
+.dei-top-domain span,
+.dei-snapshot-list dt,
+.dei-snapshot-note,
+.dei-live-link-note {
+  letter-spacing: 0;
+}
+
+.dei-env-card-head p,
+.dei-potential-content p,
+.dei-env-persistence-note,
+.dei-pane-head p:last-child,
+.dei-inspector-section > p,
+.dei-reference-narrative p {
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.dei-snapshot-list dt,
+.dei-reference-grid span,
+.dei-reference-narrative > span,
+.dei-matrix-tactic-head span,
+.dei-domain-row,
+.dei-tactic-legend span {
+  font-size: 9px;
+}
+
+.dei-filter-stack input,
+.dei-filter-stack select,
+#dei-sources {
+  border-color: rgba(168, 190, 214, 0.24);
+  color: #dbe5ee;
+}
+
+.dei-shell a:focus-visible,
+.dei-shell button:focus-visible,
+.dei-shell input:focus-visible,
+.dei-shell select:focus-visible,
+.dei-shell textarea:focus-visible {
+  outline: 2px solid rgba(92, 225, 194, 0.92);
+  outline-offset: 2px;
+}
+
+.dei-hero-visual {
+  isolation: isolate;
+}
+
+.dei-orbit,
+.dei-core-mark {
+  will-change: transform, opacity, box-shadow;
+}
+
+.dei-orbit-one {
+  animation: deiOuterOrbitPulse 5.2s ease-in-out infinite;
+}
+
+.dei-orbit-two {
+  animation: deiInnerOrbitPulse 3.8s ease-in-out 0.45s infinite;
+}
+
+.dei-core-mark {
+  animation: deiCoreBreath 2.9s ease-in-out infinite;
+}
+
+.dei-core-mark::before,
+.dei-core-mark::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border: 1px solid rgba(92, 225, 194, 0.38);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.dei-core-mark::before {
+  animation: deiSignalWave 3.2s ease-out infinite;
+}
+
+.dei-core-mark::after {
+  animation: deiSignalWave 3.2s ease-out 1.6s infinite;
+}
+
+.dei-brand-mark {
+  animation: deiBrandGlow 3.6s ease-in-out infinite;
+}
+
+@keyframes deiOuterOrbitPulse {
+  0%, 100% {
+    opacity: 0.58;
+    transform: scale(0.985);
+    border-color: rgba(110, 168, 255, 0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.025);
+    border-color: rgba(110, 168, 255, 0.42);
+  }
+}
+
+@keyframes deiInnerOrbitPulse {
+  0%, 100% {
+    opacity: 0.68;
+    transform: scale(0.975);
+    box-shadow: 0 0 28px rgba(92, 225, 194, 0.03);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+    box-shadow: 0 0 52px rgba(92, 225, 194, 0.13);
+  }
+}
+
+@keyframes deiCoreBreath {
+  0%, 100% {
+    transform: scale(0.985);
+    box-shadow: 0 0 34px rgba(92, 225, 194, 0.1), inset 0 0 22px rgba(92, 225, 194, 0.03);
+  }
+  50% {
+    transform: scale(1.045);
+    box-shadow: 0 0 58px rgba(92, 225, 194, 0.22), inset 0 0 28px rgba(92, 225, 194, 0.08);
+  }
+}
+
+@keyframes deiSignalWave {
+  0% {
+    opacity: 0.42;
+    transform: scale(1);
+  }
+  70%, 100% {
+    opacity: 0;
+    transform: scale(1.82);
+  }
+}
+
+@keyframes deiBrandGlow {
+  0%, 100% {
+    border-color: rgba(92, 225, 194, 0.36);
+    box-shadow: inset 0 0 24px rgba(92, 225, 194, 0.04), 0 0 0 rgba(92, 225, 194, 0);
+  }
+  50% {
+    border-color: rgba(92, 225, 194, 0.62);
+    box-shadow: inset 0 0 28px rgba(92, 225, 194, 0.08), 0 0 18px rgba(92, 225, 194, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dei-orbit-one,
+  .dei-orbit-two,
+  .dei-core-mark,
+  .dei-core-mark::before,
+  .dei-core-mark::after,
+  .dei-brand-mark {
+    animation: none !important;
+  }
+}

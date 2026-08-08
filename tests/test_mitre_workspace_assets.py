@@ -14,7 +14,8 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == "mitre_workspace_v2.js"
     assert root.attrib["stylesheet"] == (
-        "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css"
+        "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,"
+        "dei_visual_polish_v1.css"
     )
     for element_id in (
         "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
@@ -35,6 +36,7 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     javascript = (STATIC_ROOT / "mitre_workspace_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "mitre_workspace.css").read_text(encoding="utf-8")
     readability = (STATIC_ROOT / "mitre_workspace_readability.css").read_text(encoding="utf-8")
+    polish = (STATIC_ROOT / "dei_visual_polish_v1.css").read_text(encoding="utf-8")
     assert 'id:"TA0043", name:"Reconnaissance", count:12' in javascript
     assert 'id:"TA0005", name:"Stealth", count:30' in javascript
     assert 'id:"TA0112", name:"Defense Impairment", count:18' in javascript
@@ -79,3 +81,6 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert ".dei-mitre-inspector-body" in readability
     assert "max-height: none" in readability
     assert "position: sticky" in readability
+    assert '"Splunk Platform Sans"' in polish
+    assert "font-synthesis: none" in polish
+    assert "text-rendering: optimizeLegibility" in polish

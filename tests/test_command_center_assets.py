@@ -18,7 +18,8 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
         "environment_intelligence_v2.js"
     )
     assert root.attrib["stylesheet"] == (
-        "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css"
+        "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
+        "dei_visual_polish_v1.css"
     )
     for element_id in (
         "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
@@ -56,6 +57,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     environment_css = (STATIC_ROOT / "environment_intelligence.css").read_text(encoding="utf-8")
     premium_js = (STATIC_ROOT / "environment_intelligence_v2.js").read_text(encoding="utf-8")
     premium_css = (STATIC_ROOT / "environment_intelligence_v2.css").read_text(encoding="utf-8")
+    polish_css = (STATIC_ROOT / "dei_visual_polish_v1.css").read_text(encoding="utf-8")
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -118,4 +120,10 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert ".dei-tactic-bars" in premium_css
     assert ".dei-domain-donut" in premium_css
     assert ".dei-mitre-glow-button" in premium_css
+    assert '"Splunk Platform Sans"' in polish_css
+    assert '"Splunk Data Sans"' in polish_css
+    assert "@keyframes deiCoreBreath" in polish_css
+    assert "@keyframes deiSignalWave" in polish_css
+    assert ".dei-orbit-one" in polish_css
+    assert "prefers-reduced-motion" in polish_css
     assert ".dei-clear-button-v2" in premium_css
