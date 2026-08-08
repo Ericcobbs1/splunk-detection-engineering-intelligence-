@@ -1,6 +1,6 @@
 <form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css">
   <label>DEI Environment Discovery</label>
-  <description>Discover active telemetry and generate a persistent environment intelligence snapshot.</description>
+  <description>Run a fresh telemetry intelligence scan and generate the active environment analysis for this session.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
   <row>
     <panel>
@@ -14,13 +14,13 @@
 
           <section id="dei-telemetry" class="dei-control-panel">
             <div class="dei-control-header"><div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry discovery</h2><p>Active source types observed across searchable indexes during the current seven-day analysis window.</p></div><span class="dei-control-note">7-day active telemetry window</span></div>
-            <div class="dei-source-frame"><div class="dei-source-frame-head"><span>Discovered source types</span><small>Persistent snapshot until refresh</small></div><textarea id="dei-sources" rows="7" readonly="readonly" placeholder="Run environment analysis to discover active Splunk telemetry..."></textarea></div>
-            <div class="dei-actions"><label class="dei-toggle"><input id="dei-es-enabled" type="checkbox"/><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label><button id="dei-analyze" type="button"><span>Analyze environment</span><b>→</b></button></div>
+            <div class="dei-source-frame"><div class="dei-source-frame-head"><span>Discovered source types</span><small>Populated by this scan only</small></div><textarea id="dei-sources" rows="7" readonly="readonly" placeholder="Run environment analysis to discover active Splunk telemetry..."></textarea></div>
+            <div class="dei-actions"><label class="dei-toggle"><input id="dei-es-enabled" type="checkbox"/><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label><button id="dei-analyze" type="button"><span>Run intelligence scan</span><b>→</b></button></div>
             <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
           </section>
 
           <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title">
-            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to environment intelligence</h2><p>Open the saved readiness, telemetry DNA, ATT&amp;CK coverage, portfolio, and snapshot details produced by this discovery.</p></div>
+            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to environment intelligence</h2><p>Open the readiness, telemetry DNA, ATT&amp;CK coverage, portfolio, and snapshot details produced by this discovery.</p></div>
             <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="environment_insights">View intelligence results →</a></div>
           </section>
 
