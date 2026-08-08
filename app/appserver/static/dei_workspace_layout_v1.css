@@ -638,3 +638,53 @@ body.dei-onboarding-open{overflow:hidden}
 .dei-mitre-next-action:hover{border-color:#63dec4;color:#fff;text-decoration:none}
 @media(max-width:1100px){.dei-advanced-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.dei-advanced-action-grid{grid-template-columns:1fr}.dei-advanced-action-head{flex-direction:column}.dei-interaction-status{right:12px;bottom:12px;left:12px}}
+
+
+/* Integrated landing-page message and actionable assessment health. */
+.dei-official-home .dei-home-flow-heading{align-items:flex-start!important;justify-content:space-between!important;text-align:left!important;min-height:0!important;padding:8px 34px 14px!important}
+.dei-official-home .dei-home-flow-heading>div{max-width:1050px!important}
+.dei-official-home .dei-home-flow-heading h1{max-width:900px;margin:0;color:#f2f8ff;font-size:clamp(30px,2.65vw,46px);line-height:1.05;letter-spacing:-.035em}
+.dei-official-home .dei-home-flow-heading>div>p:not(.dei-kicker){max-width:900px;margin:9px 0 0!important;color:#aec0d1;font-size:14px!important;line-height:1.5}
+.dei-home-flow-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.dei-home-flow-tags span{padding:5px 9px;border:1px solid rgba(92,178,220,.28);border-radius:999px;background:rgba(18,45,61,.64);color:#b7cada;font-size:11px;font-weight:700}
+.dei-flow-health-card #dei-home-health-action{display:inline-flex;align-items:center;justify-content:flex-start;margin-top:9px;padding:0;border:0;background:transparent;color:#72ddc5;font-size:11px;font-weight:850;text-align:left}
+.dei-flow-health-card #dei-home-health-action:hover{color:#eafff9;text-decoration:underline}
+.dei-home-health-actions{order:3;flex:0 0 auto;padding:18px 20px;border:1px solid rgba(113,148,181,.24);border-radius:13px;background:rgba(7,17,27,.96)}
+.dei-home-health-actions[hidden]{display:none!important}
+.dei-home-health-actions-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:12px}
+.dei-home-health-actions-head h2{margin:2px 0 0;color:#eff7ff;font-size:18px}
+#dei-home-health-actions-close{min-height:34px;padding:0 12px;border:1px solid rgba(146,173,199,.3);border-radius:8px;background:#0a1521;color:#bbcede;font-weight:800}
+#dei-home-health-actions-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.dei-home-health-issue{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 14px;border:1px solid rgba(143,166,190,.2);border-radius:10px;background:#08131f}
+.dei-home-health-issue[data-severity="critical"]{border-color:rgba(255,107,125,.42)}
+.dei-home-health-issue[data-severity="attention"]{border-color:rgba(245,191,106,.38)}
+.dei-home-health-issue strong{color:#eaf3fc;font-size:13px}
+.dei-home-health-issue p{margin:4px 0 0;color:#9fb2c4;font-size:11px;line-height:1.45}
+.dei-home-health-issue a{flex:0 0 auto;color:#70dec6;font-size:11px;font-weight:850;text-decoration:none}
+.dei-topology-node[role="link"]{cursor:pointer}
+.dei-topology-node[role="link"]:focus{outline:2px solid #6ce2ca;outline-offset:4px}
+@media(max-width:850px){#dei-home-health-actions-list{grid-template-columns:1fr}.dei-home-health-issue{align-items:flex-start;flex-direction:column}.dei-official-home .dei-home-flow-heading{padding:0 18px 14px!important}}
+
+/* Validation failures must provide diagnosis, safe remediation, and a retry path. */
+.dei-validation-resolution{margin-top:14px;padding:16px;border:1px solid rgba(255,107,125,.38);border-radius:11px;background:linear-gradient(145deg,rgba(41,14,23,.62),rgba(9,19,30,.96))}
+.dei-validation-resolution[hidden]{display:none!important}
+.dei-validation-resolution-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.dei-validation-resolution-head span:first-child{color:#ff8d9c;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.dei-validation-resolution-head h4{margin:3px 0 0;color:#f7edf0;font-size:17px}
+#builder-validation-resolution-category{padding:5px 8px;border:1px solid rgba(255,122,139,.42);border-radius:999px;color:#ff9dac;font-size:10px;font-weight:800}
+#builder-validation-resolution-summary{margin:11px 0;color:#c6d2de;font-size:12px;line-height:1.55}
+#builder-validation-error{max-height:130px;overflow:auto;margin:0;padding:10px;border:1px solid rgba(157,181,204,.2);border-radius:8px;background:#050d16;color:#ffc1ca;font:12px/1.5 "Splunk Data Sans",monospace;white-space:pre-wrap}
+#builder-validation-resolution-steps{margin:12px 0;padding-left:22px;color:#c8d5e1;font-size:12px;line-height:1.55}
+.dei-validation-resolution-actions{display:flex;flex-wrap:wrap;gap:9px}
+.dei-validation-resolution-actions button{min-height:36px;padding:0 12px;border:1px solid rgba(115,152,186,.32);border-radius:8px;background:#0b1826;color:#cbd9e7;font-size:11px;font-weight:800}
+#builder-apply-validation-fix{border-color:rgba(91,224,194,.5);background:rgba(19,65,60,.72);color:#dffff7}
+#builder-retry-validation{border-color:rgba(99,167,255,.5);color:#cfe4ff}
+
+
+/* Keep the topology status in its own aligned row above the animated canvas. */
+.dei-official-home .dei-topology-flow>.dei-flow-header{position:relative!important;top:auto!important;left:auto!important;align-self:center;width:min(940px,calc(100% - 48px));min-height:42px;margin:0 auto 12px!important;padding:9px 14px!important;border:1px solid rgba(96,224,202,.24)!important;border-radius:12px!important;background:linear-gradient(90deg,rgba(7,25,32,.94),rgba(6,16,27,.9))!important;backdrop-filter:blur(8px)}
+.dei-official-home .dei-topology-flow>.dei-flow-header>div{min-width:0}
+.dei-official-home .dei-topology-flow>.dei-flow-header>span{margin-left:auto;text-align:right;white-space:normal}
+.dei-official-home .dei-topology-flow>.dei-topology-canvas{margin:0 auto!important}
+@media(max-width:760px){.dei-official-home .dei-topology-flow>.dei-flow-header{align-self:stretch;width:auto;margin:0 12px 10px!important}.dei-official-home .dei-topology-flow>.dei-flow-header>span{margin-left:0;text-align:left}}
+
