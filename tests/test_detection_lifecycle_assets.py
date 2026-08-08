@@ -14,7 +14,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "detection_lifecycle_v1.js"
+    assert root.attrib["script"] == "detection_lifecycle_v1.js,detection_query_generator_v1.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css"
     )
@@ -27,7 +27,11 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "state-draft", "state-testing", "state-review", "state-production",
         "state-monitoring", "state-tuning", "state-retired",
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
-        "lifecycle-queue-count", "lifecycle-work-queue",
+        "lifecycle-queue-count", "lifecycle-work-queue", "detection-generator",
+        "generator-es-state", "generator-empty", "generator-output", "generator-title",
+        "generator-badges", "generator-schedule", "generator-window", "generator-spl",
+        "generator-es-output", "copy-generated-spl", "copy-generated-json",
+        "download-generated-json",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -46,14 +50,39 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "observedSourcetypes" in javascript
     assert "engineeringStage" in javascript
     assert "nextAction" in javascript
-    assert '$("#life-spl-generated").text("0")' in javascript
-    assert '$("#stage-generate").text("0 SPL")' in javascript
+    assert "dei.detectionDraftArtifacts" in javascript
+    assert '$("#life-spl-generated").text(generated)' in javascript
+    assert '$("#stage-generate").text(generated + " SPL")' in javascript
     assert '$("#stage-validate").text("0 passed")' in javascript
     assert ".dei-pipeline-grid" in stylesheet
     assert ".dei-state-grid" in stylesheet
     assert ".dei-lifecycle-table" in stylesheet
+    assert ".dei-lifecycle-filters>*{width:100%;min-width:0" in stylesheet
+    assert ".dei-generator-grid" in stylesheet
     assert "Discover" in framework
     assert "Generate" in framework
     assert "Validate" in framework
     assert "draft → testing → peer_review → production → monitoring → tuning → retired" in framework
     assert "Initial releases must not automatically deploy or enable detections" in framework
+
+
+def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
+    javascript = (STATIC_ROOT / "detection_query_generator_v1.js").read_text(encoding="utf-8")
+    assert "production_ready" in javascript
+    assert "sourceClause" in javascript
+    assert "analyticLogic" in javascript
+    assert "mitre_attack:item.mitre_techniques" in javascript
+    assert 'cron:"*/5 * * * *"' in javascript
+    assert "SplunkEnterpriseSecuritySuite" in javascript
+    assert 'search_type:"Correlation"' in javascript
+    assert "notable_enabled:true" in javascript
+    assert "risk_based_alerting" in javascript
+    assert "disabled:true" in javascript
+    assert "DEI does not enable or deploy detections" not in javascript
+    assert "window.localStorage.setItem(ARTIFACT_KEY" in javascript
+
+
+def test_dashboard_clear_removes_detection_drafts() -> None:
+    javascript = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
+    assert 'ARTIFACT_KEY = "dei.detectionDraftArtifacts"' in javascript
+    assert "DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY" in javascript
