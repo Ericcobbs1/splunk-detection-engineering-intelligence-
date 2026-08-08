@@ -76,7 +76,7 @@ def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     assert "mitre_attack_technique_id" in javascript
     assert "mitre_attack_mapping_status" in javascript
     assert '+ "\\n" + platformMitreMetadata(item)' in javascript
-    assert javascript.index("platformMitreMetadata(item)") < javascript.index("if (artifact.enterprise_security.enabled)")
+    assert javascript.index("+ platformMitreMetadata(item)") < javascript.index("var es = artifact.enterprise_security")
 
 
 def test_analyst_runbook_covers_complete_workflow() -> None:
