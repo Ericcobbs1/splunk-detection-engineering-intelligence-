@@ -13,6 +13,8 @@ def test_shared_lifecycle_collection_and_role_are_packaged() -> None:
     assert "[dei_lifecycle_records]" in collections
     assert "[role_dei_lifecycle_analyst]" in authorization
     assert "importRoles = user" in authorization
+    assert "srchIndexesAllowed" not in authorization
+    assert "capabilities" not in authorization
     assert "[collections/dei_lifecycle_records]" in metadata
     assert "write : [ admin, dei_lifecycle_analyst ]" in metadata
     assert "write : [ * ]" not in metadata.split("[collections/dei_lifecycle_records]", 1)[1]
