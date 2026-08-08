@@ -10,8 +10,8 @@
 .dei-shell {
   font-family: "Splunk Platform Sans", "Splunk Data Sans", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-synthesis: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
   text-rendering: optimizeLegibility;
 }
 
@@ -349,6 +349,71 @@
 .dei-snapshot-note,
 .dei-live-link-note { font-size: 10px; }
 .dei-attack-live-button { font-size: 12px; }
+
+/* High-clarity narrative text for dark Enterprise-style surfaces. */
+.dei-env-mitre-cta h3 {
+  margin-top: 15px;
+  color: #f7f9fc;
+  font-size: 18px;
+  line-height: 1.32;
+  font-weight: 700;
+}
+
+.dei-env-mitre-cta p {
+  margin: 13px 0 20px;
+  color: #cbd6e1;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.dei-env-titlebar p:last-child,
+.dei-potential-content p,
+.dei-env-card-head p,
+.dei-env-persistence-note,
+.dei-control-header p:last-child,
+.dei-portfolio-heading p:last-child,
+.dei-section-heading p:last-child {
+  color: #c1ceda;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dei-feedback,
+.dei-rec-meta,
+.dei-rec-detail {
+  color: #b8c6d3;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dei-rec-why {
+  color: #c8d3de;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dei-mitre-head-copy > p:last-of-type,
+.dei-coverage-summary-copy > p,
+.dei-pane-head p:last-child,
+.dei-matrix-tactic > p,
+.dei-inspector-section > p,
+.dei-inspector-outcome p,
+.dei-reference-narrative p {
+  color: #c4d0dc;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dei-advisor-item small,
+.dei-reference-grid strong,
+.dei-framework-notice,
+.dei-snapshot-note,
+.dei-live-link-note {
+  color: #aebdcb;
+  font-size: 12px;
+  line-height: 1.55;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .dei-orbit-one,

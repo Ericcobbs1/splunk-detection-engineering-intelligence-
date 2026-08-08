@@ -129,4 +129,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "Enterprise Security-style readable type scale" in polish_css
     assert ".dei-metric span { font-size: 13px; }" in polish_css
     assert ".dei-env-card-head p { font-size: 12px; }" in polish_css
+    assert ".dei-env-mitre-cta h3" in polish_css
+    assert "font-size: 18px" in polish_css
+    assert "font-size: 14px" in polish_css
+    assert "-webkit-font-smoothing: auto" in polish_css
     assert ".dei-clear-button-v2" in premium_css
