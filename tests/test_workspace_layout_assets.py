@@ -93,10 +93,14 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
         index for index, child in enumerate(children)
         if "dei-home-workspaces" in child.attrib.get("class", "").split()
     )
-    assert hero_index < pipeline_index < workspaces_index
+    assert pipeline_index < hero_index < workspaces_index
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
+    assert "min-height:calc(100vh - 76px)" in stylesheet
+    assert "border:0!important" in stylesheet
+    assert ".dei-official-home .dei-topology-flow{order:1;flex:1 1 auto" in stylesheet
+    assert ".dei-official-home .dei-flow-health-summary{order:2" in stylesheet
     assert ".dei-official-home>.dei-home-hero{order:2" in stylesheet
     assert "min-height:max(780px,calc(100vh - 108px))" in stylesheet
     assert ".dei-official-home .dei-topology-core{width:340px;height:340px" in stylesheet
