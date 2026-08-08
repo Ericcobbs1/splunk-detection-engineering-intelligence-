@@ -110,6 +110,11 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "production_ready" in javascript
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
+    assert "platformMitreMetadata" in javascript
+    assert "mitre_attack_framework" in javascript
+    assert "mitre_attack_technique_id" in javascript
+    assert "mitre_attack_mapping_status" in javascript
+    assert '+ "\\n" + platformMitreMetadata(item)' in javascript
     assert "mitre_attack:item.mitre_techniques" in javascript
     assert 'cron:"*/5 * * * *"' in javascript
     assert "SplunkEnterpriseSecuritySuite" in javascript
