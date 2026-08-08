@@ -6,6 +6,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var DISCOVERY_KEY = "dei.latestDiscoveryExport";
   var DISCOVERY_TIME_KEY = "dei.latestDiscoveryTime";
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
+  var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
   var DISCOVERY_TOKEN = "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype";
   var originalAjax = $.ajax;
   var forceRefresh = false;
@@ -22,7 +23,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function clearPersistedDashboard() {
-    [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY].forEach(function (key) {
+    [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY].forEach(function (key) {
       try { window.localStorage.removeItem(key); } catch (error) {
         // Storage failures must not prevent the visible dashboard reset.
       }
