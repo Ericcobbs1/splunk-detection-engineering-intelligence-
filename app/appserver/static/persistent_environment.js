@@ -24,7 +24,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function clearPersistedDashboard() {
     [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY].forEach(function (key) {
-      try { window.localStorage.removeItem(key); } catch (error) {
+      try { window.sessionStorage.removeItem(key); } catch (error) {
         // Storage failures must not prevent the visible dashboard reset.
       }
     });
@@ -87,7 +87,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return originalAjax.apply($, arguments);
     }
 
-    cached = window.localStorage.getItem(DISCOVERY_KEY);
+    cached = window.sessionStorage.getItem(DISCOVERY_KEY);
     if (cached && !forceRefresh) {
       deferred = $.Deferred();
       window.setTimeout(function () { deferred.resolve(cached, "success", {responseText: cached}); }, 0);
@@ -98,8 +98,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     request = originalAjax.apply($, arguments);
     request.done(function (text) {
       try {
-        window.localStorage.setItem(DISCOVERY_KEY, String(text || ""));
-        window.localStorage.setItem(DISCOVERY_TIME_KEY, String(Date.now()));
+        window.sessionStorage.setItem(DISCOVERY_KEY, String(text || ""));
+        window.sessionStorage.setItem(DISCOVERY_TIME_KEY, String(Date.now()));
       } catch (error) {
         // Storage failures must not affect discovery.
       }
@@ -161,7 +161,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderSavedDiscovery() {
-    var cached = window.localStorage.getItem(DISCOVERY_KEY);
+    var cached = window.sessionStorage.getItem(DISCOVERY_KEY);
     var parsed;
     if (!cached) { return; }
     parsed = parseDiscovery(cached);
@@ -172,7 +172,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderSnapshotAge() {
-    var timestamp = Number(window.localStorage.getItem(REPORT_TIME_KEY) || window.localStorage.getItem(DISCOVERY_TIME_KEY) || 0);
+    var timestamp = Number(window.sessionStorage.getItem(REPORT_TIME_KEY) || window.sessionStorage.getItem(DISCOVERY_TIME_KEY) || 0);
     if (!timestamp) {
       $("#environment-snapshot-age").text("No saved snapshot");
       return;
@@ -182,12 +182,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function restoreSnapshot() {
     renderSavedDiscovery();
-    renderSavedReport(safeJson(window.localStorage.getItem(REPORT_KEY)));
+    renderSavedReport(safeJson(window.sessionStorage.getItem(REPORT_KEY)));
     renderSnapshotAge();
-    if (window.localStorage.getItem(ES_KEY) === "true") {
+    if (window.sessionStorage.getItem(ES_KEY) === "true") {
       $("#dei-es-enabled").prop("checked", true);
     }
-    if (window.localStorage.getItem(REPORT_KEY)) {
+    if (window.sessionStorage.getItem(REPORT_KEY)) {
       $("#dei-analyze").find("span").text("Refresh environment");
     }
   }
@@ -201,9 +201,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (!payload || !payload.recommendations) { return; }
     try {
-      window.localStorage.setItem(REPORT_KEY, JSON.stringify(payload));
-      window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()));
-      window.localStorage.setItem(ES_KEY, $("#dei-es-enabled").is(":checked") ? "true" : "false");
+      window.sessionStorage.setItem(REPORT_KEY, JSON.stringify(payload));
+      window.sessionStorage.setItem(REPORT_TIME_KEY, String(Date.now()));
+      window.sessionStorage.setItem(ES_KEY, $("#dei-es-enabled").is(":checked") ? "true" : "false");
     } catch (error) {
       // Storage failures must not affect analysis.
     }
