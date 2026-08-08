@@ -215,3 +215,48 @@ def test_environment_workflow_is_split_between_discovery_and_results() -> None:
     assert insights.find(".//*[@id='dei-telemetry']") is None
     assert insights.find(".//*[@id='dei-coverage-section']") is not None
     assert insights.find(".//*[@id='dei-portfolio-section']") is not None
+
+
+def test_visible_controls_have_handlers_or_real_destinations() -> None:
+    shared = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    command = (STATIC / "command_center.js").read_text(encoding="utf-8")
+    state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
+    mitre = (STATIC / "mitre_workspace_v2.js").read_text(encoding="utf-8")
+    builder = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+
+    handlers = {
+        "dei-analyze": command,
+        "dei-clear-environment": state,
+        "dei-refresh-environment": state,
+        "builder-generate": builder,
+        "builder-save-draft": builder,
+        "builder-reset-draft": builder,
+        "copy-generated-spl": builder,
+        "copy-generated-json": builder,
+        "download-generated-json": builder,
+        "builder-run-validation": builder,
+        "lifecycle-reset-filters": lifecycle,
+    }
+    for control_id, javascript in handlers.items():
+        assert f'$("#{control_id}").on("click"' in javascript
+
+    for view_name in (
+        "dei_home", "command_center", "environment_insights",
+        "mitre_coverage", "detection_builder", "detection_lifecycle",
+    ):
+        root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
+        for link in root.findall(".//a"):
+            href = link.attrib.get("href", "")
+            assert href and href != "#"
+
+    for contract in (
+        "advancedPanelMarkup", "openAdvancedTools", "closeAdvancedTools",
+        "[data-dei-focus]", "announceAction", "Advanced tools opened",
+        "Moved to ", "dei-advanced-action-center",
+    ):
+        assert contract in shared
+    assert "dei-mitre-next-action" in mitre
+    assert "detection_builder?detection=" in mitre
+    assert 'document.execCommand("copy")' in builder
+    assert "Clipboard access is unavailable" in builder

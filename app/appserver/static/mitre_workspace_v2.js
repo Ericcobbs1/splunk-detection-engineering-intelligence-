@@ -142,6 +142,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).join("") : '<p class="dei-empty">No ATT&amp;CK technique is currently mapped to this detection.</p>';
     var liveId = meta && meta.currentId ? meta.currentId : focus;
     var attackLink = liveId ? "https://attack.mitre.org/techniques/" + liveId.replace(".", "/") + "/" : "https://attack.mitre.org/matrices/enterprise/";
+    var buildable = ["production_ready","field_unverified","field_gap"].indexOf(item.readiness) !== -1;
+    var nextHref = buildable ? "detection_builder?detection=" + encodeURIComponent(item.detection_id) : "command_center#dei-telemetry";
+    var nextLabel = buildable ? "Build this detection" : "Resolve telemetry gaps";
+    var nextDetail = buildable ? "Generate SPL, scheduling guidance, and validation evidence." : "Run a new scan after onboarding the required telemetry.";
     var offlineReference = meta ? [
       '<section class="dei-offline-reference">',
       '<div class="dei-offline-reference-head"><div><span class="dei-protection-label">Offline ATT&amp;CK reference</span><h3>', escapeHtml((meta.currentId || focus) + " · " + meta.name), '</h3></div><span class="dei-offline-badge">Bundled</span></div>',
@@ -170,6 +174,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '<div class="dei-inspector-reference">' + offlineReference +
       '<a class="dei-attack-live-button" target="_blank" rel="noopener noreferrer" href="' + attackLink + '"><span>Open live MITRE ATT&amp;CK</span><b>↗</b></a>' +
       '<p class="dei-live-link-note">Internet access is optional. Use this button for additional live framework detail when the search head can reach attack.mitre.org.</p>' +
+      '<a class="dei-mitre-next-action" href="' + nextHref + '"><span><strong>' + nextLabel + '</strong><br>' + nextDetail + '</span><b>→</b></a>' +
       '</div></div>'
     );
   }
