@@ -13,13 +13,23 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "persistent_environment.js,command_center.js,analysis_bridge.js"
-    assert root.attrib["stylesheet"] == "command_center_v2.css,environment_intelligence.css"
+    assert root.attrib["script"] == (
+        "persistent_environment.js,command_center.js,analysis_bridge.js,"
+        "environment_intelligence_v2.js"
+    )
+    assert root.attrib["stylesheet"] == (
+        "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css"
+    )
     for element_id in (
         "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
         "dei-coverage-section", "metric-understanding", "portfolio-total",
         "portfolio-field-gaps", "portfolio-unverified", "dei-refresh-environment",
         "environment-snapshot-age", "coverage-ring", "coverage-domains",
+        "env-tactics-covered", "env-tactics-partial", "env-tactics-uncovered",
+        "env-tactic-donut", "env-top-domains", "env-domain-donut",
+        "env-domain-count", "env-domain-legend", "env-tactic-bars",
+        "env-index-count", "env-source-count", "env-event-count",
+        "env-detection-count", "env-es-state",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     assert root.find(".//*[@id='dei-mitre-section']") is None
@@ -43,6 +53,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     bridge = (STATIC_ROOT / "analysis_bridge.js").read_text(encoding="utf-8")
     persistence = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
     environment_css = (STATIC_ROOT / "environment_intelligence.css").read_text(encoding="utf-8")
+    premium_js = (STATIC_ROOT / "environment_intelligence_v2.js").read_text(encoding="utf-8")
+    premium_css = (STATIC_ROOT / "environment_intelligence_v2.css").read_text(encoding="utf-8")
     assert "Splunk.util.make_url.apply(" in javascript
     assert '"servicesNS"' in javascript
     assert '"splunk_detection_engineering_intelligence"' in javascript
@@ -77,3 +89,16 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "Data remains unchanged until Refresh environment" in persistence
     assert ".dei-environment-grid" in environment_css
     assert ".dei-refresh-button" in environment_css
+    assert "TECHNIQUE_TACTICS" in premium_js
+    assert "tacticData" in premium_js
+    assert "readinessWeight" in premium_js
+    assert "parsed.count" in premium_js
+    assert "env-event-count" in premium_js
+    assert "renderDomains" in premium_js
+    assert "renderTactics" in premium_js
+    assert ".dei-env-summary-card" in premium_css
+    assert "grid-template-columns:1.05fr 1.35fr .9fr .9fr" in premium_css
+    assert ".dei-env-detail-grid" in premium_css
+    assert ".dei-tactic-bars" in premium_css
+    assert ".dei-domain-donut" in premium_css
+    assert ".dei-mitre-glow-button" in premium_css
