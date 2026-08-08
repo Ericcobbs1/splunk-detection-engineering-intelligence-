@@ -313,3 +313,30 @@
 @media(prefers-reduced-motion:reduce){
   .dei-topology-signal-paths path,.dei-topology-orbit,.dei-topology-core:before,.dei-topology-core-particles{animation:none!important}
 }
+
+/* Original low-contrast global SecOps map backdrop. */
+.dei-geo-map{position:absolute;inset:12px 3% 10px;width:94%;height:440px;z-index:0;overflow:visible;opacity:.34;filter:drop-shadow(0 0 12px rgba(60,124,255,.08));pointer-events:none}
+.dei-geo-grid ellipse,.dei-geo-grid path{fill:none;stroke:rgba(110,168,255,.16);stroke-width:1;vector-effect:non-scaling-stroke}
+.dei-geo-grid ellipse{stroke-dasharray:2 9}
+.dei-geo-land path{fill:rgba(53,91,121,.14);stroke:rgba(110,168,255,.25);stroke-width:1.15;vector-effect:non-scaling-stroke}
+.dei-geo-arcs path{fill:none;stroke:rgba(92,225,194,.46);stroke-width:1.25;stroke-linecap:round;stroke-dasharray:4 10;vector-effect:non-scaling-stroke;animation:dei-geo-arc 8s linear infinite}
+.dei-geo-arcs path:nth-child(2n){stroke:rgba(110,168,255,.5);animation-duration:11s;animation-direction:reverse}
+.dei-geo-points circle{fill:#75e4c4;stroke:#dffff7;stroke-width:1;filter:drop-shadow(0 0 5px #5ce1c2)}
+.dei-geo-pulses circle{fill:none;stroke:rgba(92,225,194,.7);stroke-width:1;transform-box:fill-box;transform-origin:center;animation:dei-geo-pulse 3.2s ease-out infinite}
+.dei-geo-pulses circle:nth-child(2){animation-delay:-.7s}.dei-geo-pulses circle:nth-child(3){animation-delay:-1.4s}.dei-geo-pulses circle:nth-child(4){animation-delay:-2.1s}.dei-geo-pulses circle:nth-child(5){animation-delay:-2.8s}
+@keyframes dei-geo-arc{to{stroke-dashoffset:-112}}
+@keyframes dei-geo-pulse{0%{opacity:.9;transform:scale(.45)}80%,100%{opacity:0;transform:scale(2.1)}}
+@media(max-width:1100px){.dei-geo-map{display:none}}
+@media(prefers-reduced-motion:reduce){.dei-geo-arcs path,.dei-geo-pulses circle{animation:none!important}}
+
+/* Soft global activity hotspots and targeting reticles. */
+.dei-geo-hotspot{color:#5ce1c2;transform-box:fill-box;transform-origin:center}
+.dei-geo-hotspot.attention-medium{color:#6ea8ff}.dei-geo-hotspot.attention-high{color:#f5bf6a}
+.dei-geo-hotspot .target-halo{fill:currentColor;opacity:.08;stroke:currentColor;stroke-width:1;transform-box:fill-box;transform-origin:center;animation:dei-geo-hotspot-bloom 3.8s ease-in-out infinite}
+.dei-geo-hotspot .target-ring{fill:none;stroke:currentColor;stroke-width:1.25;stroke-dasharray:3 4;filter:drop-shadow(0 0 4px currentColor);transform-box:fill-box;transform-origin:center;animation:dei-geo-reticle 10s linear infinite}
+.dei-geo-hotspot path{fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;opacity:.75;vector-effect:non-scaling-stroke}
+.dei-geo-hotspot:nth-child(2) .target-halo{animation-delay:-.8s}.dei-geo-hotspot:nth-child(3) .target-halo{animation-delay:-1.6s}.dei-geo-hotspot:nth-child(4) .target-halo{animation-delay:-2.4s}.dei-geo-hotspot:nth-child(5) .target-halo{animation-delay:-3.2s}
+.dei-geo-hotspot:nth-child(2n) .target-ring{animation-direction:reverse;animation-duration:13s}
+@keyframes dei-geo-hotspot-bloom{0%,100%{opacity:.06;transform:scale(.72)}50%{opacity:.22;transform:scale(1.35)}}
+@keyframes dei-geo-reticle{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.dei-geo-hotspot .target-halo,.dei-geo-hotspot .target-ring{animation:none!important}}
