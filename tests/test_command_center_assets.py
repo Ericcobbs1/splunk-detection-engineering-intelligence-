@@ -87,6 +87,10 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "forceRefresh" in persistence
     assert "renderSavedReport" in persistence
     assert "Data remains unchanged until Refresh environment" in persistence
+    assert "setGlobalRefreshState" in persistence
+    assert '$(document).trigger("dei:environment-refresh-started")' in persistence
+    assert '$(document).trigger("dei:environment-refreshed", [payload])' in persistence
+    assert 'window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()))' in persistence
     assert ".dei-environment-grid" in environment_css
     assert ".dei-refresh-button" in environment_css
     assert "TECHNIQUE_TACTICS" in premium_js
@@ -96,6 +100,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "env-event-count" in premium_js
     assert "renderDomains" in premium_js
     assert "renderTactics" in premium_js
+    assert 'function render(reportOverride)' in premium_js
+    assert '.on("dei:environment-refreshed"' in premium_js
+    assert '.on("dei:environment-refresh-started"' in premium_js
     assert ".dei-env-summary-card" in premium_css
     assert "grid-template-columns:1.05fr 1.35fr .9fr .9fr" in premium_css
     assert ".dei-env-detail-grid" in premium_css
