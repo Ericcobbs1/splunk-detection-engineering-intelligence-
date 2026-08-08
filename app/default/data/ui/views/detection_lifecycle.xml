@@ -1,0 +1,80 @@
+<form version="1.1" theme="dark" script="detection_lifecycle_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css">
+  <label>Detection Engineering Lifecycle</label>
+  <description>Evidence-driven detection engineering framework, lifecycle metrics, and work queue.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <div id="dei-lifecycle-page" class="dei-shell dei-lifecycle-page">
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Lifecycle</span></div></div>
+            <nav class="dei-workspace-nav"><a href="command_center">Command Center</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a class="active" href="detection_lifecycle">Lifecycle</a></nav>
+            <div id="lifecycle-data-status" class="dei-status">Analysis: checking</div>
+          </section>
+
+          <section class="dei-lifecycle-hero">
+            <div>
+              <p class="dei-eyebrow">Detection Engineering Framework</p>
+              <h1>From telemetry evidence to managed detection coverage.</h1>
+              <p>DEI connects environment discovery, field qualification, ATT&amp;CK-aligned recommendations, detection design, generated SPL, historical validation, review, deployment, monitoring, tuning, and retirement.</p>
+            </div>
+            <div class="dei-lifecycle-hero-state"><span id="lifecycle-analysis-age">No analysis loaded</span><strong id="lifecycle-maturity-percent">0%</strong><small>current framework maturity</small></div>
+          </section>
+
+          <section class="dei-lifecycle-metrics" aria-label="Detection engineering metrics">
+            <article><span>Sourcetypes analyzed</span><strong id="life-sources">0</strong><small>observed telemetry</small></article>
+            <article><span>Detection opportunities</span><strong id="life-opportunities">0</strong><small>evaluated use cases</small></article>
+            <article><span>MITRE mapped</span><strong id="life-mitre-mapped">0</strong><small>recommendations with ATT&amp;CK</small></article>
+            <article><span>Field verified</span><strong id="life-field-verified">0</strong><small>requirements satisfied</small></article>
+            <article><span>Telemetry ready</span><strong id="life-telemetry-ready">0</strong><small>ready for design</small></article>
+            <article><span>SPL generated</span><strong id="life-spl-generated">0</strong><small>persisted search artifacts</small></article>
+          </section>
+
+          <section class="dei-lifecycle-section">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Intelligence Pipeline</p><h2>Evidence-to-detection workflow</h2><p>Metrics advance only when DEI has evidence for the corresponding engineering outcome.</p></div><span class="dei-lifecycle-contract">Platform-first · ES-enhanced</span></div>
+            <div class="dei-pipeline-grid">
+              <article class="available"><span>01</span><h3>Discover</h3><strong id="stage-discover">0 sources</strong><p>Bounded index and sourcetype inventory.</p></article>
+              <article class="available"><span>02</span><h3>Profile</h3><strong id="stage-profile">0 profiled</strong><p>Fields, events, values, quality, and CIM evidence.</p></article>
+              <article class="available"><span>03</span><h3>Qualify</h3><strong id="stage-qualify">0 verified</strong><p>Prerequisites, mappings, and explicit data gaps.</p></article>
+              <article class="available"><span>04</span><h3>Recommend</h3><strong id="stage-recommend">0 use cases</strong><p>Explainable readiness and ATT&amp;CK coverage.</p></article>
+              <article class="partial"><span>05</span><h3>Design</h3><strong id="stage-design">0 ready</strong><p>Open Detection Definition and engineering guidance.</p></article>
+              <article class="planned"><span>06</span><h3>Generate</h3><strong id="stage-generate">0 SPL</strong><p>Versioned platform and optional ES templates.</p></article>
+              <article class="planned"><span>07</span><h3>Validate</h3><strong id="stage-validate">0 passed</strong><p>Historical tests, runtime, volume, and entity evidence.</p></article>
+            </div>
+          </section>
+
+          <section class="dei-lifecycle-section">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Managed Lifecycle</p><h2>Operational detection states</h2><p>A recommendation is not a production detection. Persisted artifacts and analyst decisions advance each state.</p></div><span class="dei-lifecycle-contract">Analyst controlled</span></div>
+            <div class="dei-state-grid">
+              <article><span>Draft</span><strong id="state-draft">0</strong><small>design artifacts</small></article>
+              <article><span>Testing</span><strong id="state-testing">0</strong><small>validation active</small></article>
+              <article><span>Peer review</span><strong id="state-review">0</strong><small>awaiting decision</small></article>
+              <article><span>Production</span><strong id="state-production">0</strong><small>approved deployments</small></article>
+              <article><span>Monitoring</span><strong id="state-monitoring">0</strong><small>health measured</small></article>
+              <article><span>Tuning</span><strong id="state-tuning">0</strong><small>revisions active</small></article>
+              <article><span>Retired</span><strong id="state-retired">0</strong><small>history retained</small></article>
+            </div>
+          </section>
+
+          <section class="dei-lifecycle-section dei-lifecycle-queue-section">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Engineering Work Queue</p><h2>Recommended next actions</h2><p>Current recommendations are staged by telemetry and field evidence. SPL, testing, review, and deployment remain explicit future gates.</p></div><span id="lifecycle-queue-count" class="dei-chip">0 items</span></div>
+            <div class="dei-lifecycle-filters"><input id="lifecycle-search" type="search" placeholder="Filter detections, sourcetypes, or MITRE..."/><select id="lifecycle-readiness"><option value="all">All readiness</option><option value="production_ready">Telemetry ready</option><option value="partial">Partial telemetry</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option><option value="unsupported">Unsupported</option><option value="requires_enterprise_security">Requires ES</option></select><select id="lifecycle-stage"><option value="all">All stages</option><option value="discover">Discover</option><option value="qualify">Qualify</option><option value="design">Design</option></select></div>
+            <div class="dei-lifecycle-table-wrap">
+              <table class="dei-lifecycle-table">
+                <thead><tr><th>Detection opportunity</th><th>Observed sourcetype</th><th>Readiness</th><th>MITRE ATT&amp;CK</th><th>Current stage</th><th>Next required action</th></tr></thead>
+                <tbody id="lifecycle-work-queue"><tr><td colspan="6">Run analysis from Command Center to populate the lifecycle queue.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="dei-lifecycle-capabilities">
+            <article class="implemented"><span>Implemented</span><h3>Telemetry intelligence</h3><p>Discovery, normalization, representative field profiling, evidence-based readiness, and MITRE mapping.</p></article>
+            <article class="foundation"><span>Foundation</span><h3>Open Detection Definition</h3><p>Canonical schema exists for logic, requirements, templates, mappings, validation, and safe content handling.</p></article>
+            <article class="next"><span>Next capability</span><h3>SPL generation and validation</h3><p>Render versioned searches, resolve field mappings, execute bounded historical tests, and preserve evidence.</p></article>
+            <article class="future"><span>Lifecycle expansion</span><h3>Review, deploy, monitor, tune</h3><p>Persist lifecycle records and add optional ES content, RBA, finding, health, and utilization integrations.</p></article>
+          </section>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
