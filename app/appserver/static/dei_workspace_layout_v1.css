@@ -603,3 +603,13 @@ body.dei-onboarding-open{overflow:hidden}
   #dei-open-environment-insights{width:100%}
   .dei-environment-insights-head{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Session-scoped scan provenance shown consistently across DEI workspaces. */
+.dei-active-scan-context{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:38px;padding:8px 13px;border:1px solid rgba(143,166,190,.2);border-radius:10px;background:rgba(6,15,24,.92);color:#9fb2c5;font-size:12px;line-height:1.4}
+.dei-active-scan-context b{color:#dce9f5}
+.dei-active-scan-context a{color:#75dbc6;font-weight:800;text-decoration:none;white-space:nowrap}
+.dei-active-scan-context[data-state="active"]{border-color:rgba(66,213,181,.38);background:linear-gradient(90deg,rgba(12,42,43,.78),rgba(7,18,28,.94))}
+.dei-active-scan-context[data-state="active"] b{color:#6fe2c8}
+.dei-active-scan-context[data-state="empty"] a{color:#8dbde9}
+@media(max-width:760px){.dei-active-scan-context{align-items:flex-start;flex-direction:column;gap:6px}}
