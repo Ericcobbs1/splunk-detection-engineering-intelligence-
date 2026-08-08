@@ -18,17 +18,24 @@
 
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
             <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Engineering Pipeline</p><h2 id="dei-home-flow-title">Telemetry to validated detection coverage</h2><p>The moving evidence packets and stage states reflect the latest environment analysis and persisted detection artifacts.</p></div><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle workspace →</a></div>
+            <div class="dei-flow-health-summary" aria-label="Detection pipeline health summary">
+              <article class="dei-flow-health-card"><span>Pipeline health</span><strong id="dei-home-health" data-health="awaiting">Awaiting data</strong><small id="dei-home-health-detail">Run environment analysis to establish a baseline</small></article>
+              <article><span>Detection use cases</span><strong id="dei-home-use-case-count">0</strong><small>Known recommendations and artifacts</small></article>
+              <article><span>Active engineering</span><strong id="dei-home-active-count">0</strong><small>Draft, testing, review, or tuning</small></article>
+              <article><span>Blocked / failing</span><strong id="dei-home-blocked-count">0</strong><small>Evidence, validation, or health issues</small></article>
+              <article><span>Production</span><strong id="dei-home-production-count">0</strong><small>Deployed or monitored detections</small></article>
+            </div>
             <div id="dei-home-detection-flow" class="dei-detection-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Detection intelligence flow</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-flow-rail" aria-hidden="true"><span class="dei-flow-complete-track"></span><i class="dei-flow-packet packet-one"></i><i class="dei-flow-packet packet-two"></i><i class="dei-flow-packet packet-three"></i></div>
               <div class="dei-flow-nodes" aria-label="Detection engineering pipeline stages">
-                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small><em>Source inventory</em></span>
-                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small><em>Field evidence</em></span>
-                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small><em>Readiness gates</em></span>
-                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small><em>Use-case fit</em></span>
-                <span data-home-flow-stage="design"><b>05</b><small>Design</small><em>Detection logic</em></span>
-                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small><em>Reviewable SPL</em></span>
-                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small><em>Test evidence</em></span>
+                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small><em>Source inventory</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small><em>Field evidence</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small><em>Readiness gates</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small><em>Use-case fit</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="design"><b>05</b><small>Design</small><em>Detection logic</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small><em>Reviewable SPL</em><i class="dei-flow-stage-count">0</i></span>
+                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small><em>Test evidence</em><i class="dei-flow-stage-count">0</i></span>
               </div>
             </div>
           </section>
