@@ -72,6 +72,11 @@ def test_builder_writes_drafts_and_validation_to_shared_store() -> None:
 def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     javascript = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     assert "function platformMitreMetadata(item)" in javascript
+    assert "function attachPlatformMitreMetadata(spl, item)" in javascript
+    assert "function enforcePlatformMitreMetadata(artifact, item)" in javascript
+    assert "var mitreMetadataMigrated = enforcePlatformMitreMetadata(artifact, item)" in javascript
+    assert "if (!existingArtifact || mitreMetadataMigrated)" in javascript
+    assert 'artifact.spl = attachPlatformMitreMetadata(String($("#generator-spl").val()' in javascript
     assert "mitre_attack_framework" in javascript
     assert "mitre_attack_technique_id" in javascript
     assert "mitre_attack_mapping_status" in javascript
@@ -91,8 +96,8 @@ def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
         "https://attack.mitre.org/techniques/",
     ):
         assert value in javascript
-    assert '+ "\\n" + platformMitreMetadata(item)' in javascript
-    assert javascript.index("+ platformMitreMetadata(item)") < javascript.index("var es = artifact.enterprise_security")
+    assert "var spl = attachPlatformMitreMetadata" in javascript
+    assert javascript.index("var spl = attachPlatformMitreMetadata") < javascript.index("var es = artifact.enterprise_security")
 
 
 def test_analyst_runbook_covers_complete_workflow() -> None:
