@@ -11,11 +11,6 @@
             <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a class="active" href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a><a href="detection_builder">Builder</a></nav>
           </section>
 
-          <section class="dei-hero dei-home-hero">
-            <div class="dei-hero-copy"><p class="dei-eyebrow">Detection Engineering Intelligence</p><h1>Move telemetry through a measurable detection pipeline.</h1><p class="dei-subtitle">Start with live environmental evidence, expose coverage blockers, and move qualified detection opportunities into validation and deployment.</p><div class="dei-hero-tags"><span>Telemetry-driven</span><span>MITRE-mapped</span><span>Lifecycle-managed</span><span>ES-aware</span></div></div>
-            <div class="dei-hero-visual" aria-hidden="true"><div class="dei-orbit dei-orbit-one"></div><div class="dei-orbit dei-orbit-two"></div><div class="dei-core-mark"><span>DEI</span><small>INTELLIGENCE</small></div></div>
-          </section>
-
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
             <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Engineering Pipeline</p><h2 id="dei-home-flow-title">Telemetry to validated detection coverage</h2><p>The moving evidence packets and stage states reflect the latest environment analysis and persisted detection artifacts.</p></div><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle workspace →</a></div>
             <div class="dei-flow-health-summary" aria-label="Detection pipeline health summary">
@@ -106,6 +101,11 @@
               </div>
               <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence →</a></div>
             </div>
+          </section>
+
+          <section class="dei-hero dei-home-hero">
+            <div class="dei-hero-copy"><p class="dei-eyebrow">Detection Engineering Intelligence</p><h1>Move telemetry through a measurable detection pipeline.</h1><p class="dei-subtitle">Start with live environmental evidence, expose coverage blockers, and move qualified detection opportunities into validation and deployment.</p><div class="dei-hero-tags"><span>Telemetry-driven</span><span>MITRE-mapped</span><span>Lifecycle-managed</span><span>ES-aware</span></div></div>
+            <div class="dei-hero-visual" aria-hidden="true"><div class="dei-orbit dei-orbit-one"></div><div class="dei-orbit dei-orbit-two"></div><div class="dei-core-mark"><span>DEI</span><small>INTELLIGENCE</small></div></div>
           </section>
 
           <section class="dei-home-workspaces" aria-labelledby="dei-home-workspaces-title">
