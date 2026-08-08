@@ -84,3 +84,6 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert '"Splunk Platform Sans"' in polish
     assert "font-synthesis: none" in polish
     assert "text-rendering: optimizeLegibility" in polish
+    assert ".dei-filter-stack input," in polish
+    assert "font-size: 13px" in polish
+    assert ".dei-matrix-tactic > p { font-size: 11px; }" in polish
