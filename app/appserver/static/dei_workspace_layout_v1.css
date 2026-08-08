@@ -568,3 +568,38 @@ body.dei-onboarding-open{overflow:hidden}
   .dei-geo-network-chords path,.dei-geo-satellite .sat-body{animation:none!important}
   .dei-geo-satellites animateMotion{display:none}
 }
+
+
+/* Focused environment discovery and saved intelligence split. */
+#dei-command-center.dei-environment-discovery{display:flex;flex-direction:column}
+#dei-command-center.dei-environment-discovery>.dei-product-bar{order:0}
+#dei-command-center.dei-environment-discovery>.dei-guided-workflow{order:1!important}
+#dei-command-center.dei-environment-discovery>#dei-telemetry{order:2!important}
+#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:3!important}
+.dei-discovery-next{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;padding:22px 24px;border:1px solid rgba(96,224,202,.22);border-radius:14px;background:linear-gradient(135deg,rgba(9,25,35,.96),rgba(7,17,28,.98))}
+.dei-discovery-next-copy{display:flex;align-items:center;gap:14px;min-width:0}
+.dei-discovery-next-copy h2{margin:0 0 5px;color:#edf7ff;font-size:18px;line-height:1.3}
+.dei-discovery-next-copy p{margin:0;color:#aebed0;font-size:13px;line-height:1.55}
+#dei-discovery-result-state{display:inline-flex;align-items:center;flex:0 0 auto;padding:5px 9px;border:1px solid rgba(151,174,197,.24);border-radius:999px;color:#94a6b8;font-size:11px;font-weight:700}
+#dei-discovery-result-state[data-state="ready"]{border-color:rgba(75,220,190,.5);background:rgba(34,197,160,.12);color:#65e5c5}
+#dei-open-environment-insights{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid rgba(111,145,179,.35);border-radius:10px;background:#0c1826;color:#aec1d5;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
+#dei-open-environment-insights.ready{border-color:rgba(72,218,190,.72);background:linear-gradient(135deg,#123d3e,#0c292f);color:#dffff7;box-shadow:0 0 24px rgba(52,211,176,.12)}
+#dei-open-environment-insights:hover{border-color:#55d9be;color:#effffc;text-decoration:none}
+#dei-environment-insights{display:flex;flex-direction:column}
+#dei-environment-insights>.dei-product-bar{order:0}
+#dei-environment-insights>.dei-guided-workflow{order:1!important}
+#dei-environment-insights>.dei-environment-insights-head{order:2}
+#dei-environment-insights>.dei-metrics{order:3}
+#dei-environment-insights>#dei-coverage-section{order:4}
+#dei-environment-insights>#dei-portfolio-section{order:5}
+.dei-environment-insights-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 22px;border:1px solid rgba(151,174,197,.18);border-radius:13px;background:#0a1420}
+.dei-environment-insights-head h1{margin:0 0 5px;color:#f2f8ff;font-size:22px;line-height:1.25}
+.dei-environment-insights-head p{margin:0;color:#aebed0;font-size:13px;line-height:1.5}
+.dei-back-to-discovery{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;border:1px solid rgba(88,219,194,.4);border-radius:9px;color:#73e2ca;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
+.dei-back-to-discovery:hover{border-color:#64e5ca;color:#eafffa;text-decoration:none}
+@media(max-width:820px){
+  .dei-discovery-next{grid-template-columns:1fr}
+  .dei-discovery-next-copy{align-items:flex-start;flex-direction:column}
+  #dei-open-environment-insights{width:100%}
+  .dei-environment-insights-head{align-items:flex-start;flex-direction:column}
+}

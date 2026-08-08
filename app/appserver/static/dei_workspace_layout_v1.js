@@ -165,6 +165,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return {
       "dei-home-page":"home",
       "dei-command-center":"environment",
+      "dei-environment-insights":"environment_insights",
       "dei-mitre-page":"mitre",
       "dei-detection-builder-page":"builder",
       "dei-lifecycle-page":"lifecycle"
@@ -263,7 +264,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
     var pageHelp={
       home:"Follow one guided path from environment evidence to a monitored detection.",
-      environment:"Choose whether Enterprise Security is enabled, run telemetry discovery, then review the saved readiness snapshot.",
+      environment:"Choose whether Enterprise Security is enabled, run telemetry discovery, then continue to the saved environment intelligence results.",
+      environment_insights:"Review the persisted readiness snapshot, then continue to MITRE coverage or Builder.",
       mitre:"Filter Detection Advisor by sourcetype, select a use case, and inspect its technique, tactic, platform, and readiness evidence.",
       builder:"Select a qualified recommendation, generate and review SPL, save the draft, then run bounded historical validation.",
       lifecycle:"Select Manage on a work item and complete the next evidence gate for review, deployment, monitoring, tuning, or retirement."
@@ -271,6 +273,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var learning={
       home:"DEI preserves evidence as you move between workspaces. Complete the highlighted step, then return here to see the pipeline advance.",
       environment:"Discovery inventories active sourcetypes and representative fields. DEI uses that evidence to determine which detection ideas are ready, incomplete, or unsupported.",
+      environment_insights:"These widgets are derived from the saved discovery report. Use Refresh to replace the snapshot or Clear to start over.",
       mitre:"The Advisor links recommended detections to ATT&CK techniques. Start with the sourcetype filter, choose a recommendation, then read the inspector before opening Builder.",
       builder:"Builder converts a qualified recommendation into editable SPL, MITRE fields, scheduling guidance, and optional ES parameters. Validation tests the draft but does not deploy it.",
       lifecycle:"Lifecycle gates prevent a recommendation from being mistaken for a production detection. Evidence, peer approval, deployment references, and health measurements are recorded explicitly."
@@ -325,6 +328,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
+  function renderEnvironmentSplitState() {
+    var report=safeJson(safeStorageGet("dei.latestRecommendationReport", ""), {});
+    var ready=Number(report.observed_source_count || 0)>0 || (report.recommendations || []).length>0;
+    $("#dei-discovery-result-state").text(ready ? "Analysis ready" : "Waiting for analysis")
+      .attr("data-state",ready ? "ready" : "waiting");
+    $("#dei-open-environment-insights").toggleClass("ready",ready)
+      .attr("aria-label",ready ? "View saved environment intelligence results" :
+        "Open environment intelligence results; no saved analysis is currently available");
+  }
+
   function closeOnboarding() {
     if ($("#dei-onboarding-dismiss-permanently").is(":checked")) {
       safeStorageSet(ONBOARDING_KEY, "true");
@@ -344,6 +357,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     applyDensity(safeStorageGet(DENSITY_KEY, "comfortable"));
     renderHomePipeline();
     renderGuidedWorkflow();
+    renderEnvironmentSplitState();
     showOnboarding();
   }
 
@@ -389,6 +403,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("dei:environment-refreshed dei:environment-cleared dei:detection-artifacts-changed", function () {
     renderHomePipeline();
     renderGuidedWorkflow();
+    renderEnvironmentSplitState();
   });
   $(document).on("dei:environment-refresh-started", function () {
     $("#dei-home-detection-flow").attr("data-flow-state", "active");
@@ -396,7 +411,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(window).on("storage", function (event) {
     var key=event.originalEvent && event.originalEvent.key;
-    if (!key || key==="dei.latestRecommendationReport" || key==="dei.detectionDraftArtifacts") { renderHomePipeline(); renderGuidedWorkflow(); }
+    if (!key || key==="dei.latestRecommendationReport" || key==="dei.detectionDraftArtifacts") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); }
   });
 
   initialize();

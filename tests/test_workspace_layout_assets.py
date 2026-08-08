@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("dei_home", "command_center", "mitre_coverage", "detection_lifecycle", "detection_builder"):
+    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_builder"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
@@ -172,6 +172,8 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     for selector in (
         "#dei-home-page>.dei-guided-workflow{order:2!important}",
         "#dei-command-center>#dei-telemetry{order:2!important}",
+        "#dei-environment-insights>.dei-guided-workflow{order:1!important}",
+        "#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:3!important}",
         "#dei-mitre-page>.dei-guided-workflow{order:1!important}",
         "#dei-detection-builder-page>.dei-builder-selector-section{order:2!important}",
         "#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:2!important}",
@@ -198,3 +200,14 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-onboarding-dialog" in stylesheet
     assert "body.dei-onboarding-open" in stylesheet
+
+
+def test_environment_workflow_is_split_between_discovery_and_results() -> None:
+    command = ElementTree.parse(VIEWS / "command_center.xml").getroot()
+    insights = ElementTree.parse(VIEWS / "environment_insights.xml").getroot()
+    assert command.find(".//*[@id='dei-telemetry']") is not None
+    assert command.find(".//*[@id='dei-open-environment-insights']") is not None
+    assert command.find(".//*[@id='dei-coverage-section']") is None
+    assert insights.find(".//*[@id='dei-telemetry']") is None
+    assert insights.find(".//*[@id='dei-coverage-section']") is not None
+    assert insights.find(".//*[@id='dei-portfolio-section']") is not None
