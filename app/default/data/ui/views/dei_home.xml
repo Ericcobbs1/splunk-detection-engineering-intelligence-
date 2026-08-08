@@ -25,18 +25,57 @@
               <article><span>Blocked / failing</span><strong id="dei-home-blocked-count">0</strong><small>Evidence, validation, or health issues</small></article>
               <article><span>Production</span><strong id="dei-home-production-count">0</strong><small>Deployed or monitored detections</small></article>
             </div>
-            <div id="dei-home-detection-flow" class="dei-detection-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
-              <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Detection intelligence flow</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
-              <div class="dei-flow-rail" aria-hidden="true"><span class="dei-flow-complete-track"></span><i class="dei-flow-packet packet-one"></i><i class="dei-flow-packet packet-two"></i><i class="dei-flow-packet packet-three"></i></div>
-              <div class="dei-flow-nodes" aria-label="Detection engineering pipeline stages">
-                <span data-home-flow-stage="discover"><b>01</b><small>Discover</small><em>Source inventory</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="profile"><b>02</b><small>Profile</small><em>Field evidence</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="qualify"><b>03</b><small>Qualify</small><em>Readiness gates</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="recommend"><b>04</b><small>Recommend</small><em>Use-case fit</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="design"><b>05</b><small>Design</small><em>Detection logic</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="generate"><b>06</b><small>Generate</small><em>Reviewable SPL</em><i class="dei-flow-stage-count">0</i></span>
-                <span data-home-flow-stage="validate"><b>07</b><small>Validate</small><em>Test evidence</em><i class="dei-flow-stage-count">0</i></span>
+            <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
+              <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
+              <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
+                <svg class="dei-topology-connections" viewBox="0 0 1200 440" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="dei-topology-ingress" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#315479"/><stop offset="100%" stop-color="#5ce1c2"/></linearGradient>
+                    <linearGradient id="dei-topology-egress" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5ce1c2"/><stop offset="100%" stop-color="#6ea8ff"/></linearGradient>
+                    <filter id="dei-topology-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <g class="dei-topology-ingress-paths">
+                    <path d="M205 78 C390 78 390 220 520 220"/>
+                    <path d="M205 220 C390 220 390 220 520 220"/>
+                    <path d="M205 362 C390 362 390 220 520 220"/>
+                  </g>
+                  <g class="dei-topology-egress-paths">
+                    <path d="M680 220 C805 220 805 60 995 60"/>
+                    <path d="M680 220 C825 220 825 166 995 166"/>
+                    <path d="M680 220 C825 220 825 274 995 274"/>
+                    <path d="M680 220 C805 220 805 380 995 380"/>
+                  </g>
+                  <g class="dei-topology-signal-paths" filter="url(#dei-topology-glow)">
+                    <path d="M205 78 C390 78 390 220 520 220"/>
+                    <path d="M205 220 C390 220 390 220 520 220"/>
+                    <path d="M205 362 C390 362 390 220 520 220"/>
+                    <path d="M680 220 C805 220 805 60 995 60"/>
+                    <path d="M680 220 C825 220 825 166 995 166"/>
+                    <path d="M680 220 C825 220 825 274 995 274"/>
+                    <path d="M680 220 C805 220 805 380 995 380"/>
+                  </g>
+                </svg>
+
+                <div class="dei-topology-lane dei-topology-ingress" aria-label="Telemetry evidence stages">
+                  <article class="dei-topology-node" data-home-flow-stage="discover"><span>01</span><div><small>Discover</small><strong>Telemetry inventory</strong><em>Observed sources</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="profile"><span>02</span><div><small>Profile</small><strong>Field evidence</strong><em>Verified mappings</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="qualify"><span>03</span><div><small>Qualify</small><strong>Readiness gates</strong><em>Usable telemetry</em></div><i class="dei-flow-stage-count">0</i></article>
+                </div>
+
+                <div class="dei-topology-core" aria-label="DEI intelligence core">
+                  <div class="dei-topology-orbit orbit-a"></div><div class="dei-topology-orbit orbit-b"></div><div class="dei-topology-orbit orbit-c"></div>
+                  <div class="dei-topology-core-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  <div class="dei-topology-core-label"><small>DEI Intelligence Core</small><strong id="dei-topology-core-count">0</strong><span>Detection use cases</span><em>Evidence correlation · MITRE context · lifecycle state</em></div>
+                </div>
+
+                <div class="dei-topology-lane dei-topology-egress" aria-label="Detection engineering stages">
+                  <article class="dei-topology-node" data-home-flow-stage="recommend"><span>04</span><div><small>Recommend</small><strong>Use-case portfolio</strong><em>Mapped opportunities</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="design"><span>05</span><div><small>Design</small><strong>Detection logic</strong><em>Versioned artifacts</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="generate"><span>06</span><div><small>Generate</small><strong>Reviewable SPL</strong><em>Platform and ES logic</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="validate"><span>07</span><div><small>Validate</small><strong>Test evidence</strong><em>Passed validation</em></div><i class="dei-flow-stage-count">0</i></article>
+                </div>
               </div>
+              <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence →</a></div>
             </div>
           </section>
 
