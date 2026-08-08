@@ -152,8 +152,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#env-es-state").text(window.localStorage.getItem(ES_KEY) === "true" ? "Enabled" : "Not enabled");
   }
 
-  function render() {
-    var report = safeJson(window.localStorage.getItem(REPORT_KEY));
+  function render(reportOverride) {
+    var report = reportOverride || safeJson(window.localStorage.getItem(REPORT_KEY));
     if (!report || !report.recommendations) {
       renderSnapshot(null);
       return;
@@ -167,6 +167,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var url = String(settings && settings.url || "");
     if (url.indexOf("/dei/v1/recommendations") !== -1) {
       window.setTimeout(render, 25);
+    }
+  });
+
+  $(document).on("dei:environment-refreshed", function (_event, report) {
+    render(report);
+  });
+
+  $(document).on("dei:environment-refresh-started", function () {
+    $("#dei-coverage-section").attr("aria-busy", "true");
+  });
+
+  $(document).on("dei:environment-refreshed", function () {
+    $("#dei-coverage-section").attr("aria-busy", "false");
+  });
+
+  $(document).ajaxError(function (_event, _xhr, settings) {
+    var url = String(settings && settings.url || "");
+    if (url.indexOf("/dei/v1/recommendations") !== -1) {
+      $("#dei-coverage-section").attr("aria-busy", "false");
     }
   });
 
