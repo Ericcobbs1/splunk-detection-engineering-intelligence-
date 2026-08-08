@@ -75,8 +75,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function loadReport() {
-    report = safeJson(window.localStorage.getItem(REPORT_KEY));
-    var timestamp = Number(window.localStorage.getItem(REPORT_TIME_KEY) || 0);
+    report = safeJson(window.sessionStorage.getItem(REPORT_KEY));
+    var timestamp = Number(window.sessionStorage.getItem(REPORT_TIME_KEY) || 0);
     if (report && report.recommendations) {
       $("#lifecycle-data-status").text("Analysis: loaded").addClass("healthy").removeClass("unhealthy");
       $("#lifecycle-analysis-age").text(timestamp ? "Analyzed " + new Date(timestamp).toLocaleString() : "Analysis loaded");

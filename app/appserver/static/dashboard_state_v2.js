@@ -29,11 +29,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
     activeEnvironmentRequests = [];
     [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY].forEach(function (key) {
-      try { window.localStorage.removeItem(key); } catch (error) {
+      try { window.sessionStorage.removeItem(key); } catch (error) {
         // Storage failures must not prevent the visible dashboard reset.
       }
     });
-    try { window.localStorage.setItem(CLEAR_KEY, "true"); } catch (error) {
+    try { window.sessionStorage.setItem(CLEAR_KEY, "true"); } catch (error) {
       // The visible reset still applies when storage is unavailable.
     }
     forceRefresh = false;
@@ -49,8 +49,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#recommendations").empty();
     $("#recommendation-count").text("");
     $("#environment-snapshot-age").text("No saved snapshot");
-    $("#dei-analyze").prop("disabled", false).html("<span>Analyze environment</span><b>→</b>");
-    $("#dei-feedback").text("Dashboard cleared. Select Analyze environment to run a new query.");
+    $("#dei-analyze").prop("disabled", false).html("<span>Run intelligence scan</span><b>→</b>");
+    $("#dei-feedback").text("Scan data cleared. Select Run intelligence scan to analyze this environment.");
     $(document).trigger("dei:environment-cleared");
   }
 
@@ -95,8 +95,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return originalAjax.apply($, arguments);
     }
 
-    cached = window.localStorage.getItem(DISCOVERY_KEY);
-    if (window.localStorage.getItem(CLEAR_KEY) === "true" && !forceRefresh) {
+    cached = window.sessionStorage.getItem(DISCOVERY_KEY);
+    if (window.sessionStorage.getItem(CLEAR_KEY) === "true" && !forceRefresh) {
       deferred = $.Deferred();
       window.setTimeout(function () { deferred.resolve("", "success", {responseText: ""}); }, 0);
       return deferred.promise();
@@ -111,9 +111,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     request = originalAjax.apply($, arguments);
     request.done(function (text) {
       try {
-        window.localStorage.setItem(DISCOVERY_KEY, String(text || ""));
-        window.localStorage.setItem(DISCOVERY_TIME_KEY, String(Date.now()));
-        window.localStorage.removeItem(CLEAR_KEY);
+        window.sessionStorage.setItem(DISCOVERY_KEY, String(text || ""));
+        window.sessionStorage.setItem(DISCOVERY_TIME_KEY, String(Date.now()));
+        window.sessionStorage.removeItem(CLEAR_KEY);
       } catch (error) {
         // Storage failures must not affect discovery.
       }
@@ -191,7 +191,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderSavedDiscovery() {
-    var cached = window.localStorage.getItem(DISCOVERY_KEY);
+    var cached = window.sessionStorage.getItem(DISCOVERY_KEY);
     var parsed;
     if (!cached) { return; }
     parsed = parseDiscovery(cached);
@@ -202,7 +202,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderSnapshotAge() {
-    var timestamp = Number(window.localStorage.getItem(REPORT_TIME_KEY) || window.localStorage.getItem(DISCOVERY_TIME_KEY) || 0);
+    var timestamp = Number(window.sessionStorage.getItem(REPORT_TIME_KEY) || window.sessionStorage.getItem(DISCOVERY_TIME_KEY) || 0);
     if (!timestamp) {
       $("#environment-snapshot-age").text("No saved snapshot");
       return;
@@ -212,12 +212,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function restoreSnapshot() {
     renderSavedDiscovery();
-    renderSavedReport(safeJson(window.localStorage.getItem(REPORT_KEY)));
+    renderSavedReport(safeJson(window.sessionStorage.getItem(REPORT_KEY)));
     renderSnapshotAge();
-    if (window.localStorage.getItem(ES_KEY) === "true") {
+    if (window.sessionStorage.getItem(ES_KEY) === "true") {
       $("#dei-es-enabled").prop("checked", true);
     }
-    if (window.localStorage.getItem(REPORT_KEY)) {
+    if (window.sessionStorage.getItem(REPORT_KEY)) {
       $("#dei-analyze").find("span").text("Refresh environment");
     }
   }
@@ -231,9 +231,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (!payload || !payload.recommendations) { return; }
     try {
-      window.localStorage.setItem(REPORT_KEY, JSON.stringify(payload));
-      window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()));
-      window.localStorage.setItem(ES_KEY, $("#dei-es-enabled").is(":checked") ? "true" : "false");
+      window.sessionStorage.setItem(REPORT_KEY, JSON.stringify(payload));
+      window.sessionStorage.setItem(REPORT_TIME_KEY, String(Date.now()));
+      window.sessionStorage.setItem(ES_KEY, $("#dei-es-enabled").is(":checked") ? "true" : "false");
     } catch (error) {
       // Storage failures must not affect analysis.
     }
@@ -257,7 +257,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     forceRefresh = true;
     setGlobalRefreshState(true);
     $(document).trigger("dei:environment-refresh-started");
-    $("#dei-analyze").trigger("click");
+    if ($("#dei-analyze").length) {
+      $("#dei-analyze").trigger("click");
+    } else {
+      window.location.href = "command_center#dei-telemetry";
+    }
   });
 
   $(document).ajaxError(function (_event, _xhr, settings) {
@@ -269,10 +273,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#dei-analyze").on("click", function () {
     forceRefresh = true;
-    try { window.localStorage.removeItem(CLEAR_KEY); } catch (error) {
+    try { window.sessionStorage.removeItem(CLEAR_KEY); } catch (error) {
       // A new analysis still proceeds when storage is unavailable.
     }
   });
 
-  restoreSnapshot();
+  if ($("#dei-command-center").length) {
+    $("#dei-sources").val("");
+    $("#dei-es-enabled").prop("checked", false);
+    $("#dei-feedback").text("No scan data is loaded. Select Run intelligence scan to analyze this Splunk environment.");
+  } else {
+    restoreSnapshot();
+  }
 });

@@ -281,12 +281,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function buildArtifact(item) {
-    var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
+    var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
     var sources = observedSourcetypes(item, report);
     var timing = schedule(item);
     var spl = attachPlatformMitreMetadata("search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
       "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item), item);
-    var esEnabled = window.localStorage.getItem(ES_KEY) === "true";
+    var esEnabled = window.sessionStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     return {
       schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft",
@@ -512,7 +512,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function buildableRecommendations() {
-    var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
+    var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
     var allowed = {production_ready:true, field_unverified:true, field_gap:true};
     return (report.recommendations || []).filter(function (item) {
       return allowed[item.readiness] === true;
@@ -539,7 +539,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function populateDetectionSelector() {
-    var report = safeJson(window.localStorage.getItem(REPORT_KEY), null);
+    var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), null);
     var items = buildableRecommendations();
     var requested = requestedDetectionId();
     $("#builder-ready-count").text(items.length + " buildable");

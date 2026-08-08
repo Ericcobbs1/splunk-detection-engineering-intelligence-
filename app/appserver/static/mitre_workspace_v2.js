@@ -68,9 +68,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function loadReport() {
-    try { report = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null"); }
+    try { report = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || "null"); }
     catch (error) { report = null; }
-    var timestamp = Number(window.localStorage.getItem(STORAGE_TIME_KEY) || 0);
+    var timestamp = Number(window.sessionStorage.getItem(STORAGE_TIME_KEY) || 0);
     if (report && report.recommendations) {
       $("#mitre-data-status").text("Analysis: loaded").addClass("healthy").removeClass("unhealthy");
       if (timestamp) { $("#mitre-analysis-age").text("Analyzed " + new Date(timestamp).toLocaleString()); }

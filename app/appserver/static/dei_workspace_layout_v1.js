@@ -9,6 +9,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { return window.localStorage.getItem(key) || fallback; } catch (error) { return fallback; }
   }
 
+  function safeSessionGet(key, fallback) {
+    try { return window.sessionStorage.getItem(key) || fallback; } catch (error) { return fallback; }
+  }
+
   function safeStorageSet(key, value) {
     try { window.localStorage.setItem(key, value); } catch (error) {
       // Layout remains usable when browser persistence is unavailable.
@@ -64,7 +68,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function renderHomePipeline() {
     var flow=$("#dei-home-detection-flow");
     if (!flow.length) { return; }
-    var report=safeJson(safeStorageGet("dei.latestRecommendationReport", ""), {});
+    var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var recommendations=report.recommendations || [];
     var artifacts=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
     var verified=recommendations.filter(function (item) { return item.field_validation==="passed"; }).length;
@@ -173,7 +177,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function workflowSnapshot() {
-    var report=safeJson(safeStorageGet("dei.latestRecommendationReport", ""), {});
+    var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var recommendations=report.recommendations || [];
     var artifacts=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
     var mapped=recommendations.filter(function (item) { return (item.mitre_techniques || []).length>0; }).length;
@@ -328,8 +332,33 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
+  function ensureScanContext() {
+    if ($("#dei-active-scan-context").length) { return; }
+    shell().find(".dei-product-bar").first().after(
+      '<section id="dei-active-scan-context" class="dei-active-scan-context" aria-live="polite"></section>'
+    );
+  }
+
+  function renderScanContext() {
+    var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
+    var timestamp=Number(safeSessionGet("dei.latestRecommendationTime", "0") || 0);
+    var sources=Number(report.observed_source_count || 0);
+    ensureScanContext();
+    if (!timestamp || !sources) {
+      $("#dei-active-scan-context").attr("data-state","empty").html(
+        '<span><b>No active environment scan</b> — downstream intelligence remains empty until you run discovery.</span>' +
+        '<a href="command_center#dei-telemetry">Run intelligence scan →</a>'
+      );
+      return;
+    }
+    $("#dei-active-scan-context").attr("data-state","active").html(
+      '<span><b>Active environment scan</b> · ' + sources + ' source types · completed ' +
+      new Date(timestamp).toLocaleString() + '</span><a href="command_center#dei-telemetry">Run a new scan →</a>'
+    );
+  }
+
   function renderEnvironmentSplitState() {
-    var report=safeJson(safeStorageGet("dei.latestRecommendationReport", ""), {});
+    var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var ready=Number(report.observed_source_count || 0)>0 || (report.recommendations || []).length>0;
     $("#dei-discovery-result-state").text(ready ? "Analysis ready" : "Waiting for analysis")
       .attr("data-state",ready ? "ready" : "waiting");
@@ -358,6 +387,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderHomePipeline();
     renderGuidedWorkflow();
     renderEnvironmentSplitState();
+    renderScanContext();
     showOnboarding();
   }
 
@@ -404,6 +434,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderHomePipeline();
     renderGuidedWorkflow();
     renderEnvironmentSplitState();
+    renderScanContext();
   });
   $(document).on("dei:environment-refresh-started", function () {
     $("#dei-home-detection-flow").attr("data-flow-state", "active");
@@ -411,7 +442,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(window).on("storage", function (event) {
     var key=event.originalEvent && event.originalEvent.key;
-    if (!key || key==="dei.latestRecommendationReport" || key==="dei.detectionDraftArtifacts") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); }
+    if (!key || key==="dei.latestRecommendationReport" || key==="dei.detectionDraftArtifacts") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); renderScanContext(); }
   });
 
   initialize();

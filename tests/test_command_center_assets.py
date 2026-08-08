@@ -118,18 +118,21 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "dei.latestRecommendationReport" in bridge
     assert "dei.latestDiscoveryExport" in persistence
     assert "forceRefresh" in persistence
+    assert "window.sessionStorage" in persistence
+    assert 'discoverEnvironment(false);' not in javascript
+    assert "Run intelligence scan" in javascript
     assert "renderSavedReport" in persistence
-    assert "Data remains unchanged until Refresh environment" in persistence
+    assert "No scan data is loaded" in persistence
     assert "setGlobalRefreshState" in persistence
     assert "clearPersistedDashboard" in persistence
     assert 'CLEAR_KEY = "dei.dashboardCleared"' in persistence
     assert "activeEnvironmentRequests" in persistence
     assert "request.abort()" in persistence
-    assert 'window.localStorage.removeItem(key)' in persistence
+    assert 'window.sessionStorage.removeItem(key)' in persistence
     assert '$(document).trigger("dei:environment-cleared")' in persistence
     assert '$(document).trigger("dei:environment-refresh-started")' in persistence
     assert '$(document).trigger("dei:environment-refreshed", [payload])' in persistence
-    assert 'window.localStorage.setItem(REPORT_TIME_KEY, String(Date.now()))' in persistence
+    assert 'window.sessionStorage.setItem(REPORT_TIME_KEY, String(Date.now()))' in persistence
     assert ".dei-environment-grid" in environment_css
     assert ".dei-refresh-button" in environment_css
     assert "TECHNIQUE_TACTICS" in premium_js

@@ -144,12 +144,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderSnapshot(report) {
-    var discovery = parseDiscovery(window.localStorage.getItem(DISCOVERY_KEY));
+    var discovery = parseDiscovery(window.sessionStorage.getItem(DISCOVERY_KEY));
     $("#env-index-count").text(discovery.indexes.length + " indexes");
     $("#env-source-count").text(discovery.sources.length + " source types");
     $("#env-event-count").text(discovery.events.toLocaleString());
     $("#env-detection-count").text((report && report.recommendations || []).length);
-    $("#env-es-state").text(window.localStorage.getItem(ES_KEY) === "true" ? "Enabled" : "Not enabled");
+    $("#env-es-state").text(window.sessionStorage.getItem(ES_KEY) === "true" ? "Enabled" : "Not enabled");
   }
 
   function resetPremiumDashboard() {
@@ -172,7 +172,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function render(reportOverride) {
-    var report = reportOverride || safeJson(window.localStorage.getItem(REPORT_KEY));
+    var report = reportOverride || safeJson(window.sessionStorage.getItem(REPORT_KEY));
     if (!report || !report.recommendations) {
       renderSnapshot(null);
       return;
