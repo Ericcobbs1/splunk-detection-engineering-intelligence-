@@ -175,3 +175,18 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     assert "run telemetry discovery" in javascript
     assert "Filter Detection Advisor by sourcetype" in javascript
     assert "Select a qualified recommendation" in javascript
+
+
+def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    for value in (
+        "dei.onboardingDismissed.v1", "dei.onboardingSeen.session",
+        'role="dialog"', 'aria-modal="true"', "Do not show this welcome guide again",
+        "Start telemetry discovery", "closeOnboarding", 'event.key==="Escape"',
+        'event.key==="Tab"',
+    ):
+        assert value in javascript
+    assert ".dei-onboarding-overlay" in stylesheet
+    assert ".dei-onboarding-dialog" in stylesheet
+    assert "body.dei-onboarding-open" in stylesheet
