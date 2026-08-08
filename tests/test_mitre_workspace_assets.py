@@ -87,3 +87,6 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert ".dei-filter-stack input," in polish
     assert "font-size: 13px" in polish
     assert ".dei-matrix-tactic > p { font-size: 11px; }" in polish
+    assert "High-clarity narrative text" in polish
+    assert "color: #c4d0dc" in polish
+    assert "-moz-osx-font-smoothing: auto" in polish
