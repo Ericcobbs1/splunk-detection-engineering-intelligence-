@@ -344,3 +344,68 @@
 /* Accurate Natural Earth land geometry and sovereign boundary detail. */
 .dei-geo-land-accurate path{fill:rgba(43,83,111,.2);stroke:rgba(110,168,255,.34);stroke-width:.8;vector-effect:non-scaling-stroke}
 .dei-geo-borders path{fill:none;stroke:rgba(123,166,201,.19);stroke-width:.55;vector-effect:non-scaling-stroke}
+
+/* Full-focus landing composition: topology first, supporting widgets second. */
+.dei-official-home{max-width:1880px;padding-right:18px;padding-left:18px;gap:18px}
+.dei-official-home>.dei-product-bar{order:0}
+.dei-official-home>.dei-home-flow-section{order:1;min-height:max(780px,calc(100vh - 108px));margin-top:0;padding:32px 34px}
+.dei-official-home>.dei-home-hero{order:2}
+.dei-official-home>.dei-home-workspaces{order:3}
+.dei-official-home .dei-home-flow-heading{justify-content:center;text-align:center}
+.dei-official-home .dei-home-flow-heading>div{max-width:1100px}
+.dei-official-home .dei-home-flow-heading .dei-kicker{font-size:12px}
+.dei-official-home .dei-home-flow-heading h2{font-size:clamp(30px,2.5vw,42px)}
+.dei-official-home .dei-home-flow-heading p:last-child{max-width:960px;margin-right:auto;margin-left:auto;font-size:15px}
+.dei-official-home .dei-home-flow-link{position:absolute;top:32px;right:34px}
+.dei-official-home .dei-flow-health-summary{max-width:1460px;margin:26px auto 0}
+.dei-official-home .dei-topology-flow{min-height:610px;margin-top:18px;padding:20px 32px 16px}
+.dei-official-home .dei-topology-canvas{min-height:520px}
+.dei-official-home .dei-geo-map{inset:0 1%;width:98%;height:510px}
+.dei-official-home .dei-topology-connections{inset:30px 0 0;height:470px}
+.dei-official-home .dei-topology-ingress{top:42px;bottom:42px;left:.5%;width:22%}
+.dei-official-home .dei-topology-egress{top:20px;right:.5%;bottom:20px;width:24%}
+.dei-official-home .dei-topology-node{grid-template-columns:42px minmax(0,1fr) auto;gap:12px;padding:15px 16px}
+.dei-official-home .dei-topology-node>span{width:40px;height:40px;font-size:11px}
+.dei-official-home .dei-topology-node small{font-size:10px}
+.dei-official-home .dei-topology-node strong{font-size:14px}
+.dei-official-home .dei-topology-node em{font-size:10px}
+.dei-official-home .dei-topology-core{width:340px;height:340px}
+.dei-official-home .dei-topology-orbit.orbit-b{inset:30px}
+.dei-official-home .dei-topology-orbit.orbit-c{inset:60px}
+.dei-official-home .dei-topology-core:before{inset:88px}
+.dei-official-home .dei-topology-core-particles{inset:42px}
+.dei-official-home .dei-topology-core-particles i{width:6px;height:6px;margin:-3px;transform:rotate(var(--angle)) translateX(108px)}
+.dei-official-home .dei-topology-core-label{width:180px}
+.dei-official-home .dei-topology-core-label small{font-size:10px}
+.dei-official-home .dei-topology-core-label strong{font-size:46px}
+.dei-official-home .dei-topology-core-label span{font-size:12px}
+.dei-official-home .dei-topology-core-label em{max-width:165px;font-size:9px}
+.dei-official-home .dei-home-hero{grid-template-columns:minmax(0,1fr) 190px;min-height:160px;padding:22px 30px}
+.dei-official-home .dei-home-hero h1{font-size:clamp(27px,2.4vw,36px)}
+.dei-official-home .dei-home-hero .dei-subtitle{margin-top:10px;font-size:13px;line-height:1.5}
+.dei-official-home .dei-home-hero .dei-hero-tags{margin-top:13px}
+.dei-official-home .dei-home-hero .dei-hero-visual{min-height:120px;transform:scale(.7)}
+.dei-official-home .dei-home-workspaces{padding:18px 20px}
+.dei-official-home .dei-home-workspace-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.dei-official-home .dei-home-workspace-grid>a{min-height:100px;padding:14px}
+@media(max-width:1450px){
+  .dei-official-home>.dei-home-flow-section{min-height:760px}
+  .dei-official-home .dei-home-flow-link{position:static}
+  .dei-official-home .dei-home-flow-heading{align-items:center}
+  .dei-official-home .dei-topology-core{width:300px;height:300px}
+  .dei-official-home .dei-topology-core:before{inset:78px}
+  .dei-official-home .dei-topology-core-particles i{transform:rotate(var(--angle)) translateX(94px)}
+  .dei-official-home .dei-home-workspace-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  .dei-official-home>.dei-home-flow-section{min-height:auto;padding:24px}
+  .dei-official-home .dei-topology-canvas{min-height:0}
+  .dei-official-home .dei-topology-core{width:260px;height:260px}
+  .dei-official-home .dei-topology-core:before{inset:70px}
+  .dei-official-home .dei-topology-core-particles i{transform:rotate(var(--angle)) translateX(82px)}
+}
+@media(max-width:700px){
+  .dei-official-home{padding-right:8px;padding-left:8px}
+  .dei-official-home .dei-home-workspace-grid{grid-template-columns:1fr}
+  .dei-official-home .dei-home-hero{grid-template-columns:1fr}
+}
