@@ -282,6 +282,58 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-guided-workflow-cta").attr("href",actions[current].href).text(actions[current].label+" →");
   }
 
+  var ONBOARDING_KEY = "dei.onboardingDismissed.v1";
+  var ONBOARDING_SESSION_KEY = "dei.onboardingSeen.session";
+
+  function safeSessionGet(key) {
+    try { return window.sessionStorage.getItem(key) || ""; } catch (error) { return ""; }
+  }
+
+  function safeSessionSet(key, value) {
+    try { window.sessionStorage.setItem(key, value); } catch (error) {
+      // The dialog can still be dismissed when session persistence is unavailable.
+    }
+  }
+
+  function onboardingMarkup() {
+    return [
+      '<div id="dei-onboarding-overlay" class="dei-onboarding-overlay" role="presentation">',
+      '<section class="dei-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="dei-onboarding-title" aria-describedby="dei-onboarding-description">',
+      '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">×</button>',
+      '<div class="dei-onboarding-heading"><p class="dei-kicker">Welcome to DEI</p>',
+      '<h2 id="dei-onboarding-title">From telemetry to a monitored detection</h2>',
+      '<p id="dei-onboarding-description">Start with one guided path. DEI preserves the evidence and explains each gate as you progress.</p></div>',
+      '<ol class="dei-onboarding-path">',
+      '<li><span>1</span><div><strong>Discover</strong><p>Analyze sourcetypes and fields in the Splunk environment.</p></div></li>',
+      '<li><span>2</span><div><strong>Review</strong><p>Use Detection Advisor to understand readiness and MITRE ATT&amp;CK coverage.</p></div></li>',
+      '<li><span>3</span><div><strong>Build</strong><p>Generate and review platform SPL, MITRE context, schedules, and optional ES parameters.</p></div></li>',
+      '<li><span>4</span><div><strong>Validate</strong><p>Run bounded historical testing and preserve the result as lifecycle evidence.</p></div></li>',
+      '<li><span>5</span><div><strong>Operate</strong><p>Manage peer review, deployment, monitoring, tuning, and retirement.</p></div></li>',
+      '</ol>',
+      '<div class="dei-onboarding-foot">',
+      '<label><input id="dei-onboarding-dismiss-permanently" type="checkbox"/> <span>Do not show this welcome guide again</span></label>',
+      '<div><button id="dei-onboarding-not-now" type="button">Explore first</button>',
+      '<a id="dei-onboarding-start" href="command_center#dei-telemetry">Start telemetry discovery →</a></div>',
+      '</div></section></div>'
+    ].join("");
+  }
+
+  function showOnboarding() {
+    if (workflowPage()!=="home" || safeStorageGet(ONBOARDING_KEY, "")==="true" ||
+        safeSessionGet(ONBOARDING_SESSION_KEY)==="true" || $("#dei-onboarding-overlay").length) { return; }
+    $("body").append(onboardingMarkup()).addClass("dei-onboarding-open");
+    window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
+  }
+
+  function closeOnboarding() {
+    if ($("#dei-onboarding-dismiss-permanently").is(":checked")) {
+      safeStorageSet(ONBOARDING_KEY, "true");
+    }
+    safeSessionSet(ONBOARDING_SESSION_KEY, "true");
+    $("#dei-onboarding-overlay").remove();
+    $("body").removeClass("dei-onboarding-open");
+  }
+
   function initialize() {
     var root = shell();
     var bar = root.find(".dei-product-bar").first();
@@ -292,6 +344,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     applyDensity(safeStorageGet(DENSITY_KEY, "comfortable"));
     renderHomePipeline();
     renderGuidedWorkflow();
+    showOnboarding();
   }
 
   $(document).on("click", ".dei-view-mode button", function () {
@@ -313,6 +366,24 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("click", "#dei-guided-workflow-advanced", function () {
     applyMode(shell().attr("data-dei-workspace-mode")==="engineering" ? "analyst" : "engineering");
     renderGuidedWorkflow();
+  });
+
+  $(document).on("click", "#dei-onboarding-close, #dei-onboarding-not-now", closeOnboarding);
+  $(document).on("click", "#dei-onboarding-start", function () {
+    if ($("#dei-onboarding-dismiss-permanently").is(":checked")) { safeStorageSet(ONBOARDING_KEY, "true"); }
+    safeSessionSet(ONBOARDING_SESSION_KEY, "true");
+  });
+  $(document).on("keydown", function (event) {
+    var overlay=$("#dei-onboarding-overlay");
+    if (!overlay.length) { return; }
+    if (event.key==="Escape") { closeOnboarding(); return; }
+    if (event.key==="Tab") {
+      var focusable=overlay.find('a[href],button,input:not([disabled])').filter(":visible");
+      if (!focusable.length) { return; }
+      var first=focusable[0]; var last=focusable[focusable.length-1];
+      if (event.shiftKey && document.activeElement===first) { $(last).focus(); event.preventDefault(); }
+      else if (!event.shiftKey && document.activeElement===last) { $(first).focus(); event.preventDefault(); }
+    }
   });
 
   $(document).on("dei:environment-refreshed dei:environment-cleared dei:detection-artifacts-changed", function () {
