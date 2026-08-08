@@ -18,13 +18,13 @@
           </section>
 
           <section class="dei-lifecycle-section dei-builder-selector-section">
-            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Qualified Recommendation</p><h2>Select a detection to build</h2><p>Only telemetry-ready recommendations are available. Selections from the Engineering Work Queue are carried into this page automatically.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
-            <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a telemetry-ready detection</option></select><button id="builder-generate" type="button" disabled="disabled">Generate detection draft</button></div>
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Qualified Recommendation</p><h2>Select a detection to build</h2><p>Telemetry-ready recommendations and engineering candidates with verified gaps are available. Incomplete candidates are clearly flagged and remain drafts until prerequisites are resolved.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
+            <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button" disabled="disabled">Generate detection draft</button></div>
           </section>
 
           <section id="detection-generator" class="dei-lifecycle-section dei-generator-section">
             <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Generate telemetry-scoped SPL, ATT&amp;CK mappings, a recommended cron schedule, and—when Enterprise Security is enabled—a disabled correlation-search draft with finding/notable and RBA parameters.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
-            <div id="generator-empty" class="dei-generator-empty">Select a telemetry-ready recommendation above to begin. Detections with unresolved telemetry or field gaps remain blocked on the Lifecycle Overview.</div>
+            <div id="generator-empty" class="dei-generator-empty">Select a recommendation above to begin. Unsupported detections and recommendations without observed telemetry remain blocked.</div>
             <div id="generator-output" class="dei-generator-output" style="display:none">
               <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="builder-save-draft" type="button">Save draft</button><button id="builder-reset-draft" type="button">Reset generated values</button><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
               <div id="builder-feedback" class="dei-builder-feedback" role="status" aria-live="polite">Generated draft is ready for review.</div>
