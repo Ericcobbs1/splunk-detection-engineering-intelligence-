@@ -5,6 +5,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var REPORT_TIME_KEY = "dei.latestRecommendationTime";
   var report = null;
   var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
+  var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
 
   function artifacts() {
     var value = safeJson(window.localStorage.getItem(ARTIFACT_KEY));
@@ -154,6 +155,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderMetrics();
     renderQueue();
   }
+
+  $("#lifecycle-work-queue").on("click", ".dei-generate-detection", function () {
+    var detectionId = String($(this).data("detection") || "");
+    if (!detectionId) { return; }
+    try { window.localStorage.setItem(SELECTED_DETECTION_KEY, detectionId); } catch (error) {
+      // Navigation must remain available when browser storage is unavailable.
+    }
+    window.location.href = "detection_builder?detection=" + encodeURIComponent(detectionId);
+  });
+
+  $("#lifecycle-workspace-menu").on("change", function () {
+    var destination = String($(this).val() || "");
+    if (destination && destination !== "detection_lifecycle") { window.location.href = destination; }
+  });
 
   $("#lifecycle-search, #lifecycle-readiness, #lifecycle-stage").on("input change", renderQueue);
   $(document).on("dei:detection-artifacts-changed", function () { renderMetrics(); });
