@@ -4,6 +4,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
   var REPORT_KEY = "dei.latestRecommendationReport";
+  var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
   var selected = null;
 
   function safeJson(value, fallback) {
@@ -201,17 +202,61 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
-  $("#lifecycle-work-queue").on("click", ".dei-generate-detection", function () {
+  function readyRecommendations() {
     var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
-    var id = $(this).data("detection");
-    var item = (report.recommendations || []).filter(function (candidate) {
+    return (report.recommendations || []).filter(function (item) {
+      return item.readiness === "production_ready";
+    });
+  }
+
+  function requestedDetectionId() {
+    var match = String(window.location.search || "").match(/[?&]detection=([^&]+)/);
+    if (match) {
+      try { return decodeURIComponent(match[1].replace(/\+/g, " ")); } catch (error) { return match[1]; }
+    }
+    return String(window.localStorage.getItem(SELECTED_DETECTION_KEY) || "");
+  }
+
+  function populateDetectionSelector() {
+    var items = readyRecommendations();
+    var requested = requestedDetectionId();
+    $("#builder-ready-count").text(items.length + " ready");
+    $("#builder-detection-select").html('<option value="">Select a telemetry-ready detection</option>' +
+      items.map(function (item) {
+        return '<option value="' + escapeHtml(item.detection_id) + '">' +
+          escapeHtml(item.name + " · " + item.severity + " · " + (item.mitre_techniques || []).join(", ")) +
+          "</option>";
+      }).join(""));
+    if (requested && items.some(function (item) { return item.detection_id === requested; })) {
+      $("#builder-detection-select").val(requested);
+      $("#builder-generate").prop("disabled", false);
+      generateSelectedDetection();
+    } else {
+      $("#builder-generate").prop("disabled", true);
+    }
+  }
+
+  function generateSelectedDetection() {
+    var id = String($("#builder-detection-select").val() || "");
+    var item = readyRecommendations().filter(function (candidate) {
       return candidate.detection_id === id;
     })[0];
-    if (!item || item.readiness !== "production_ready") { return; }
+    if (!item) { return; }
+    try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
+      // Generation remains available when browser storage is unavailable.
+    }
     var artifact = buildArtifact(item);
     saveArtifact(artifact);
     renderArtifact(artifact);
-    document.getElementById("detection-generator").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  $("#builder-detection-select").on("change", function () {
+    $("#builder-generate").prop("disabled", !$(this).val());
+  });
+  $("#builder-generate").on("click", generateSelectedDetection);
+  $("#lifecycle-workspace-menu").on("change", function () {
+    var destination = String($(this).val() || "");
+    if (destination && destination !== "detection_builder") { window.location.href = destination; }
   });
 
   $("#copy-generated-spl").on("click", function () { if (selected) { copyText(selected.spl, $(this)); } });
@@ -225,4 +270,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     link.click();
     window.setTimeout(function () { URL.revokeObjectURL(link.href); }, 0);
   });
+
+  populateDetectionSelector();
 });

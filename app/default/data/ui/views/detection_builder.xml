@@ -1,0 +1,49 @@
+<form version="1.1" theme="dark" script="detection_query_generator_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css">
+  <label>Detection Builder</label>
+  <description>Generate reviewable platform SPL and Enterprise Security detection drafts from qualified telemetry.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <div id="dei-detection-builder-page" class="dei-shell dei-lifecycle-page dei-builder-page">
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Builder</span></div></div>
+            <nav class="dei-workspace-nav"><a href="command_center">Command Center</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_builder" selected="selected">Detection Builder</option></select></label>
+          </section>
+
+          <section class="dei-builder-hero">
+            <div><p class="dei-eyebrow">Detection Engineering Action Workspace</p><h1>Build, review, and export detection artifacts.</h1><p>This dedicated workspace preserves room for query refinement, ATT&amp;CK context, validation evidence, ES parameters, testing, and future approval actions.</p></div>
+            <a class="dei-builder-back" href="detection_lifecycle">← Return to Lifecycle Overview</a>
+          </section>
+
+          <section class="dei-lifecycle-section dei-builder-selector-section">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Qualified Recommendation</p><h2>Select a detection to build</h2><p>Only telemetry-ready recommendations are available. Selections from the Engineering Work Queue are carried into this page automatically.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
+            <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a telemetry-ready detection</option></select><button id="builder-generate" type="button" disabled="disabled">Generate detection draft</button></div>
+          </section>
+
+          <section id="detection-generator" class="dei-lifecycle-section dei-generator-section">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Generate telemetry-scoped SPL, ATT&amp;CK mappings, a recommended cron schedule, and—when Enterprise Security is enabled—a disabled correlation-search draft with finding/notable and RBA parameters.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
+            <div id="generator-empty" class="dei-generator-empty">Select a telemetry-ready recommendation above to begin. Detections with unresolved telemetry or field gaps remain blocked on the Lifecycle Overview.</div>
+            <div id="generator-output" class="dei-generator-output" style="display:none">
+              <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
+              <div class="dei-generator-meta"><div><span>Recommended cron</span><strong id="generator-schedule">—</strong></div><div><span>Search window</span><strong id="generator-window">—</strong></div></div>
+              <div class="dei-generator-grid">
+                <article><span class="dei-generator-label">Generated SPL</span><pre id="generator-spl"></pre></article>
+                <article><span class="dei-generator-label">Enterprise Security configuration</span><div id="generator-es-output"></div></article>
+              </div>
+              <p class="dei-generator-safety">Generated artifacts are saved locally as Draft. DEI does not enable or deploy detections without analyst review.</p>
+            </div>
+          </section>
+
+          <section class="dei-lifecycle-capabilities" aria-label="Detection engineering capabilities">
+            <article class="implemented"><span>Implemented</span><h3>Telemetry intelligence</h3><p>Discovery, normalization, representative field profiling, evidence-based readiness, and MITRE mapping.</p></article>
+            <article class="foundation"><span>Foundation</span><h3>Open Detection Definition</h3><p>Canonical schema exists for logic, requirements, templates, mappings, validation, and safe content handling.</p></article>
+            <article class="next"><span>Next capability</span><h3>SPL generation and validation</h3><p>Render versioned searches, resolve field mappings, execute bounded historical tests, and preserve evidence.</p></article>
+            <article class="future"><span>Lifecycle expansion</span><h3>Review, deploy, monitor, tune</h3><p>Persist lifecycle records and add optional ES content, RBA, finding, health, and utilization integrations.</p></article>
+          </section>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
