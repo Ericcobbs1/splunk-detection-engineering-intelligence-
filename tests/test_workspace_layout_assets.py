@@ -281,6 +281,6 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert "buildableCount===0" in lifecycle
     assert "requestedDetection" in lifecycle
     assert "telemetry ready" in lifecycle
-    for destination in ("command_center#dei-telemetry", "environment_insights#dei-coverage-section", "environment_insights#recommendations", "mitre_coverage#mitre-detection-list", "detection_builder#builder-detection-select", "detection_builder#detection-generator", "detection_builder#builder-validation-title"):\n        assert destination in javascript\n    assert "focusDeepLinkedWorkspace" in javascript\n    assert ".dei-home-health-actions" in stylesheet
+    for destination in (\n        "command_center#dei-telemetry", "environment_insights#dei-coverage-section",\n        "environment_insights#recommendations", "mitre_coverage#mitre-detection-list",\n        "detection_builder#builder-detection-select", "detection_builder#detection-generator",\n        "detection_builder#builder-validation-title",\n    ):\n        assert destination in javascript\n    assert "focusDeepLinkedWorkspace" in javascript\n    assert ".dei-home-health-actions" in stylesheet
     assert ".dei-topology-node[role=\"link\"]" in stylesheet
     assert ".dei-topology-flow>.dei-flow-header{position:relative!important" in stylesheet
