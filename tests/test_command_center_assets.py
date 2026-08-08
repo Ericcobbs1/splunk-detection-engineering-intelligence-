@@ -14,7 +14,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == (
-        "persistent_environment.js,command_center.js,analysis_bridge.js,"
+        "dashboard_state_v2.js,command_center.js,analysis_bridge.js,"
         "environment_intelligence_v2.js"
     )
     assert root.attrib["stylesheet"] == (
@@ -52,7 +52,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     javascript = (STATIC_ROOT / "command_center.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "command_center_v2.css").read_text(encoding="utf-8")
     bridge = (STATIC_ROOT / "analysis_bridge.js").read_text(encoding="utf-8")
-    persistence = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
+    persistence = (STATIC_ROOT / "dashboard_state_v2.js").read_text(encoding="utf-8")
     environment_css = (STATIC_ROOT / "environment_intelligence.css").read_text(encoding="utf-8")
     premium_js = (STATIC_ROOT / "environment_intelligence_v2.js").read_text(encoding="utf-8")
     premium_css = (STATIC_ROOT / "environment_intelligence_v2.css").read_text(encoding="utf-8")
@@ -90,6 +90,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "Data remains unchanged until Refresh environment" in persistence
     assert "setGlobalRefreshState" in persistence
     assert "clearPersistedDashboard" in persistence
+    assert 'CLEAR_KEY = "dei.dashboardCleared"' in persistence
+    assert "activeEnvironmentRequests" in persistence
+    assert "request.abort()" in persistence
     assert 'window.localStorage.removeItem(key)' in persistence
     assert '$(document).trigger("dei:environment-cleared")' in persistence
     assert '$(document).trigger("dei:environment-refresh-started")' in persistence
