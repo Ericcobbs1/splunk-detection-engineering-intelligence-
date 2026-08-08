@@ -8,7 +8,7 @@
         <main id="dei-home-page" class="dei-shell dei-official-home">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Operational Home</span></div></div>
-            <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a class="active" href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a><a href="detection_builder">Builder</a></nav>
+            <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a class="active" href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
           </section>
 
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
@@ -113,8 +113,8 @@
             <div class="dei-home-workspace-grid">
               <a href="command_center"><span>01</span><div><strong>Environment Intelligence</strong><p>Analyze sourcetypes, fields, readiness, telemetry domains, and the current environment snapshot.</p></div><b>Open →</b></a>
               <a href="mitre_coverage"><span>02</span><div><strong>MITRE ATT&amp;CK Coverage</strong><p>Inspect tactic and technique coverage, mapped recommendations, and Detection Advisor results.</p></div><b>Open →</b></a>
-              <a href="detection_lifecycle"><span>03</span><div><strong>Managed Lifecycle</strong><p>Advance evidence through testing, peer review, production, monitoring, tuning, and retirement.</p></div><b>Open →</b></a>
-              <a href="detection_builder"><span>04</span><div><strong>Detection Query Builder</strong><p>Generate reviewable SPL, MITRE context, schedules, validation evidence, and optional ES artifacts.</p></div><b>Open →</b></a>
+              <a href="detection_builder"><span>03</span><div><strong>Detection Query Builder</strong><p>Generate reviewable SPL, MITRE context, schedules, validation evidence, and optional ES artifacts.</p></div><b>Open →</b></a>
+              <a href="detection_lifecycle"><span>04</span><div><strong>Managed Lifecycle</strong><p>Advance evidence through testing, peer review, production, monitoring, tuning, and retirement.</p></div><b>Open →</b></a>
             </div>
           </section>
         </main>
