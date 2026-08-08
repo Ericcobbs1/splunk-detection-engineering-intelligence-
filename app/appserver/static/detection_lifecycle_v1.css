@@ -12,3 +12,28 @@
 /* End-to-end managed lifecycle controls. */
 .dei-lifecycle-filters{grid-template-columns:minmax(280px,1fr) minmax(180px,220px) minmax(170px,210px) auto}.dei-lifecycle-filters button{min-height:40px;border:1px solid var(--dei-border);border-radius:9px;background:#0b1723;color:#cbd8e3;padding:0 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.dei-inline-reset{border:0;background:transparent;color:#74efd2;font:inherit;text-decoration:underline;cursor:pointer}.dei-action-center{scroll-margin-top:78px}.dei-action-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:12px;margin-top:16px}.dei-action-grid>article{min-width:0;border:1px solid var(--dei-border);border-radius:12px;background:#08111b;padding:16px}.dei-evidence{display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(168,190,214,.11);color:#9fb0c0;padding:9px 0;font-size:12px}.dei-evidence.complete{color:#75e4c4}.dei-evidence.pending span{color:#f5bf6a}.dei-action-field{display:block;margin-top:14px}.dei-action-field>span{display:block;margin-bottom:6px;color:#94a9bd;font-size:11px;font-weight:700;text-transform:uppercase}.dei-action-field input,.dei-action-field select,.dei-action-field textarea{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--dei-border);border-radius:8px;background:#050d16;color:#dce6ef;padding:10px;font:inherit;font-size:12px}.dei-action-field textarea{min-height:92px;resize:vertical}.dei-action-fields-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.dei-action-center .dei-generator-actions{justify-content:flex-start;margin-top:14px}.dei-action-center .dei-generator-actions button{border-color:rgba(92,225,194,.38);background:rgba(92,225,194,.08);color:#75e4c4}.dei-audit-history{max-height:430px;overflow:auto;margin-top:10px;padding-right:4px}.dei-audit-entry{border-left:2px solid rgba(110,168,255,.32);padding:2px 0 12px 12px}.dei-audit-entry strong,.dei-audit-entry span{display:block}.dei-audit-entry strong{color:#dce7f0;font-size:12px}.dei-audit-entry span{margin-top:3px;color:#8095a8;font-size:10px}.dei-audit-entry p{margin:6px 0 0;color:#acbdcb;font-size:11px;line-height:1.5}.dei-lifecycle-stage.peer_review{color:#b999ff}.dei-lifecycle-stage.production,.dei-lifecycle-stage.monitoring{color:#75e4c4}.dei-lifecycle-stage.tuning{color:#f5bf6a}.dei-lifecycle-stage.retired{color:#8294a5}
 @media(max-width:1150px){.dei-lifecycle-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.dei-action-grid{grid-template-columns:1fr}}@media(max-width:700px){.dei-lifecycle-filters,.dei-action-fields-row{grid-template-columns:1fr}}
+
+/* Guided Lifecycle Action Center */
+.dei-action-progress{margin-top:16px}
+.dei-lifecycle-progress{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.dei-progress-step{position:relative;display:flex;align-items:center;gap:8px;min-width:0;border:1px solid rgba(168,190,214,.14);border-radius:10px;background:#07101a;padding:10px;color:#71869a}
+.dei-progress-step span{display:grid;place-items:center;flex:0 0 23px;height:23px;border:1px solid rgba(168,190,214,.2);border-radius:50%;font-size:10px;font-weight:800}
+.dei-progress-step strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.dei-progress-step.complete{border-color:rgba(77,214,168,.2);color:#75e4c4;background:rgba(77,214,168,.05)}
+.dei-progress-step.current{border-color:rgba(110,168,255,.48);color:#dceaff;background:rgba(110,168,255,.1);box-shadow:0 0 0 2px rgba(110,168,255,.05)}
+.dei-progress-step.current span{border-color:#6ea8ff;background:#17304d;color:#dceaff}
+.dei-gate-guide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px}
+.dei-gate-guide>div{min-width:0;border:1px solid rgba(168,190,214,.14);border-radius:12px;background:linear-gradient(145deg,#08121d,#0a1622);padding:16px}
+.dei-gate-guide h3{margin:7px 0 0;color:#e6eef5;font-size:16px;line-height:1.35}
+.dei-gate-guide p{margin:8px 0 0;color:#afbfcd;font-size:12px;line-height:1.6}
+.dei-gate-guide dl{display:grid;grid-template-columns:120px minmax(0,1fr);gap:7px 10px;margin:14px 0 0;border-top:1px solid rgba(168,190,214,.11);padding-top:12px}
+.dei-gate-guide dt{color:#7890a5;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.dei-gate-guide dd{margin:0;color:#c7d4df;font-size:11px;line-height:1.5}
+.dei-gate-guide ol{margin:10px 0 0;padding-left:20px;color:#c7d4df}
+.dei-gate-guide li{margin:0 0 8px;padding-left:3px;font-size:12px;line-height:1.5}
+.dei-gate-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.dei-gate-facts span{border:1px solid rgba(92,225,194,.2);border-radius:999px;background:rgba(92,225,194,.06);color:#8fe5cf;padding:5px 8px;font-size:10px}
+.dei-action-center .dei-generator-actions button.primary{border-color:rgba(92,225,194,.55);background:rgba(92,225,194,.14);color:#8ff0d5}
+.dei-action-center .dei-generator-actions button.danger{border-color:rgba(255,115,129,.35);background:rgba(255,115,129,.07);color:#ffadb5}
+@media(max-width:1150px){.dei-lifecycle-progress{grid-template-columns:repeat(4,minmax(0,1fr))}.dei-gate-guide{grid-template-columns:1fr}}
+@media(max-width:700px){.dei-lifecycle-progress{grid-template-columns:1fr 1fr}.dei-progress-step strong{white-space:normal}}
