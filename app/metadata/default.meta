@@ -9,3 +9,7 @@ export = none
 [collections/*]
 access = read : [ * ], write : [ admin ]
 export = none
+
+[collections/dei_lifecycle_records]
+access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
+export = none
