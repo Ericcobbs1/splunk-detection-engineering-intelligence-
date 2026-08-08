@@ -69,6 +69,16 @@ def test_builder_writes_drafts_and_validation_to_shared_store() -> None:
     assert "sharedRecords" in javascript
 
 
+def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
+    javascript = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    assert "function platformMitreMetadata(item)" in javascript
+    assert "mitre_attack_framework" in javascript
+    assert "mitre_attack_technique_id" in javascript
+    assert "mitre_attack_mapping_status" in javascript
+    assert '+ "\\n" + platformMitreMetadata(item)' in javascript
+    assert javascript.index("platformMitreMetadata(item)") < javascript.index("if (artifact.enterprise_security.enabled)")
+
+
 def test_analyst_runbook_covers_complete_workflow() -> None:
     runbook = Path("docs/MANAGED_LIFECYCLE_RUNBOOK.md").read_text(encoding="utf-8")
     for heading in (
