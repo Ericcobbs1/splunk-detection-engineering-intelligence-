@@ -8,7 +8,7 @@
         <div id="dei-detection-builder-page" class="dei-shell dei-lifecycle-page dei-builder-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Builder</span></div></div>
-            <nav class="dei-workspace-nav"><a href="command_center">Command Center</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a class="active" href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
             <label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_builder" selected="selected">Detection Builder</option></select></label>
           </section>
 
