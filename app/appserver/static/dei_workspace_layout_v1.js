@@ -616,12 +616,29 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderEnvironmentSplitState();
     renderScanContext();
     showOnboarding();
+    focusDeepLinkedWorkspace();
   }
 
   function homeStageDestination(stage) {
-    return {discover:"command_center#dei-telemetry",profile:"environment_insights",qualify:"environment_insights",
-      recommend:"mitre_coverage",design:"detection_builder",generate:"detection_builder",
+    return {discover:"command_center#dei-telemetry",profile:"environment_insights#dei-coverage-section",
+      qualify:"environment_insights#recommendations",recommend:"mitre_coverage#mitre-detection-list",
+      design:"detection_builder#builder-detection-select",generate:"detection_builder#detection-generator",
       validate:"detection_builder#builder-validation-title"}[stage] || "detection_lifecycle";
+  }
+
+  function focusDeepLinkedWorkspace() {
+    var selector=String(window.location.hash||"");
+    if(!selector||selector==="#"){return;}
+    var target;
+    try{target=$(selector).first();}catch(error){return;}
+    if(!target.length){return;}
+    window.setTimeout(function(){
+      target.attr("tabindex","-1");
+      target[0].scrollIntoView({behavior:"smooth",block:"center"});
+      target.focus().addClass("dei-action-target");
+      window.setTimeout(function(){target.removeClass("dei-action-target");},2200);
+      announceAction("Opened the specific pipeline workspace for "+target.closest("section,article").find("h1,h2,h3,label").first().text()+".","success");
+    },450);
   }
 
   $(document).on("click keydown", "[data-home-flow-stage]", function (event) {
