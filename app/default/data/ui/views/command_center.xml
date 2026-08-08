@@ -37,7 +37,7 @@
             <div class="dei-portfolio-grid"><article class="portfolio-ready"><span class="dei-dot ready"></span><div><strong id="portfolio-ready">0</strong><small>Production ready</small></div></article><article class="portfolio-partial"><span class="dei-dot partial"></span><div><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></div></article><article class="portfolio-gap"><span class="dei-dot gap"></span><div><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></div></article><article class="portfolio-unverified"><span class="dei-dot unverified"></span><div><strong id="portfolio-unverified">0</strong><small>Field unverified</small></div></article></div>
           </section>
 
-          <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&CK coverage intelligence">
+          <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&amp;CK coverage intelligence">
             <div class="dei-env-titlebar">
               <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and ATT&amp;CK effectiveness analysis.</p></div>
               <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-refresh-environment" class="dei-refresh-button-v2" type="button"><span>↻</span> Refresh environment</button></div>
