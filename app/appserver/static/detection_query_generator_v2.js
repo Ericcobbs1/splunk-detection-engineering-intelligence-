@@ -503,11 +503,26 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function copyText(value, button) {
+    var original=button.text();
+    function success() {
+      button.text("Copied");
+      setFeedback("Copied to clipboard.", "success");
+      window.setTimeout(function () { button.text(original); },1200);
+    }
+    function fallback() {
+      var helper=$("<textarea>").val(value).attr("aria-hidden","true").css({position:"fixed",left:"-9999px"});
+      $("body").append(helper); helper[0].select();
+      try {
+        if (document.execCommand("copy")) { success(); } else { throw new Error("copy unavailable"); }
+      } catch (error) {
+        setFeedback("Clipboard access is unavailable. Select the generated value and copy it manually.", "error");
+      }
+      helper.remove();
+    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(value).then(function () {
-        var original = button.text(); button.text("Copied");
-        window.setTimeout(function () { button.text(original); }, 1200);
-      });
+      navigator.clipboard.writeText(value).then(success).catch(fallback);
+    } else {
+      fallback();
     }
   }
 
@@ -548,7 +563,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selectorGroup(items, "field_unverified", "Field verification required") +
       selectorGroup(items, "field_gap", "Confirmed field gaps"));
     if (!report || !report.recommendations) {
-      $("#generator-empty").html('No environment analysis is loaded. Return to <a href="command_center">Command Center</a> and run Analyze Environment.');
+      $("#generator-empty").html('No environment analysis is loaded. Return to <a href="command_center#dei-telemetry">Environment Discovery</a> and run an intelligence scan.');
       $("#builder-generate").prop("disabled", true);
       return;
     }
