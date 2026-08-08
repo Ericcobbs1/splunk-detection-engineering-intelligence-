@@ -63,7 +63,9 @@
     var key = String(record._key || record.id || "").replace(/^dei-/, "");
     var payload = $.extend(true, {}, record, {_key:key, updated_at:new Date().toISOString(), updated_by:username()});
     if (!payload.created_at) { payload.created_at = payload.updated_at; }
-    $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(payload), dataType:"json",
+    var updatePayload = $.extend(true, {}, payload);
+    delete updatePayload._key;
+    $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(updatePayload), dataType:"json",
       timeout:15000, headers:headers()})
       .done(function () { mode = "Splunk KV Store"; deferred.resolve(payload); })
       .fail(function (xhr) {
