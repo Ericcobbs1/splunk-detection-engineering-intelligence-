@@ -24,6 +24,9 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
     ):
         assert value in javascript
     assert "window.localStorage.setItem" in javascript
+    assert "window.sessionStorage.getItem" in javascript
+    assert "renderScanContext" in javascript
+    assert "No active environment scan" in javascript
     assert "Compact spacing" in javascript
     assert "Comfortable spacing" in javascript
     assert ">Guided</button>" in javascript
@@ -180,6 +183,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     ):
         assert selector in stylesheet
     assert ".dei-guided-learning" in stylesheet
+    assert ".dei-active-scan-context" in stylesheet
     assert "#dei-guided-workflow-advanced" in stylesheet
     assert "How this step works" in javascript
     assert "run telemetry discovery" in javascript
