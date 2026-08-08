@@ -111,6 +111,13 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "builder-detection-select" in javascript
     assert "populateDetectionSelector" in javascript
     assert "requestedDetectionId" in javascript
+    assert "buildableRecommendations" in javascript
+    assert "field_unverified:true" in javascript
+    assert "field_gap:true" in javascript
+    assert "selectorGroup" in javascript
+    assert "engineering_warnings" in javascript
+    assert "unresolved_fields" in javascript
+    assert "No environment analysis is loaded" in javascript
     assert '"services", "search", "jobs", "export"' in javascript
     assert "VALIDATION_RESULT_LIMIT = 25" in javascript
     assert "VALIDATION_TIMEOUT_MS = 60000" in javascript

@@ -161,6 +161,39 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return {cron:"*/15 * * * *", earliest:"-20m@m", latest:"-2m@m"};
   }
 
+  function readinessLabel(value) {
+    var labels = {
+      production_ready:"Telemetry ready",
+      field_unverified:"Field verification required",
+      field_gap:"Confirmed field gap"
+    };
+    return labels[value] || String(value || "unknown").replace(/_/g, " ");
+  }
+
+  function unresolvedFields(item) {
+    var unresolved = [];
+    Object.keys(item.missing_fields || {}).forEach(function (source) {
+      (item.missing_fields[source] || []).forEach(function (fields) {
+        unresolved.push(source + ": " + fields);
+      });
+    });
+    (item.unverified_field_sources || []).forEach(function (source) {
+      unresolved.push(source + ": field inventory not verified");
+    });
+    return unresolved;
+  }
+
+  function engineeringWarnings(item) {
+    var warnings = [];
+    if (item.readiness === "field_unverified") {
+      warnings.push("Field requirements have not been verified against a representative sample. Review field aliases before validation.");
+    }
+    if (item.readiness === "field_gap") {
+      warnings.push("The environment has confirmed field gaps. Resolve or replace the listed fields before production use.");
+    }
+    return warnings.concat(unresolvedFields(item));
+  }
+
   function buildArtifact(item) {
     var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
     var sources = observedSourcetypes(item, report);
@@ -172,6 +205,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return {
       schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft",
       description:item.why, severity:item.severity, capability:item.capability,
+      source_readiness:item.readiness, unresolved_fields:unresolvedFields(item), engineering_warnings:engineeringWarnings(item),
       sourcetypes:sources, mitre_attack:item.mitre_techniques || [], spl:spl,
       schedule:timing, generated_at:new Date().toISOString(), updated_at:new Date().toISOString(),
       validation:null, enterprise_security: esEnabled ? {
@@ -195,7 +229,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#generator-output").show();
     $("#generator-title").text(artifact.name);
     $("#generator-badges").html('<span>' + escapeHtml(artifact.status) + '</span><span>' +
-      escapeHtml(artifact.severity) + '</span><span>' + escapeHtml(artifact.mitre_attack.join(" · ") || "No MITRE mapping") + '</span>');
+      escapeHtml(artifact.severity) + '</span><span>' + escapeHtml(readinessLabel(artifact.source_readiness)) + '</span><span>' + escapeHtml(artifact.mitre_attack.join(" · ") || "No MITRE mapping") + '</span>');
     $("#builder-cron").val(artifact.schedule.cron);
     $("#builder-earliest").val(artifact.schedule.earliest);
     $("#builder-latest").val(artifact.schedule.latest);
@@ -212,7 +246,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     ].join("") : '<p>Enable Enterprise Security during environment analysis to generate correlation-search, finding/notable, and RBA parameters.</p>');
     selected = artifact;
     renderValidation(artifact.validation);
-    setFeedback(artifact.updated_at ? "Saved draft loaded. Review or validate it against current telemetry." : "Generated draft is ready for review.", "ready");
+    if ((artifact.engineering_warnings || []).length) {
+      setFeedback("Engineering draft generated with prerequisites: " + artifact.engineering_warnings.join(" · "), "error");
+    } else {
+      setFeedback(artifact.updated_at ? "Saved draft loaded. Review or validate it against current telemetry." : "Generated draft is ready for review.", "ready");
+    }
   }
 
   function saveArtifact(artifact) {
@@ -362,10 +400,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
-  function readyRecommendations() {
+  function buildableRecommendations() {
     var report = safeJson(window.localStorage.getItem(REPORT_KEY), {});
+    var allowed = {production_ready:true, field_unverified:true, field_gap:true};
     return (report.recommendations || []).filter(function (item) {
-      return item.readiness === "production_ready";
+      return allowed[item.readiness] === true;
     });
   }
 
@@ -377,28 +416,49 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return String(window.localStorage.getItem(SELECTED_DETECTION_KEY) || "");
   }
 
-  function populateDetectionSelector() {
-    var items = readyRecommendations();
-    var requested = requestedDetectionId();
-    $("#builder-ready-count").text(items.length + " ready");
-    $("#builder-detection-select").html('<option value="">Select a telemetry-ready detection</option>' +
-      items.map(function (item) {
+  function selectorGroup(items, readiness, label) {
+    var matches = items.filter(function (item) { return item.readiness === readiness; });
+    if (!matches.length) { return ""; }
+    return '<optgroup label="' + escapeHtml(label + " (" + matches.length + ")") + '">' +
+      matches.map(function (item) {
         return '<option value="' + escapeHtml(item.detection_id) + '">' +
           escapeHtml(item.name + " · " + item.severity + " · " + (item.mitre_techniques || []).join(", ")) +
           "</option>";
-      }).join(""));
+      }).join("") + "</optgroup>";
+  }
+
+  function populateDetectionSelector() {
+    var report = safeJson(window.localStorage.getItem(REPORT_KEY), null);
+    var items = buildableRecommendations();
+    var requested = requestedDetectionId();
+    $("#builder-ready-count").text(items.length + " buildable");
+    $("#builder-detection-select").html('<option value="">Select a detection to build</option>' +
+      selectorGroup(items, "production_ready", "Telemetry ready") +
+      selectorGroup(items, "field_unverified", "Field verification required") +
+      selectorGroup(items, "field_gap", "Confirmed field gaps"));
+    if (!report || !report.recommendations) {
+      $("#generator-empty").html('No environment analysis is loaded. Return to <a href="command_center">Command Center</a> and run Analyze Environment.');
+      $("#builder-generate").prop("disabled", true);
+      return;
+    }
+    if (!items.length) {
+      $("#generator-empty").text("No buildable recommendations are available. Unsupported and missing-telemetry detections remain blocked.");
+      $("#builder-generate").prop("disabled", true);
+      return;
+    }
     if (requested && items.some(function (item) { return item.detection_id === requested; })) {
       $("#builder-detection-select").val(requested);
       $("#builder-generate").prop("disabled", false);
       generateSelectedDetection();
     } else {
+      $("#generator-empty").text("Select a detection above. Telemetry-ready items can proceed normally; field gaps generate an explicitly flagged engineering draft.");
       $("#builder-generate").prop("disabled", true);
     }
   }
 
   function generateSelectedDetection() {
     var id = String($("#builder-detection-select").val() || "");
-    var item = readyRecommendations().filter(function (candidate) {
+    var item = buildableRecommendations().filter(function (candidate) {
       return candidate.detection_id === id;
     })[0];
     if (!item) { return; }
@@ -407,6 +467,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     var artifact = storedArtifact("dei-" + item.detection_id) || buildArtifact(item);
     generatedBaseline = buildArtifact(item);
+    artifact.source_readiness = item.readiness;
+    artifact.unresolved_fields = unresolvedFields(item);
+    artifact.engineering_warnings = engineeringWarnings(item);
     if (!artifact.sourcetypes || !artifact.sourcetypes.length) {
       setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
       return;
@@ -416,7 +479,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   $("#builder-detection-select").on("change", function () {
-    $("#builder-generate").prop("disabled", !$(this).val());
+    var hasSelection = !!$(this).val();
+    $("#builder-generate").prop("disabled", !hasSelection);
+    if (hasSelection) { generateSelectedDetection(); }
   });
   $("#builder-generate").on("click", generateSelectedDetection);
   $("#builder-save-draft").on("click", saveCurrentDraft);
