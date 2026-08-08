@@ -30,6 +30,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     content = root.find(".//*[@class='dei-mitre-content']")
     assert matrix is not None and inspector is not None and content is not None
     assert list(content).index(matrix) < list(content).index(inspector)
+    assert root.find(".//a[@href='detection_lifecycle']") is not None
 
 
 def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
