@@ -28,6 +28,36 @@
             <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
+                <svg id="dei-global-secops-map" class="dei-geo-map" viewBox="0 0 1200 440" preserveAspectRatio="none" aria-hidden="true">
+                  <g class="dei-geo-grid">
+                    <ellipse cx="600" cy="220" rx="520" ry="184"/><ellipse cx="600" cy="220" rx="520" ry="120"/><ellipse cx="600" cy="220" rx="520" ry="58"/>
+                    <path d="M80 220 H1120"/><path d="M600 36 C430 92 430 348 600 404"/><path d="M600 36 C770 92 770 348 600 404"/>
+                  </g>
+                  <g class="dei-geo-land">
+                    <path d="M116 103 L166 68 245 76 300 108 277 137 238 144 216 170 174 164 146 135Z"/>
+                    <path d="M261 184 L314 205 333 251 310 300 289 365 255 327 244 269 223 218Z"/>
+                    <path d="M480 106 L524 82 566 99 557 129 519 139 489 128Z"/>
+                    <path d="M523 148 L580 143 616 175 606 232 575 303 537 265 512 205Z"/>
+                    <path d="M570 91 L660 66 769 79 874 126 856 167 795 174 755 202 687 185 632 147 584 135Z"/>
+                    <path d="M832 277 L888 263 932 287 912 323 850 330 820 306Z"/>
+                  </g>
+                  <g class="dei-geo-arcs">
+                    <path d="M182 132 Q430 18 609 171"/><path d="M609 171 Q800 34 864 292"/><path d="M278 240 Q468 116 609 171"/><path d="M609 171 Q715 210 738 157"/>
+                  </g>
+                  <g class="dei-geo-points">
+                    <circle cx="182" cy="132" r="4"/><circle cx="278" cy="240" r="4"/><circle cx="609" cy="171" r="5"/><circle cx="738" cy="157" r="4"/><circle cx="864" cy="292" r="4"/>
+                  </g>
+                  <g class="dei-geo-pulses">
+                    <circle cx="182" cy="132" r="9"/><circle cx="278" cy="240" r="9"/><circle cx="609" cy="171" r="11"/><circle cx="738" cy="157" r="9"/><circle cx="864" cy="292" r="9"/>
+                  </g>
+                  <g class="dei-geo-hotspots">
+                    <g class="dei-geo-hotspot attention-low" transform="translate(182 132)"><circle class="target-halo" r="15"/><circle class="target-ring" r="9"/><path d="M-13 0 H-7 M7 0 H13 M0 -13 V-7 M0 7 V13"/></g>
+                    <g class="dei-geo-hotspot attention-medium" transform="translate(278 240)"><circle class="target-halo" r="15"/><circle class="target-ring" r="9"/><path d="M-13 0 H-7 M7 0 H13 M0 -13 V-7 M0 7 V13"/></g>
+                    <g class="dei-geo-hotspot attention-high" transform="translate(609 171)"><circle class="target-halo" r="18"/><circle class="target-ring" r="11"/><path d="M-16 0 H-9 M9 0 H16 M0 -16 V-9 M0 9 V16"/></g>
+                    <g class="dei-geo-hotspot attention-medium" transform="translate(738 157)"><circle class="target-halo" r="15"/><circle class="target-ring" r="9"/><path d="M-13 0 H-7 M7 0 H13 M0 -13 V-7 M0 7 V13"/></g>
+                    <g class="dei-geo-hotspot attention-low" transform="translate(864 292)"><circle class="target-halo" r="15"/><circle class="target-ring" r="9"/><path d="M-13 0 H-7 M7 0 H13 M0 -13 V-7 M0 7 V13"/></g>
+                  </g>
+                </svg>
                 <svg class="dei-topology-connections" viewBox="0 0 1200 440" preserveAspectRatio="none" aria-hidden="true">
                   <defs>
                     <linearGradient id="dei-topology-ingress" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#315479"/><stop offset="100%" stop-color="#5ce1c2"/></linearGradient>

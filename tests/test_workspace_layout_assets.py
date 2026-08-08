@@ -118,7 +118,19 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
         assert description in markup
     topology = shell.find(".//*[@class='dei-topology-canvas']")
     assert topology is not None
-    assert len([element for element in topology.iter() if element.tag.endswith("path")]) == 14
+    connections = topology.find(".//*[@class='dei-topology-connections']")
+    assert connections is not None
+    assert len([element for element in connections.iter() if element.tag.endswith("path")]) == 14
+    geo_map = topology.find(".//*[@id='dei-global-secops-map']")
+    assert geo_map is not None
+    assert len(geo_map.findall(".//*[@class='dei-geo-land']/*")) == 6
+    assert len(geo_map.findall(".//*[@class='dei-geo-points']/*")) == 5
+    assert len(geo_map.findall(".//*[@class='dei-geo-hotspots']/*")) == 5
+    assert ".dei-geo-map" in stylesheet
+    assert "@keyframes dei-geo-pulse" in stylesheet
+    assert "@keyframes dei-geo-arc" in stylesheet
+    assert "@keyframes dei-geo-hotspot-bloom" in stylesheet
+    assert "@keyframes dei-geo-reticle" in stylesheet
     assert shell.find(".//*[@id='dei-topology-core-count']") is not None
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None
