@@ -118,8 +118,11 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "dei.latestRecommendationReport" in bridge
     assert "dei.latestDiscoveryExport" in persistence
     assert "forceRefresh" in persistence
+    assert "window.sessionStorage" in persistence
+    assert 'discoverEnvironment(false);' not in javascript
+    assert "Run intelligence scan" in javascript
     assert "renderSavedReport" in persistence
-    assert "Data remains unchanged until Refresh environment" in persistence
+    assert "No scan data is loaded" in persistence
     assert "setGlobalRefreshState" in persistence
     assert "clearPersistedDashboard" in persistence
     assert 'CLEAR_KEY = "dei.dashboardCleared"' in persistence
