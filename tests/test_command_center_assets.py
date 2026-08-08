@@ -22,7 +22,8 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
         "dei_visual_polish_v1.css,dei_workspace_layout_v1.css"
     )
     for element_id in (
-        "dei-command-center", "dei-overview", "dei-telemetry", "dei-portfolio-section",
+        "dei-command-center", "dei-overview", "dei-home-pipeline", "dei-home-flow-title",
+        "dei-home-detection-flow", "dei-home-flow-status", "dei-telemetry", "dei-portfolio-section",
         "dei-coverage-section", "metric-understanding", "portfolio-total",
         "portfolio-field-gaps", "portfolio-unverified", "dei-refresh-environment",
         "dei-clear-environment",
