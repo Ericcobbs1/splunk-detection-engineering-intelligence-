@@ -78,7 +78,7 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "dei.latestRecommendationReport" in javascript
     assert "source_mappings" in javascript
     assert "observedSourcetypes" in javascript
-    assert "engineeringStage" in javascript
+    assert "stateFor" in javascript
     assert "nextAction" in javascript
     assert "detection_builder?detection=" in javascript
     assert "dei.selectedDetectionDraft" in javascript
