@@ -198,6 +198,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var allowed={draft:["testing"],testing:["peer_review","draft"],peer_review:["production","draft"],
       production:["monitoring","retired"],monitoring:["monitoring","tuning","retired"],tuning:["testing","retired"],retired:[]};
     if ((allowed[record.state]||[]).indexOf(to)===-1) { return $.Deferred().reject("Invalid lifecycle transition").promise(); }
+    if (to==="peer_review" && (!record.validation || record.validation.status!=="passed")) { return $.Deferred().reject("Passed validation evidence is required before peer review.").promise(); }
+    if (to==="production" && (!record.review || record.review.decision!=="approved")) { return $.Deferred().reject("Peer approval is required before production.").promise(); }
+    if (to==="production" && (!changes || !changes.deployment || !changes.deployment.external_object_id)) { return $.Deferred().reject("A deployment reference is required before production.").promise(); }
+    if (to==="monitoring" && (!changes || !changes.monitoring || !changes.monitoring.last_checked_at)) { return $.Deferred().reject("Health evidence is required before monitoring.").promise(); }
+    if (to==="retired" && (!changes || !changes.retirement || !changes.retirement.reason)) { return $.Deferred().reject("A retirement reason is required.").promise(); }
     var next=$.extend(true,{},record,changes||{},{state:to,status:to});
     next=Store.appendHistory(next,event,detail); return Store.write(next);
   }
@@ -235,15 +240,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (action==="record_deployment") {
       var target=String($("#lifecycle-deployment-target").val()||""); var external=String($("#lifecycle-external-id").val()||"").trim();
       if (!external) { $("#lifecycle-action-feedback").addClass("error").text("A deployment object ID or saved-search name is required."); return; }
-      saveAndReload(transition(record,"production","deployment_recorded",target+": "+external,{deployment:{target:target,external_object_id:external,deployed_at:new Date().toISOString(),deployed_by:Store.username(),enabled_confirmed:true}}),"Production deployment recorded."); return;
+      saveAndReload(transition(record,"production","deployment_recorded",target+": "+external,{deployment:{target:target,external_object_id:external,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded."); return;
     }
     if (action==="record_health") {
       var health=String($("#lifecycle-health").val()||"healthy"); var volume=Number($("#lifecycle-result-volume").val()||0); var runtime=Number($("#lifecycle-runtime").val()||0);
+      if (!isFinite(volume) || volume<0 || !isFinite(runtime) || runtime<0) { $("#lifecycle-action-feedback").addClass("error").text("Result volume and runtime must be non-negative numbers."); return; }
       var monitoring={health:health,result_volume:volume,runtime_ms:runtime,last_checked_at:new Date().toISOString(),checked_by:Store.username()};
       saveAndReload(transition(record,"monitoring","health_measured",health+", "+volume+" results, "+runtime+" ms",{monitoring:monitoring}),"Monitoring evidence recorded."); return;
     }
     if (action==="start_tuning") {
-      saveAndReload(transition(record,"tuning","tuning_started",comment||"Analyst initiated tuning",{version:Number(record.version||1)+1,validation:null,review:null}),"Tuning version opened."); return;
+      if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A tuning rationale is required."); return; }
+      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null}),"Tuning version opened."); return;
     }
     if (action==="retire") {
       var reason=comment; if (!reason) { $("#lifecycle-action-feedback").addClass("error").text("A retirement reason is required in Lifecycle note."); return; }
