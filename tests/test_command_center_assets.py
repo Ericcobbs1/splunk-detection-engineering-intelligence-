@@ -39,6 +39,8 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
+    lifecycle_link = root.find(".//a[@href='detection_lifecycle']")
+    assert lifecycle_link is not None
 
 
 def test_command_center_is_default_navigation_view_and_mitre_is_registered() -> None:
@@ -47,6 +49,7 @@ def test_command_center_is_default_navigation_view_and_mitre_is_registered() -> 
     assert command_center is not None
     assert command_center.attrib["default"] == "true"
     assert root.find(".//view[@name='mitre_coverage']") is not None
+    assert root.find(".//view[@name='detection_lifecycle']") is not None
 
 
 def test_command_center_static_assets_are_packaged() -> None:
