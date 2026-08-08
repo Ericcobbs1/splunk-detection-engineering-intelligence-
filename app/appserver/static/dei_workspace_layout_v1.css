@@ -409,3 +409,35 @@
   .dei-official-home .dei-home-workspace-grid{grid-template-columns:1fr}
   .dei-official-home .dei-home-hero{grid-template-columns:1fr}
 }
+
+/* Full-bleed centered topology stage; remove nested dashboard-card framing. */
+.dei-official-home>.dei-home-flow-section{display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 76px);padding:8px 0 18px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.dei-official-home>.dei-home-flow-section:before,.dei-official-home>.dei-home-flow-section:after{display:none!important}
+.dei-official-home .dei-home-flow-heading{order:0;flex:0 0 auto;min-height:86px;padding:4px 36px 10px}
+.dei-official-home .dei-home-flow-heading h2{font-size:clamp(32px,2.8vw,46px)}
+.dei-official-home .dei-home-flow-heading p:last-child{margin-top:5px}
+.dei-official-home .dei-topology-flow{order:1;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:0;margin:0!important;padding:0 16px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.dei-official-home .dei-topology-flow:before{inset:-8px 0;opacity:.35}
+.dei-official-home .dei-flow-header{position:absolute;top:104px;left:24px;z-index:8;margin:0;padding:8px 12px;border:1px solid rgba(110,168,255,.12);border-radius:999px;background:rgba(5,14,23,.72);backdrop-filter:blur(8px)}
+.dei-official-home .dei-topology-canvas{flex:1 1 auto;display:block;width:100%;min-height:clamp(560px,63vh,760px);margin:auto;border:0!important;background-color:transparent}
+.dei-official-home .dei-geo-map{inset:50%;width:98%;height:92%;transform:translate(-50%,-50%);opacity:.48}
+.dei-official-home .dei-topology-connections{top:50%;inset-inline:0;width:100%;height:86%;transform:translateY(-50%)}
+.dei-official-home .dei-flow-health-summary{order:2;flex:0 0 auto;width:min(1500px,96%);margin:4px auto 0;padding:10px 0;border-top:1px solid rgba(110,168,255,.12);border-bottom:1px solid rgba(110,168,255,.08)}
+.dei-official-home .dei-flow-health-summary article{padding:10px 18px;border:0;border-left:1px solid rgba(110,168,255,.12);border-radius:0;background:transparent;box-shadow:none}
+.dei-official-home .dei-flow-health-summary article:first-child{border-left:0}
+.dei-official-home .dei-flow-health-summary .dei-flow-health-card:after{right:auto;bottom:4px;left:18px;width:44px;height:2px}
+.dei-official-home .dei-flow-health-summary article>strong{font-size:22px}
+.dei-official-home .dei-flow-health-summary article>small{white-space:normal}
+.dei-official-home>.dei-home-hero{margin-top:20px}
+@media(max-width:1100px){
+  .dei-official-home>.dei-home-flow-section{min-height:auto;padding-top:18px!important}
+  .dei-official-home .dei-home-flow-heading{min-height:0;padding:0 18px 16px}
+  .dei-official-home .dei-flow-header{position:static;align-self:flex-start;margin:0 18px 12px}
+  .dei-official-home .dei-topology-canvas{min-height:0}
+  .dei-official-home .dei-flow-health-summary{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  .dei-official-home .dei-flow-health-summary article{border-top:1px solid rgba(110,168,255,.1)}
+}
+@media(max-width:700px){
+  .dei-official-home .dei-flow-health-summary{grid-template-columns:1fr}
+  .dei-official-home .dei-flow-health-summary article{border-left:0}
+}
