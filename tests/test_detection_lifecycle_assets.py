@@ -53,7 +53,12 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
         "builder-ready-count", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-es-state", "generator-empty",
         "generator-output", "generator-title", "generator-badges",
-        "generator-schedule", "generator-window", "generator-spl",
+        "builder-feedback", "builder-cron", "builder-earliest", "builder-latest",
+        "generator-spl", "builder-save-draft", "builder-reset-draft",
+        "builder-run-validation", "builder-validation-state",
+        "builder-validation-metrics", "validation-status",
+        "validation-result-count", "validation-runtime", "validation-time",
+        "builder-validation-results", "validation-result-head", "validation-result-body",
         "generator-es-output", "copy-generated-spl", "copy-generated-json",
         "download-generated-json",
     ):
@@ -106,6 +111,14 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "builder-detection-select" in javascript
     assert "populateDetectionSelector" in javascript
     assert "requestedDetectionId" in javascript
+    assert '"services", "search", "jobs", "export"' in javascript
+    assert "VALIDATION_RESULT_LIMIT = 25" in javascript
+    assert "VALIDATION_TIMEOUT_MS = 60000" in javascript
+    assert "earliest_time:artifact.schedule.earliest" in javascript
+    assert "latest_time:artifact.schedule.latest" in javascript
+    assert 'artifact.status = "testing"' in javascript
+    assert "sample_results:rows" in javascript
+    assert "saveCurrentDraft" in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:

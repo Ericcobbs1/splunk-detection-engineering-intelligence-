@@ -26,13 +26,24 @@
             <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Generate telemetry-scoped SPL, ATT&amp;CK mappings, a recommended cron schedule, and—when Enterprise Security is enabled—a disabled correlation-search draft with finding/notable and RBA parameters.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
             <div id="generator-empty" class="dei-generator-empty">Select a telemetry-ready recommendation above to begin. Detections with unresolved telemetry or field gaps remain blocked on the Lifecycle Overview.</div>
             <div id="generator-output" class="dei-generator-output" style="display:none">
-              <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
-              <div class="dei-generator-meta"><div><span>Recommended cron</span><strong id="generator-schedule">—</strong></div><div><span>Search window</span><strong id="generator-window">—</strong></div></div>
+              <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="builder-save-draft" type="button">Save draft</button><button id="builder-reset-draft" type="button">Reset generated values</button><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
+              <div id="builder-feedback" class="dei-builder-feedback" role="status" aria-live="polite">Generated draft is ready for review.</div>
+              <div class="dei-builder-editor-meta">
+                <label><span>Cron schedule</span><input id="builder-cron" type="text" spellcheck="false" /></label>
+                <label><span>Earliest time</span><input id="builder-earliest" type="text" spellcheck="false" /></label>
+                <label><span>Latest time</span><input id="builder-latest" type="text" spellcheck="false" /></label>
+              </div>
               <div class="dei-generator-grid">
-                <article><span class="dei-generator-label">Generated SPL</span><pre id="generator-spl"></pre></article>
+                <article><label class="dei-generator-label" for="generator-spl">Detection SPL</label><textarea id="generator-spl" spellcheck="false" aria-describedby="builder-validation-help"></textarea><small id="builder-validation-help">Validation runs this SPL as an authenticated, bounded historical search and returns at most 25 result rows.</small></article>
                 <article><span class="dei-generator-label">Enterprise Security configuration</span><div id="generator-es-output"></div></article>
               </div>
-              <p class="dei-generator-safety">Generated artifacts are saved locally as Draft. DEI does not enable or deploy detections without analyst review.</p>
+              <section class="dei-validation-workspace" aria-labelledby="builder-validation-title">
+                <div class="dei-validation-heading"><div><span class="dei-generator-label">Historical validation</span><h3 id="builder-validation-title">Test against Splunk telemetry</h3><p>Runs only the selected draft, applies a hard result cap, and records evidence in the local lifecycle artifact.</p></div><button id="builder-run-validation" type="button">Run validation</button></div>
+                <div id="builder-validation-state" class="dei-validation-state idle">Not run</div>
+                <div id="builder-validation-metrics" class="dei-validation-metrics" style="display:none"><div><span>Status</span><strong id="validation-status">—</strong></div><div><span>Results</span><strong id="validation-result-count">0</strong></div><div><span>Runtime</span><strong id="validation-runtime">—</strong></div><div><span>Validated</span><strong id="validation-time">—</strong></div></div>
+                <div id="builder-validation-results" class="dei-validation-results" style="display:none"><table><thead id="validation-result-head"></thead><tbody id="validation-result-body"></tbody></table></div>
+              </section>
+              <p class="dei-generator-safety">Drafts and validation evidence are saved in this browser. DEI does not enable or deploy detections without analyst review.</p>
             </div>
           </section>
 
