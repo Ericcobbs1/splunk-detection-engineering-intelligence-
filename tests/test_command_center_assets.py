@@ -128,7 +128,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'CLEAR_KEY = "dei.dashboardCleared"' in persistence
     assert "activeEnvironmentRequests" in persistence
     assert "request.abort()" in persistence
-    assert 'window.localStorage.removeItem(key)' in persistence
+    assert 'window.sessionStorage.removeItem(key)' in persistence
     assert '$(document).trigger("dei:environment-cleared")' in persistence
     assert '$(document).trigger("dei:environment-refresh-started")' in persistence
     assert '$(document).trigger("dei:environment-refreshed", [payload])' in persistence
