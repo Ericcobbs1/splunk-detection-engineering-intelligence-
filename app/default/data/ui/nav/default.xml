@@ -3,6 +3,7 @@
   <collection label="Intelligence">
     <view name="command_center" />
     <view name="mitre_coverage" />
+    <view name="detection_lifecycle" />
   </collection>
   <collection label="Splunk">
     <view name="search" />
