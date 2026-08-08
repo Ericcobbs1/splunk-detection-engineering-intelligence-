@@ -114,6 +114,12 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "mitre_attack_framework" in javascript
     assert "mitre_attack_technique_id" in javascript
     assert "mitre_attack_mapping_status" in javascript
+    assert "mitre_attack_technique_name" in javascript
+    assert "mitre_attack_subtechnique_id" in javascript
+    assert "mitre_attack_subtechnique_name" in javascript
+    assert "mitre_attack_tactic_name" in javascript
+    assert "mitre_attack_platform" in javascript
+    assert "mitre_attack_detection_guidance" in javascript
     assert '+ "\\n" + platformMitreMetadata(item)' in javascript
     assert "mitre_attack:item.mitre_techniques" in javascript
     assert 'cron:"*/5 * * * *"' in javascript
