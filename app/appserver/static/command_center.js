@@ -326,7 +326,7 @@ require([
   }
 
   function resetAnalyzeButton() {
-    $("#dei-analyze").prop("disabled", false).text("Analyze environment");
+    $("#dei-analyze").prop("disabled", false).text("Run intelligence scan");
   }
 
   function runRecommendations(sources, indexCount, fieldsBySource, profilingFailures) {
@@ -426,5 +426,6 @@ require([
       setStatus("API status: awaiting analysis", false);
     });
 
-  discoverEnvironment(false);
+  $("#dei-sources").val("");
+  $("#dei-feedback").text("No scan data is loaded. Select Run intelligence scan to analyze this Splunk environment.");
 });
