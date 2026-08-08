@@ -81,7 +81,7 @@
               </aside>
             </div>
 
-            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Data refreshes only when you select <strong>Refresh environment</strong> or intentionally run a new analysis.</div>
+            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Select <strong>Refresh environment</strong> to replace it with fresh analysis, or <strong>Clear dashboard</strong> to remove it before another query.</div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>
