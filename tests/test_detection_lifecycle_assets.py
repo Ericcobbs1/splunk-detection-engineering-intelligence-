@@ -15,9 +15,9 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js"
+    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_workspace_layout_v1.js"
     assert root.attrib["stylesheet"] == (
-        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css"
+        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css"
     )
     for element_id in (
         "dei-lifecycle-page", "lifecycle-data-status", "lifecycle-analysis-age",
@@ -48,9 +48,10 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
     builder = ElementTree.parse(BUILDER_PATH).getroot()
     assert builder.tag == "form"
     assert builder.attrib["theme"] == "dark"
-    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,detection_query_generator_v2.js"
+    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,detection_query_generator_v2.js,dei_workspace_layout_v1.js"
     assert builder.attrib["stylesheet"] == (
-        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css"
+        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,"
+        "dei_workspace_layout_v1.css"
     )
     for element_id in (
         "dei-detection-builder-page", "lifecycle-workspace-menu",
@@ -96,6 +97,9 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "workflowProgress" in javascript
     assert "gateGuidance" in javascript
     assert "renderGateGuide" in javascript
+    assert "renderPipelineState" in javascript
+    assert "activatePipelineStage" in javascript
+    assert "data-pipeline-state" in javascript
     assert "Record deployment and enter Production" in javascript
     assert "Record baseline and start Monitoring" in javascript
     assert ".dei-pipeline-grid" in stylesheet

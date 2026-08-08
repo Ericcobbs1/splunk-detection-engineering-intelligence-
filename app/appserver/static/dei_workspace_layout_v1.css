@@ -1,0 +1,116 @@
+/* DEI analyst workspace controls and state-aware motion. */
+.dei-workspace-controls{display:flex;align-items:center;gap:8px;margin-left:auto}
+.dei-workspace-controls>span{color:#7f95a9;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.dei-view-mode{display:flex;overflow:hidden;border:1px solid rgba(168,190,214,.2);border-radius:9px;background:#07101a}
+.dei-view-mode button,.dei-density-toggle{min-height:32px;border:0;background:transparent;color:#91a6b8;padding:0 10px;font-family:inherit;font-size:10px;font-weight:750;cursor:pointer}
+.dei-view-mode button+button{border-left:1px solid rgba(168,190,214,.14)}
+.dei-view-mode button:hover,.dei-view-mode button:focus-visible,.dei-density-toggle:hover,.dei-density-toggle:focus-visible{color:#e2ebf3;outline:0}
+.dei-view-mode button.active{background:rgba(92,225,194,.11);color:#79e8cd;box-shadow:inset 0 -2px #5ce1c2}
+.dei-density-toggle{border:1px solid rgba(168,190,214,.18);border-radius:9px;background:#08131f;white-space:nowrap}
+.dei-density-toggle.active{border-color:rgba(110,168,255,.35);color:#afd0ff}
+
+/* State-aware detection pipeline. */
+.dei-pipeline-grid .dei-pipeline-stage{isolation:isolate;cursor:pointer;transition:border-color .22s ease,background .22s ease,box-shadow .22s ease,transform .22s ease}
+.dei-pipeline-grid .dei-pipeline-stage:hover,.dei-pipeline-grid .dei-pipeline-stage:focus-visible{z-index:4;border-color:rgba(110,168,255,.5);outline:0;transform:translateY(-2px)}
+.dei-pipeline-grid .dei-pipeline-stage:after{content:"";display:block;position:absolute;top:68px;right:-9px;z-index:3;width:10px;height:2px;background:#364b5f}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="complete"]{border-color:rgba(77,214,168,.32);background:linear-gradient(145deg,rgba(18,43,43,.72),#09121d)}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="complete"] strong{color:#75e4c4}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="complete"]:after{background:linear-gradient(90deg,#3e806f,#72e8cb,#3e806f);background-size:200% 100%;animation:dei-pipeline-flow 1.8s linear infinite}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="current"]{border-color:rgba(110,168,255,.58);background:radial-gradient(circle at 85% 18%,rgba(110,168,255,.18),transparent 36%),#0a1521;box-shadow:0 0 0 2px rgba(110,168,255,.06),0 12px 30px rgba(0,0,0,.22)}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="current"]>span{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:#173250;color:#cfe3ff;animation:dei-current-stage 2s ease-in-out infinite}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="blocked"]{border-color:rgba(245,191,106,.3);opacity:.86}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="blocked"] strong{color:#f5bf6a}
+.dei-pipeline-grid .dei-pipeline-stage[data-pipeline-state="upcoming"]{border-style:dashed;opacity:.67}
+.dei-pipeline-grid .dei-pipeline-stage:last-child:after{display:none}
+@keyframes dei-pipeline-flow{to{background-position:-200% 0}}
+@keyframes dei-current-stage{0%,100%{box-shadow:0 0 0 0 rgba(110,168,255,.25)}50%{box-shadow:0 0 0 8px rgba(110,168,255,0)}}
+
+/* Lifecycle analyst workspace. */
+#dei-lifecycle-page:not(.dei-builder-page){display:flex;flex-direction:column}
+#dei-lifecycle-page>.dei-product-bar{order:0}
+#dei-lifecycle-page>.dei-lifecycle-hero{order:1}
+#dei-lifecycle-page>.dei-lifecycle-metrics{order:2}
+#dei-lifecycle-page>.dei-pipeline-section{order:3}
+#dei-lifecycle-page>.dei-state-section{order:4}
+#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:5}
+.dei-lifecycle-workspace-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.dei-lifecycle-workspace-grid.has-selection{grid-template-columns:minmax(640px,1.3fr) minmax(420px,.7fr);align-items:start}
+.dei-lifecycle-workspace-grid>.dei-lifecycle-section{min-width:0;margin-top:14px}
+.dei-lifecycle-workspace-grid.has-selection .dei-action-center{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:3}
+#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-pipeline-section{order:4}
+#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-state-section{order:5}
+#dei-lifecycle-page[data-dei-workspace-mode="coverage"]>.dei-pipeline-section{order:3}
+#dei-lifecycle-page[data-dei-workspace-mode="coverage"]>.dei-state-section{order:4}
+#dei-lifecycle-page[data-dei-workspace-mode="coverage"]>.dei-lifecycle-workspace-grid{order:5}
+#dei-lifecycle-page[data-dei-workspace-mode="engineering"]>.dei-pipeline-section{order:3}
+#dei-lifecycle-page[data-dei-workspace-mode="engineering"]>.dei-lifecycle-workspace-grid{order:4}
+#dei-lifecycle-page[data-dei-workspace-mode="engineering"]>.dei-state-section{order:5}
+
+/* Command Center focus modes. */
+#dei-command-center{display:flex;flex-direction:column}
+#dei-command-center>.dei-product-bar{order:0}
+#dei-command-center>.dei-hero{order:1}
+#dei-command-center>.dei-metrics{order:2}
+#dei-command-center>#dei-portfolio-section{order:3}
+#dei-command-center>#dei-coverage-section{order:4}
+#dei-command-center>#dei-telemetry{order:5}
+#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-coverage-section{order:3}
+#dei-command-center[data-dei-workspace-mode="coverage"]>#dei-portfolio-section{order:4}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-telemetry{order:3}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-portfolio-section{order:4}
+#dei-command-center[data-dei-workspace-mode="engineering"]>#dei-coverage-section{order:5}
+
+/* MITRE focus modes. */
+#dei-mitre-page[data-dei-workspace-mode="analyst"] .dei-mitre-layout{grid-template-columns:330px minmax(0,1fr);height:auto;min-height:680px}
+#dei-mitre-page[data-dei-workspace-mode="analyst"] .dei-mitre-content{grid-template-columns:minmax(0,1fr) minmax(330px,390px);grid-template-rows:minmax(650px,1fr);overflow:visible}
+#dei-mitre-page[data-dei-workspace-mode="analyst"] .dei-mitre-inspector{position:sticky;top:12px;max-height:calc(100vh - 24px)}
+#dei-mitre-page[data-dei-workspace-mode="coverage"] .dei-mitre-layout{grid-template-columns:280px minmax(0,1fr)}
+#dei-mitre-page[data-dei-workspace-mode="coverage"] .dei-mitre-content{grid-template-rows:minmax(430px,1fr) minmax(260px,340px)}
+#dei-mitre-page[data-dei-workspace-mode="engineering"] .dei-mitre-layout{grid-template-columns:360px minmax(0,1fr);height:auto}
+#dei-mitre-page[data-dei-workspace-mode="engineering"] .dei-mitre-content{grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:minmax(650px,1fr);overflow:visible}
+#dei-mitre-page[data-dei-workspace-mode="engineering"] .dei-mitre-advisor{position:sticky;top:12px;max-height:calc(100vh - 24px)}
+#dei-mitre-page[data-dei-workspace-mode="engineering"] .dei-mitre-inspector{position:sticky;top:12px;max-height:calc(100vh - 24px)}
+
+/* Builder: editor first, context sticky, actions always reachable. */
+#dei-detection-builder-page{display:flex;flex-direction:column}
+#dei-detection-builder-page>.dei-product-bar{order:0}
+#dei-detection-builder-page>.dei-builder-hero{order:1}
+#dei-detection-builder-page>.dei-builder-selector-section{order:2}
+#dei-detection-builder-page>#detection-generator{order:3}
+#dei-detection-builder-page>.dei-lifecycle-capabilities{order:4}
+#dei-detection-builder-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-capabilities{order:5}
+#dei-detection-builder-page[data-dei-workspace-mode="engineering"] .dei-generator-grid{grid-template-columns:minmax(0,1.65fr) minmax(340px,.35fr)}
+#dei-detection-builder-page .dei-generator-grid>article:nth-child(2){position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}
+#dei-detection-builder-page .dei-generator-heading{position:sticky;top:0;z-index:8;margin:-20px -20px 0;padding:16px 20px;border-bottom:1px solid rgba(168,190,214,.14);background:rgba(9,16,25,.95);backdrop-filter:blur(12px)}
+
+/* Density preference. */
+.dei-shell[data-dei-density="compact"] .dei-lifecycle-section{padding:15px}
+.dei-shell[data-dei-density="compact"] .dei-lifecycle-hero,.dei-shell[data-dei-density="compact"] .dei-builder-hero{padding:22px 24px}
+.dei-shell[data-dei-density="compact"] .dei-lifecycle-metrics article{min-height:94px;padding:12px}
+.dei-shell[data-dei-density="compact"] .dei-pipeline-grid article{min-height:138px;padding:11px}
+.dei-shell[data-dei-density="compact"] .dei-state-grid article{min-height:86px;padding:10px}
+.dei-shell[data-dei-density="compact"] .dei-env-detail-card,.dei-shell[data-dei-density="compact"] .dei-env-summary-section{padding:14px}
+
+@media(max-width:1350px){
+  .dei-workspace-controls>span{display:none}
+  .dei-lifecycle-workspace-grid.has-selection{grid-template-columns:1fr}
+  .dei-lifecycle-workspace-grid.has-selection .dei-action-center{position:static;max-height:none}
+  #dei-mitre-page[data-dei-workspace-mode] .dei-mitre-content{grid-template-columns:1fr;grid-template-rows:minmax(430px,1fr) minmax(280px,360px)}
+  #dei-mitre-page[data-dei-workspace-mode] .dei-mitre-inspector{position:static;max-height:none}
+}
+@media(max-width:1050px){
+  .dei-product-bar{flex-wrap:wrap}
+  .dei-workspace-controls{order:4;width:100%;margin-left:0}
+  .dei-density-toggle{margin-left:auto}
+  #dei-mitre-page[data-dei-workspace-mode] .dei-mitre-layout{grid-template-columns:1fr;height:auto}
+  #dei-mitre-page[data-dei-workspace-mode] .dei-mitre-advisor{position:static;max-height:520px}
+}
+@media(max-width:700px){
+  .dei-workspace-controls{align-items:stretch;flex-direction:column}
+  .dei-view-mode{display:grid;grid-template-columns:repeat(3,1fr)}
+  .dei-density-toggle{width:100%;margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .dei-pipeline-grid .dei-pipeline-stage,.dei-pipeline-grid .dei-pipeline-stage:after,.dei-pipeline-grid .dei-pipeline-stage>span{animation:none!important;transition:none!important}
+}

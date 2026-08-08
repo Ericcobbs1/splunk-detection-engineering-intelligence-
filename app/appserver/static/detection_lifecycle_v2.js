@@ -75,6 +75,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function countState(state) { return records.filter(function (record) { return record.state===state; }).length; }
+  function renderPipelineState(signals) {
+    var stages=["discover","profile","qualify","recommend","design","generate","validate"];
+    var firstIncomplete=-1;
+    stages.some(function (stage,index) {
+      if (!signals[stage]) { firstIncomplete=index; return true; }
+      return false;
+    });
+    stages.forEach(function (stage,index) {
+      var state=signals[stage]?"complete":(index===firstIncomplete?"current":"upcoming");
+      if (state==="current" && ((stage==="qualify" && signals.qualificationBlocked) ||
+          (stage==="design" && signals.designBlocked) || (stage==="validate" && signals.validationBlocked))) {
+        state="blocked";
+      }
+      var card=$('.dei-pipeline-stage[data-stage="'+stage+'"]');
+      var metric=card.find("strong").text();
+      var status=state==="complete"?"complete":state==="blocked"?"blocked by evidence":"next stage";
+      card.attr("data-pipeline-state",state).attr("aria-label",label(stage)+": "+metric+", "+status)
+        .attr("title",label(stage)+" · "+metric+" · "+status);
+    });
+  }
+
   function renderMetrics() {
     var items=recommendations();
     var sources=Number(report && report.observed_source_count||0);
@@ -91,6 +112,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#stage-qualify").text(verified+" verified"); $("#stage-recommend").text(items.length+" use cases");
     $("#stage-design").text(records.length+" designed"); $("#stage-generate").text(records.length+" SPL");
     $("#stage-validate").text(passed+" passed");
+    var failed=records.filter(function (record) { return record.validation && record.validation.status==="failed"; }).length;
+    renderPipelineState({
+      discover:!!report && sources>0,
+      profile:verified>0,
+      qualify:verified>0,
+      recommend:items.length>0,
+      design:records.length>0,
+      generate:records.length>0,
+      validate:passed>0,
+      qualificationBlocked:!!report && items.length>0 && verified===0,
+      designBlocked:items.length>0 && ready===0,
+      validationBlocked:failed>0 && passed===0
+    });
     $("#state-draft").text(countState("draft")); $("#state-testing").text(countState("testing"));
     $("#state-review").text(countState("peer_review")); $("#state-production").text(countState("production"));
     $("#state-monitoring").text(countState("monitoring")); $("#state-tuning").text(countState("tuning"));
@@ -221,6 +255,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function selectRecord(key) {
     selectedRecord=records.filter(function (record) { return recordKey(record)===key; })[0]||null;
     if (!selectedRecord) { return; }
+    $(".dei-lifecycle-workspace-grid").addClass("has-selection");
     $("#lifecycle-action-center").show(); $("#lifecycle-action-title").text(selectedRecord.name);
     $("#lifecycle-action-state").text(label(selectedRecord.state)+" · v"+(selectedRecord.version||1));
     $("#lifecycle-action-summary").text(nextAction(selectedRecord,selectedRecord));
@@ -312,6 +347,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!Store) { $("#lifecycle-data-status").text("Lifecycle store unavailable").addClass("unhealthy"); return; }
     reloadRecords();
   }
+
+  function activatePipelineStage(card) {
+    var state=String(card.data("filter-state")||"all");
+    $("#lifecycle-stage").val(state);
+    renderQueue();
+    document.querySelector(".dei-lifecycle-queue-section").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  $(".dei-pipeline-grid").on("click",".dei-pipeline-stage",function () { activatePipelineStage($(this)); });
+  $(".dei-pipeline-grid").on("keydown",".dei-pipeline-stage",function (event) {
+    if (event.key==="Enter" || event.key===" ") { activatePipelineStage($(this)); event.preventDefault(); }
+  });
 
   $("#lifecycle-work-queue").on("click",".dei-generate-detection",function () {
     var id=String($(this).data("detection")||""); window.localStorage.setItem(SELECTED_DETECTION_KEY,id);
