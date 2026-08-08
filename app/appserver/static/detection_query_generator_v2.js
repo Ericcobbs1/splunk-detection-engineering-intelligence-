@@ -162,6 +162,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return {cron:"*/15 * * * *", earliest:"-20m@m", latest:"-2m@m"};
   }
 
+  function platformMitreMetadata(item) {
+    var techniques = item.mitre_techniques || [];
+    var techniqueValue = techniques.length ?
+      "split(" + quote(techniques.join(",")) + ', ",")' : quote("Unmapped");
+    return "| eval dei_detection_id=" + quote(item.detection_id) +
+      ", dei_detection_name=" + quote(item.name) +
+      ", mitre_attack_framework=" + quote("MITRE ATT&CK") +
+      ", mitre_attack_technique_id=" + techniqueValue +
+      ", mitre_attack_mapping_status=" + quote(techniques.length ? "mapped" : "unmapped");
+  }
+
   function readinessLabel(value) {
     var labels = {
       production_ready:"Telemetry ready",
@@ -200,7 +211,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var sources = observedSourcetypes(item, report);
     var timing = schedule(item);
     var spl = "search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
-      "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item);
+      "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item) + "\n" + platformMitreMetadata(item);
     var esEnabled = window.localStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     return {
@@ -346,7 +357,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function resultColumns(rows) {
-    var preferred = ["_time", "user", "src_ip", "dest_ip", "host", "action", "count"];
+    var preferred = ["_time", "user", "src_ip", "dest_ip", "host", "action", "count",
+      "dei_detection_id", "dei_detection_name", "mitre_attack_technique_id", "mitre_attack_mapping_status"];
     var found = {};
     rows.forEach(function (row) { Object.keys(row || {}).forEach(function (key) { found[key] = true; }); });
     return preferred.filter(function (key) { return found[key]; }).concat(
