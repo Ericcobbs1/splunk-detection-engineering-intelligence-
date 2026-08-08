@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("command_center", "mitre_coverage", "detection_lifecycle", "detection_builder"):
+    for view in ("dei_home", "command_center", "mitre_coverage", "detection_lifecycle", "detection_builder"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
@@ -73,25 +73,26 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
     assert "position:sticky" in stylesheet
 
 
-def test_command_center_pipeline_is_immediately_visible_and_data_driven() -> None:
+def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
-    shell = command_center.find(".//*[@id='dei-command-center']")
+    home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
     children = list(shell)
     ids = [child.attrib.get("id") for child in children]
     pipeline_index = ids.index("dei-home-pipeline")
-    metrics_index = next(
-        index for index, child in enumerate(children)
-        if "dei-metrics" in child.attrib.get("class", "").split()
-    )
     hero_index = next(
         index for index, child in enumerate(children)
-        if "dei-hero" in child.attrib.get("class", "").split()
+        if "dei-home-hero" in child.attrib.get("class", "").split()
     )
-    assert hero_index < pipeline_index < metrics_index
+    workspaces_index = next(
+        index for index, child in enumerate(children)
+        if "dei-home-workspaces" in child.attrib.get("class", "").split()
+    )
+    assert hero_index < pipeline_index < workspaces_index
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
-    assert "#dei-command-center>.dei-home-flow-section{order:2}" in stylesheet
-    assert "#dei-command-center>.dei-metrics{order:3}" in stylesheet
-    assert ".dei-home-flow-heading" in stylesheet
+    assert ".dei-official-home>.dei-home-flow-section{order:2" in stylesheet
+    assert ".dei-home-workspace-grid" in stylesheet
+    command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
+    assert command_center.find(".//*[@id='dei-home-pipeline']") is None
