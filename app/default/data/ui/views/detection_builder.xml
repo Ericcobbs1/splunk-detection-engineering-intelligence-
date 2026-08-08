@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="detection_query_generator_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css">
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_query_generator_v2.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css">
   <label>Detection Builder</label>
   <description>Generate reviewable platform SPL and Enterprise Security detection drafts from qualified telemetry.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -38,12 +38,12 @@
                 <article><span class="dei-generator-label">Enterprise Security configuration</span><div id="generator-es-output"></div></article>
               </div>
               <section class="dei-validation-workspace" aria-labelledby="builder-validation-title">
-                <div class="dei-validation-heading"><div><span class="dei-generator-label">Historical validation</span><h3 id="builder-validation-title">Test against Splunk telemetry</h3><p>Runs only the selected draft, applies a hard result cap, and records evidence in the local lifecycle artifact.</p></div><button id="builder-run-validation" type="button">Run validation</button></div>
+                <div class="dei-validation-heading"><div><span class="dei-generator-label">Historical validation</span><h3 id="builder-validation-title">Test against Splunk telemetry</h3><p>Runs only the selected draft, applies a hard result cap, and records evidence in the shared lifecycle record.</p></div><button id="builder-run-validation" type="button">Run validation</button></div>
                 <div id="builder-validation-state" class="dei-validation-state idle">Not run</div>
                 <div id="builder-validation-metrics" class="dei-validation-metrics" style="display:none"><div><span>Status</span><strong id="validation-status">—</strong></div><div><span>Results</span><strong id="validation-result-count">0</strong></div><div><span>Runtime</span><strong id="validation-runtime">—</strong></div><div><span>Validated</span><strong id="validation-time">—</strong></div></div>
                 <div id="builder-validation-results" class="dei-validation-results" style="display:none"><table><thead id="validation-result-head"></thead><tbody id="validation-result-body"></tbody></table></div>
               </section>
-              <p class="dei-generator-safety">Drafts and validation evidence are saved in this browser. DEI does not enable or deploy detections without analyst review.</p>
+              <p class="dei-generator-safety">Drafts and validation evidence are persisted in the shared DEI lifecycle store. DEI does not enable or deploy detections without analyst review.</p>
             </div>
           </section>
 

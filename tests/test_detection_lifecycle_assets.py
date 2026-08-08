@@ -15,7 +15,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "detection_lifecycle_v1.js"
+    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css"
     )
@@ -29,6 +29,10 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "state-monitoring", "state-tuning", "state-retired",
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
         "lifecycle-queue-count", "lifecycle-work-queue", "lifecycle-workspace-menu",
+        "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
+        "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
+        "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
+        "lifecycle-action-history",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -44,7 +48,7 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
     builder = ElementTree.parse(BUILDER_PATH).getroot()
     assert builder.tag == "form"
     assert builder.attrib["theme"] == "dark"
-    assert builder.attrib["script"] == "detection_query_generator_v1.js"
+    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,detection_query_generator_v2.js"
     assert builder.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css"
     )
@@ -68,20 +72,27 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
 
 
 def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
-    javascript = (STATIC_ROOT / "detection_lifecycle_v1.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
     framework = FRAMEWORK_PATH.read_text(encoding="utf-8")
     assert "dei.latestRecommendationReport" in javascript
     assert "source_mappings" in javascript
     assert "observedSourcetypes" in javascript
-    assert "engineeringStage" in javascript
+    assert "stateFor" in javascript
     assert "nextAction" in javascript
     assert "detection_builder?detection=" in javascript
     assert "dei.selectedDetectionDraft" in javascript
-    assert "dei.detectionDraftArtifacts" in javascript
-    assert '$("#life-spl-generated").text(generated)' in javascript
-    assert '$("#stage-generate").text(generated + " SPL")' in javascript
-    assert '$("#stage-validate").text("0 passed")' in javascript
+    assert "DEILifecycleStore" in javascript
+    assert '$("#life-spl-generated").text(records.length)' in javascript
+    assert '$("#stage-generate").text(records.length+" SPL")' in javascript
+    assert '$("#stage-validate").text(passed+" passed")' in javascript
+    assert "mergedQueue" in javascript
+    assert "submit_review" in javascript
+    assert "approve_review" in javascript
+    assert "record_deployment" in javascript
+    assert "record_health" in javascript
+    assert "start_tuning" in javascript
+    assert "detection_retired" in javascript
     assert ".dei-pipeline-grid" in stylesheet
     assert ".dei-state-grid" in stylesheet
     assert ".dei-lifecycle-table" in stylesheet
@@ -95,10 +106,21 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
 
 
 def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
-    javascript = (STATIC_ROOT / "detection_query_generator_v1.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     assert "production_ready" in javascript
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
+    assert "platformMitreMetadata" in javascript
+    assert "mitre_attack_framework" in javascript
+    assert "mitre_attack_technique_id" in javascript
+    assert "mitre_attack_mapping_status" in javascript
+    assert "mitre_attack_technique_name" in javascript
+    assert "mitre_attack_subtechnique_id" in javascript
+    assert "mitre_attack_subtechnique_name" in javascript
+    assert "mitre_attack_tactic_name" in javascript
+    assert "mitre_attack_platform" in javascript
+    assert "mitre_attack_detection_guidance" in javascript
+    assert '+ "\\n" + platformMitreMetadata(item)' in javascript
     assert "mitre_attack:item.mitre_techniques" in javascript
     assert 'cron:"*/5 * * * *"' in javascript
     assert "SplunkEnterpriseSecuritySuite" in javascript
