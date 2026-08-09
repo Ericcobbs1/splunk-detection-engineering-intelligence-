@@ -14,7 +14,8 @@ def test_every_catalog_detection_has_an_explicit_analytic_family() -> None:
     missing = [item["id"] for item in catalog if f'"{item["id"]}"' not in family_block]
     assert missing == []
     assert 'return ANALYTIC_FAMILIES[id]||"unsupported"' in generator
-    assert 'dei_generation_blocker="No explicit analytic template exists' in generator
+    assert "dei_generation_blocker=" in generator
+    assert "No explicit analytic template exists for this detection ID" in generator
 
 
 def test_detection_templates_preserve_entities_and_correct_source_semantics() -> None:
