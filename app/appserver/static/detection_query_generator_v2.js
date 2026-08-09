@@ -84,27 +84,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function analyticFamily(id){return ANALYTIC_FAMILIES[id]||"unsupported";}
 
   function normalizedPrelude(item) {
-    var id = item.detection_id;
+    var id=item.detection_id;
     if (/password-spray|mfa-failure|ssh-bruteforce/.test(id)) {
-      return "| eval user=coalesce(user, TargetUserName, user_name, src_user, 'actor.alternateId'), src_ip=coalesce(src_ip, IpAddress, source_ip, client_ip), action=lower(coalesce(action, status, result, 'outcome.result'))";
+      return "| eval user=coalesce(user,TargetUserName,user_name,src_user,'actor.alternateId'), src_ip=coalesce(src_ip,IpAddress,source_ip,client_ip), action=lower(coalesce(action,status,result,'outcome.result'))";
     }
-    if (id === "windows-kerberoasting") {
+    if (id==="windows-kerberoasting") {
       return "| eval user=coalesce(user,TargetUserName,UserName), src_ip=coalesce(src_ip,IpAddress,ClientAddress), service_name=coalesce(ServiceName,service_name), encryption=lower(tostring(coalesce(TicketEncryptionType,ticket_encryption_type)))";
     }
     if (/powershell/.test(id)) {
-      return "| eval user=coalesce(user, UserName), process=coalesce(process_name, Image, file_name), command_line=coalesce(command_line, CommandLine, process_command_line, ScriptBlockText)";
+      return "| eval user=coalesce(user,UserName), process=coalesce(process_name,Image,file_name), command_line=coalesce(command_line,CommandLine,process_command_line,ScriptBlockText)";
     }
     if (/dns/.test(id)) {
-      return "| eval query=coalesce(query, query_name, domain), src_ip=coalesce(src_ip, client_ip), answer=coalesce(answer, response, dest_ip)";
+      return "| eval query=coalesce(query,query_name,domain), src_ip=coalesce(src_ip,client_ip), answer=coalesce(answer,response,dest_ip)";
     }
     if (/firewall/.test(id)) {
-      return "| eval src_ip=coalesce(src_ip, source_ip), dest_ip=coalesce(dest_ip, destination_ip), dest_port=coalesce(dest_port, destination_port), action=lower(coalesce(action, result))";
+      return "| eval src_ip=coalesce(src_ip,source_ip), dest_ip=coalesce(dest_ip,destination_ip), dest_port=tonumber(coalesce(dest_port,destination_port)), action=lower(coalesce(action,result))";
     }
     if (/web-anomalous/.test(id)) {
-      return "| eval method=upper(coalesce(method, http_method)), uri=coalesce(uri, uri_path, url, request_uri), src_ip=coalesce(src_ip, clientip, client_ip), bytes_out=tonumber(coalesce(bytes_out,bytes_sent,response_bytes,sc_bytes))";
+      return "| eval method=upper(coalesce(method,http_method)), uri=coalesce(uri,uri_path,url,request_uri), src_ip=coalesce(src_ip,clientip,client_ip), bytes_out=tonumber(coalesce(bytes_out,bytes_sent,response_bytes,sc_bytes))";
     }
     if (/iam|cloudtrail|s3/.test(id)) {
-      return "| eval action=coalesce(eventName, event_name), user=coalesce('userIdentity.arn','userIdentity.userName','userIdentity.sessionContext.sessionIssuer.userName',user_arn,user), src_ip=coalesce(sourceIPAddress,src_ip), object=coalesce('requestParameters.bucketName',bucket_name,bucket)";
+      return "| eval action=coalesce(eventName,event_name), user=coalesce('userIdentity.arn','userIdentity.userName','userIdentity.sessionContext.sessionIssuer.userName',user_arn,user), src_ip=coalesce(sourceIPAddress,src_ip), object=coalesce('requestParameters.bucketName',bucket_name,bucket)";
     }
     if (/guardduty/.test(id)) {
       return "| eval numeric_severity=tonumber(coalesce(severity,Severity)), account=coalesce(accountId,account_id), resource=coalesce('resource.resourceType',resourceType,resource_type), finding_type=coalesce(type,Type), finding_title=coalesce(title,Title)";
@@ -119,68 +119,68 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function analyticLogic(item) {
-    var id = item.detection_id;
-    if (id === "windows-password-spray") {
-      return "| where EventCode=4625 OR event_id=4625\n| bin _time span=5m\n| stats count dc(user) AS targeted_accounts values(user) AS users by _time src_ip\n| where count>=10 AND targeted_accounts>=5";
+    var id=item.detection_id;
+    if (id==="windows-password-spray") {
+      return "| where EventCode=4625 OR event_id=4625\n| fillnull value=\"unknown\" user src_ip\n| bin _time span=5m\n| stats count dc(user) AS targeted_accounts values(user) AS users by _time src_ip\n| where count>=10 AND targeted_accounts>=5";
     }
-    if (id === "windows-kerberoasting") {
-      return "| where EventCode=4769 OR event_id=4769\n| eval encryption=coalesce(TicketEncryptionType,ticket_encryption_type)\n| where encryption IN (\"0x17\",\"23\")\n| stats count dc(ServiceName) AS services values(ServiceName) AS service_names by user src_ip\n| where count>=5";
+    if (id==="windows-kerberoasting") {
+      return "| where EventCode=4769 OR event_id=4769\n| where encryption IN (\"0x17\",\"23\")\n| fillnull value=\"unknown\" user src_ip service_name\n| stats count dc(service_name) AS services values(service_name) AS service_names earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=5";
     }
     if (/powershell/.test(id)) {
-      return "| where match(lower(command_line), \"(-enc\\\\s|encodedcommand|frombase64string|invoke-expression|downloadstring|hidden)\")\n| table _time host user process command_line";
+      return "| where match(lower(command_line),\"(-enc\\\\s|encodedcommand|frombase64string|invoke-expression|downloadstring|hidden)\")\n| table _time host user process command_line";
     }
     if (/mfa-failure|ssh-bruteforce/.test(id)) {
-      return "| where match(action, \"fail|deny|reject|invalid\")\n| bin _time span=5m\n| stats count dc(user) AS targeted_accounts values(user) AS users by _time src_ip\n| where count>=10";
+      return "| where match(action,\"fail|deny|reject|invalid\")\n| fillnull value=\"unknown\" user src_ip\n| bin _time span=5m\n| stats count dc(user) AS targeted_accounts values(user) AS users by _time src_ip\n| where count>=10";
     }
-    if (id === "endpoint-remote-logon") {
-      return "| eval user=coalesce(user,UserName), src_ip=coalesce(src_ip,RemoteAddress,SourceIP), logon_type=coalesce(logon_type,event_type,EventType)\n| where logon_type IN (\"3\",\"10\",3,10)\n| stats count values(host) AS destinations by user src_ip\n| where count>=3";
+    if (id==="endpoint-remote-logon") {
+      return "| eval user=coalesce(user,UserName), src_ip=coalesce(src_ip,RemoteAddress,SourceIP), logon_type=coalesce(logon_type,event_type,EventType)\n| where logon_type IN (\"3\",\"10\",3,10)\n| fillnull value=\"unknown\" user src_ip host\n| stats count values(host) AS destinations earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=3";
     }
-    if (id === "dns-suspicious-resolution") {
-      return "| eval query_length=len(query), label_count=mvcount(split(query,\".\"))\n| stats count dc(answer) AS answer_count avg(query_length) AS avg_query_length by src_ip query\n| where count>=20 OR avg_query_length>=55 OR answer_count>=10";
+    if (id==="dns-suspicious-resolution") {
+      return "| eval query_length=len(query), label_count=mvcount(split(query,\".\"))\n| fillnull value=\"unknown\" src_ip query\n| stats count dc(answer) AS answer_count avg(query_length) AS avg_query_length by src_ip query\n| where count>=20 OR avg_query_length>=55 OR answer_count>=10";
     }
-    if (id === "firewall-risky-inbound") {
-      return "| where action IN (\"allowed\",\"accept\",\"permit\") AND dest_port IN (22,23,3389,445,5985,5986,1433,3306,5432)\n| stats count dc(dest_ip) AS destinations values(dest_port) AS ports by src_ip\n| where count>=5";
+    if (id==="firewall-risky-inbound") {
+      return "| where action IN (\"allowed\",\"accept\",\"permit\") AND dest_port IN (22,23,3389,445,5985,5986,1433,3306,5432)\n| fillnull value=\"unknown\" src_ip\n| stats count dc(dest_ip) AS destinations values(dest_port) AS ports by src_ip\n| where count>=5";
     }
-    if (id === "web-anomalous-post-volume") {
-      return "| where method=\"POST\"\n| bin _time span=10m\n| stats count sum(bytes_out) AS bytes_out dc(uri) AS uri_count by _time src_ip\n| where count>=100 OR bytes_out>=50000000";
+    if (id==="web-anomalous-post-volume") {
+      return "| where method=\"POST\"\n| fillnull value=\"unknown\" src_ip\n| bin _time span=10m\n| stats count sum(bytes_out) AS bytes_out dc(uri) AS uri_count by _time src_ip\n| where count>=100 OR bytes_out>=50000000";
     }
-    if (id === "aws-cloudtrail-disabled") {
+    if (id==="aws-cloudtrail-disabled") {
       return "| where action IN (\"StopLogging\",\"DeleteTrail\",\"UpdateTrail\",\"PutEventSelectors\")\n| table _time user src_ip action object";
     }
-    if (id === "aws-iam-policy-escalation") {
+    if (id==="aws-iam-policy-escalation") {
       return "| where action IN (\"AttachUserPolicy\",\"AttachRolePolicy\",\"PutUserPolicy\",\"PutRolePolicy\",\"CreatePolicyVersion\",\"SetDefaultPolicyVersion\",\"UpdateAssumeRolePolicy\",\"AddUserToGroup\")\n| table _time user src_ip action object";
     }
-    if (id === "aws-s3-public-access") {
+    if (id==="aws-s3-public-access") {
       return "| where action IN (\"PutBucketAcl\",\"PutBucketPolicy\",\"DeletePublicAccessBlock\",\"PutBucketPublicAccessBlock\")\n| table _time user src_ip action object";
     }
     if (/guardduty/.test(id)) {
       return "| where numeric_severity>=7\n| table _time account resource numeric_severity finding_type finding_title";
     }
     if (/securityhub/.test(id)) {
-      return "| where finding_severity IN (\"CRITICAL\",\"HIGH\")\n| table _time resource finding_severity Workflow.Status Title";
+      return "| where finding_severity IN (\"CRITICAL\",\"HIGH\")\n| table _time account resource finding_severity workflow_status finding_title";
     }
-    if (id === "ai-sensitive-data-exposure") {
-      return "| eval user=coalesce(user,src_user), content=coalesce(prompt,message,request_body), classification=coalesce(classification,category,policy,rule_name), action=lower(coalesce(action,verdict,result))\n| where isnotnull(content) AND isnotnull(classification) AND NOT action IN (\"blocked\",\"deny\",\"denied\")\n| stats count values(classification) AS classifications by user dest";
+    if (id==="ai-sensitive-data-exposure") {
+      return "| eval user=coalesce(user,src_user), content=coalesce(prompt,message,request_body), classification=coalesce(classification,category,policy,rule_name), action=lower(coalesce(action,verdict,result)), destination=coalesce(dest,url,host,service,application)\n| where isnotnull(content) AND isnotnull(classification) AND NOT (action IN (\"blocked\",\"deny\",\"denied\"))\n| fillnull value=\"unknown\" user destination\n| stats count values(classification) AS classifications earliest(_time) AS first_seen latest(_time) AS last_seen by user destination";
     }
-    if (id === "ai-shadow-usage") {
-      return "| eval user=coalesce(user,src_user), destination=lower(coalesce(url,dest,host))\n| where match(destination,\"openai|anthropic|claude|gemini|copilot|perplexity\")\n| stats count values(destination) AS ai_services by user";
+    if (id==="ai-shadow-usage") {
+      return "| eval user=coalesce(user,src_user), destination=lower(coalesce(url,dest,host))\n| where match(destination,\"openai|anthropic|claude|gemini|copilot|perplexity\")\n| fillnull value=\"unknown\" user\n| stats count values(destination) AS ai_services earliest(_time) AS first_seen latest(_time) AS last_seen by user";
     }
-    if (id === "threat-intel-observable-match") {
-      return "| eval observable=coalesce(indicator,value,ioc), observable_type=coalesce(type,indicator_type,ioc_type)\n| where isnotnull(observable)\n| stats latest(_time) AS last_seen values(source) AS intelligence_sources by observable observable_type";
+    if (id==="threat-intel-observable-match") {
+      return "| eval observable=coalesce(indicator,value,ioc), observable_type=coalesce(type,indicator_type,ioc_type)\n| where isnotnull(observable)\n| fillnull value=\"unknown\" observable_type\n| stats latest(_time) AS last_seen values(source) AS intelligence_sources by observable observable_type";
     }
-    if (id === "es-risk-score-spike") {
-      return "| eval score=coalesce(calculated_risk_score,risk_score)\n| bin _time span=30m\n| stats sum(score) AS risk_score values(search_name) AS contributing_detections by _time risk_object risk_object_type\n| where risk_score>=100";
+    if (id==="es-risk-score-spike") {
+      return "| eval score=tonumber(coalesce(calculated_risk_score,risk_score))\n| fillnull value=\"unknown\" risk_object risk_object_type\n| bin _time span=30m\n| stats sum(score) AS risk_score values(search_name) AS contributing_detections by _time risk_object risk_object_type\n| where risk_score>=100";
     }
-    if (id === "salesforce-session-anomaly") {
-      return "| eval src_ip=coalesce(CLIENT_IP,client_ip,src_ip), user_agent=coalesce(USER_AGENT,user_agent)\n| stats dc(src_ip) AS source_count dc(user_agent) AS agent_count values(src_ip) AS sources by SESSION_KEY LOGIN_KEY\n| where source_count>=3 OR agent_count>=3";
+    if (id==="salesforce-session-anomaly") {
+      return "| eval src_ip=coalesce(CLIENT_IP,client_ip,src_ip), user_agent=coalesce(USER_AGENT,user_agent)\n| fillnull value=\"unknown\" SESSION_KEY LOGIN_KEY\n| stats dc(src_ip) AS source_count dc(user_agent) AS agent_count values(src_ip) AS sources by SESSION_KEY LOGIN_KEY\n| where source_count>=3 OR agent_count>=3";
     }
-    if (id === "m365-message-trace-anomaly") {
-      return "| eval sender=coalesce(SenderAddress,sender), recipient=coalesce(RecipientAddress,recipient), status=coalesce(Status,status)\n| bin _time span=15m\n| stats count dc(recipient) AS recipients values(status) AS statuses by _time sender\n| where count>=100 OR recipients>=50";
+    if (id==="m365-message-trace-anomaly") {
+      return "| eval sender=coalesce(SenderAddress,sender), recipient=coalesce(RecipientAddress,recipient), status=coalesce(Status,status)\n| fillnull value=\"unknown\" sender\n| bin _time span=15m\n| stats count dc(recipient) AS recipients values(status) AS statuses by _time sender\n| where count>=100 OR recipients>=50";
     }
     if (/admin-change|privilege-grant|model-admin|config-change|sensitive-api|sudo-shell|control-plane-change|admin-activity-change/.test(id)) {
-      return "| where isnotnull(action)\n| fillnull value="unknown" user src_ip object\n| stats count values(action) AS actions values(object) AS objects values(command) AS commands earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=1";
+      return "| where isnotnull(action)\n| fillnull value=\"unknown\" user src_ip object\n| stats count values(action) AS actions values(object) AS objects values(command) AS commands earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=1";
     }
-    return "| eval dei_generation_blocker=\"No explicit analytic template exists for this detection ID\"\n| where 1=0";
+      return "| eval dei_generation_blocker=\"No explicit analytic template exists for this detection ID\"\n| where 1=0";
   }
 
   function schedule(item) {
