@@ -27,11 +27,11 @@ def test_detection_templates_preserve_entities_and_correct_source_semantics() ->
         "destination=coalesce(dest,url,host,service,application)",
             "NOT (action IN (",
             "blocked", "deny", "denied",
-        'fillnull value="unknown" user destination',
+            "fillnull value=", "unknown", "user destination",
         "bytes_out=tonumber(coalesce(bytes_out,bytes_sent,response_bytes,sc_bytes))",
         "control-plane-change|admin-activity-change",
         "'protoPayload.requestMetadata.callerIp'",
-        'fillnull value="unknown" user src_ip object',
+            "user src_ip object",
         "earliest(_time) AS first_seen latest(_time) AS last_seen",
     ):
         assert contract in generator
