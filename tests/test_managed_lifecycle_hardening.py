@@ -105,6 +105,15 @@ def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     assert javascript.index("var spl = attachPlatformMitreMetadata") < javascript.index("var es = artifact.enterprise_security")
 
 
+def test_unknown_rshell_validation_has_a_safe_targeted_correction() -> None:
+    javascript = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    assert 'result.fix="replace_rshell"' in javascript
+    assert 'result.fixLabel="Replace rshell with search"' in javascript
+    assert '/(^|\\|)\\s*rshell\\b/i' in javascript
+    assert 'correctedSpl===currentSpl' in javascript
+    assert "DEI will not guess a replacement that could change detection intent" in javascript
+
+
 def test_analyst_runbook_covers_complete_workflow() -> None:
     runbook = Path("docs/MANAGED_LIFECYCLE_RUNBOOK.md").read_text(encoding="utf-8")
     for heading in (

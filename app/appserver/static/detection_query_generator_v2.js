@@ -447,10 +447,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       result.summary="Splunk could not identify a valid generating command. DEI can add the required search prefix when the query begins with a filter expression.";
       result.steps=["Apply the search-prefix correction.","Review the beginning of the SPL for unmatched quotes or parentheses.","Run validation again."];
       result.fix="search_prefix"; result.fixLabel="Add search prefix";
+    } else if (/unknown search command ['\"]?rshell['\"]?/.test(lower)) {
+      result.category="Unsupported SPL command";
+      result.summary="Splunk does not provide a core rshell search command. DEI can replace rshell with the supported search command without changing the remaining expression.";
+      result.steps=["Apply the rshell-to-search correction.","Review the corrected search predicate and confirm it represents the intended detection behavior.","Save the draft and run validation again."];
+      result.fix="replace_rshell"; result.fixLabel="Replace rshell with search";
     } else if (/unknown search command|unknown command|cannot find.*macro|macro .*not found/.test(lower)) {
+      var commandMatch=message.match(/unknown (?:search )?command\s+['\"]?([^'\".\s]+)['\"]?/i);
+      var commandName=commandMatch ? commandMatch[1] : "the named command";
       result.category="Missing command or macro";
-      result.summary="The SPL references a command or macro that is unavailable in this Splunk environment.";
-      result.steps=["Identify the command or macro named in the error.","Confirm the required app, TA, or macro is installed and shared with this app.","Replace the unavailable command with supported SPL, then validate again."];
+      result.summary="The SPL references "+commandName+", which is unavailable in this Splunk environment. DEI will not guess a replacement that could change detection intent.";
+      result.steps=["Confirm whether "+commandName+" is a typo, custom command, or macro.","If it is custom, verify its providing app and permissions; otherwise replace it with reviewed core SPL.","Save the corrected draft and run validation again."];
     } else if (/permission|not authorized|authorization|insufficient privilege|access denied/.test(lower)) {
       result.category="Splunk permissions";
       result.summary="The current analyst role cannot execute part of this validation search.";
@@ -735,6 +742,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     } else if (pendingValidationFix==="search_prefix") {
       var spl=String($("#generator-spl").val() || "").trim();
       if (!/^(?:search\s|\|)/i.test(spl)) { $("#generator-spl").val("search "+spl); }
+    } else if (pendingValidationFix==="replace_rshell") {
+      var currentSpl=String($("#generator-spl").val() || "");
+      var correctedSpl=currentSpl.replace(/(^|\|)\s*rshell\b/i, function (_match, prefix) {
+        return (prefix || "") + (prefix ? " search" : "search");
+      });
+      if (correctedSpl===currentSpl) {
+        setFeedback("DEI could not find rshell in a command position. Review the SPL manually before retrying validation.", "error");
+        return;
+      }
+      $("#generator-spl").val(correctedSpl);
     }
     var artifact=currentArtifact();
     if (!artifact) { return; }

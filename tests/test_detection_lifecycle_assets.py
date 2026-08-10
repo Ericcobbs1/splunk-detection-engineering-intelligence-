@@ -180,6 +180,9 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "renderValidationResolution" in javascript
     assert "narrow_window" in javascript
     assert "search_prefix" in javascript
+    assert "replace_rshell" in javascript
+    assert "Replace rshell with search" in javascript
+    assert "does not provide a core rshell search command" in javascript
     assert "Missing command or macro" in javascript
     assert "Splunk permissions" in javascript
     assert "Field mapping" in javascript
