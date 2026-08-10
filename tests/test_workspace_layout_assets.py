@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder"):
+    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
@@ -130,7 +130,8 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'id="dei-home-use-case-count"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-health-action"' in ElementTree.tostring(home, encoding="unicode")
-    assert 'id="dei-home-health-actions"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'href="command_center#dei-telemetry"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-health-actions"' not in ElementTree.tostring(home, encoding="unicode")
     assert home.attrib["script"].startswith("dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
     markup = ElementTree.tostring(home, encoding="unicode")
@@ -280,7 +281,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
         "renderHomeHealthActions", "missingHealth", "validation.status===\"failed\"",
         'qualify:ready>0', "buildable===0", "detection_operations?detection=",
         "detection_builder?detection=", "homeStageDestination",
-        "#dei-home-health-action", "#dei-home-health-actions-close",
+        "#dei-home-health-action", "detection_action_center",
     ):
         assert contract in javascript
     assert 'qualify:ready>0' in lifecycle
@@ -298,6 +299,6 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     ):
         assert destination in javascript
     assert "focusDeepLinkedWorkspace" in javascript
-    assert ".dei-home-health-actions" in stylesheet
+    assert '.attr("href","detection_action_center")' in javascript
     assert ".dei-topology-node[role=\"link\"]" in stylesheet
     assert ".dei-topology-flow>.dei-flow-header{position:relative!important" in stylesheet

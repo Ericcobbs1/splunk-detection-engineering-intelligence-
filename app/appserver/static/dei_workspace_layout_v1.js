@@ -239,15 +239,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderHomeHealthActions(issues, healthState) {
-    var list=$("#dei-home-health-actions-list");
-    if (!list.length) { return; }
     if (issues.length) {
-      list.html(issues.map(function (issue) {
-        return '<article class="dei-home-health-issue" data-severity="'+escapeMarkup(issue.severity)+'">' +
-          '<div><strong>'+escapeMarkup(issue.name)+'</strong><p>'+escapeMarkup(issue.reason)+'</p></div>' +
-          '<a href="'+escapeMarkup(issue.href)+'">'+escapeMarkup(issue.action)+' →</a></article>';
-      }).join(""));
-      $("#dei-home-health-action").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" →");
+      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" →");
       return;
     }
     var empty={
@@ -255,9 +248,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_operations",action:"Open lifecycle work queue"},
       healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_operations",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
-    list.html('<article class="dei-home-health-issue" data-severity="info"><div><strong>'+empty.title+
-      '</strong><p>'+empty.detail+'</p></div>'+(healthState==="awaiting"?'<button class="dei-run-intelligence-scan" type="button">'+empty.action+' →</button>':'<a href="'+empty.href+'">'+empty.action+' →</a>')+'</article>');
-    $("#dei-home-health-action").text(empty.action+" →");
+    $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" →");
   }
 
   function renderHomePipeline(skipLifecycleRefresh) {
@@ -665,16 +656,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (event.type==="keydown" && event.key!=="Enter" && event.key!==" ") { return; }
     if (event.type==="keydown") { event.preventDefault(); }
     window.location.href=homeStageDestination(String($(this).data("home-flow-stage") || ""));
-  });
-
-  $(document).on("click", "#dei-home-health-action", function () {
-    var panel=$("#dei-home-health-actions"); var open=panel.prop("hidden");
-    panel.prop("hidden",!open); $(this).attr("aria-expanded",open?"true":"false");
-    if (open) { $("#dei-home-health-actions-title").attr("tabindex","-1").focus(); }
-  });
-  $(document).on("click", "#dei-home-health-actions-close", function () {
-    $("#dei-home-health-actions").prop("hidden",true);
-    $("#dei-home-health-action").attr("aria-expanded","false").focus();
   });
 
   $(document).on("click", ".dei-view-mode button", function () {
