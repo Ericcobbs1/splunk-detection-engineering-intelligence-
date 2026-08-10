@@ -87,11 +87,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return String(search || "").indexOf(DISCOVERY_TOKEN) !== -1;
   }
 
+  function isExplicitFreshScan(options) {
+    return String(options && options.data && options.data.dei_force_refresh || "") === "1";
+  }
+
   $.ajax = function (options) {
     var cached;
     var deferred;
     var request;
-    if (!isDiscoveryRequest(options)) {
+    if (!isDiscoveryRequest(options) || isExplicitFreshScan(options)) {
       return originalAjax.apply($, arguments);
     }
 

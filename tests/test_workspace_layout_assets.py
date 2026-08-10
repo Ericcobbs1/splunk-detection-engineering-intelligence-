@@ -119,6 +119,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-topology-signal" in stylesheet
     assert "@keyframes dei-topology-orbit" in stylesheet
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
+    assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
+    assert "@keyframes dei-realistic-earth-drift" in stylesheet
+    assert (STATIC / "dei_realistic_earth_v1.webp").stat().st_size < 200_000
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet
     assert 'id="dei-home-health"' in ElementTree.tostring(home, encoding="unicode")
@@ -126,7 +129,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-health-action"' in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-health-actions"' in ElementTree.tostring(home, encoding="unicode")
-    assert home.attrib["script"].startswith("dei_lifecycle_store_v1.js,")
+    assert home.attrib["script"].startswith("dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
     markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
@@ -198,7 +201,8 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     for value in (
         "dei.onboardingDismissed.v1", "dei.onboardingSeen.session",
         'role="dialog"', 'aria-modal="true"', "Do not show this welcome guide again",
-        "Start telemetry discovery", "closeOnboarding", 'event.key==="Escape"',
+        "Guided walkthrough", "dei-onboarding-next", "dei-onboarding-back",
+        "closeOnboarding", 'event.key==="Escape"',
         'event.key==="Tab"',
     ):
         assert value in javascript
