@@ -46,6 +46,8 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert "You are here" in javascript
     assert '"Stage "+(current+1)+" of "+STAGES.length' in javascript
     assert '"Current stage: "+label(stage)' in javascript
+    assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
+    assert '$(document).on("dei:detection-draft-generated"' in javascript
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
