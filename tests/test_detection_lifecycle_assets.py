@@ -145,9 +145,9 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
     assert "platformMitreMetadata" in javascript
+    assert "stripPlatformMitreMetadata" in javascript
     assert "attachPlatformMitreMetadata" in javascript
     assert "enforcePlatformMitreMetadata" in javascript
-    assert "mitreMetadataMigrated" in javascript
     for field in ("mitre_attack_ttp", "mitre_attack_id", "mitre_attack_description"):
         assert field in javascript
     for removed_field in (
@@ -211,6 +211,11 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "adding another search prefix would be incorrect" in javascript
     assert 'return "mvappend("' in javascript
     assert 'split(" + quote(cleaned.join("||"))' not in javascript
+    assert 'return analyticSpl+"\\n"+platformMitreMetadata(item)' in javascript
+    assert 'return analyticSpl + "\\\\n"' not in javascript
+    assert '(-enc\\\\s|encodedcommand' in javascript
+    assert '(-enc\\\\\\\\s|encodedcommand' not in javascript
+    assert "var artifact = buildArtifact(item)" in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:

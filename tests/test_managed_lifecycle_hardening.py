@@ -82,10 +82,12 @@ def test_builder_writes_drafts_and_validation_to_shared_store() -> None:
 def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     javascript = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     assert "function platformMitreMetadata(item)" in javascript
+    assert "function stripPlatformMitreMetadata(spl)" in javascript
     assert "function attachPlatformMitreMetadata(spl, item)" in javascript
     assert "function enforcePlatformMitreMetadata(artifact, item)" in javascript
-    assert "var mitreMetadataMigrated = enforcePlatformMitreMetadata(artifact, item)" in javascript
-    assert "if (!existingArtifact || mitreMetadataMigrated)" in javascript
+    assert "var artifact = buildArtifact(item)" in javascript
+    assert "saveArtifact(artifact)" in javascript
+    assert "A fresh detection draft replaced the prior saved SPL" in javascript
     assert 'artifact.spl = attachPlatformMitreMetadata(String($("#generator-spl").val()' in javascript
     for field in ("mitre_attack_ttp", "mitre_attack_id", "mitre_attack_description"):
         assert field in javascript

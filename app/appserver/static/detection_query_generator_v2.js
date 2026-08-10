@@ -127,7 +127,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return "| where EventCode=4769 OR event_id=4769\n| where encryption IN (\"0x17\",\"23\")\n| fillnull value=\"unknown\" user src_ip service_name\n| stats count dc(service_name) AS services values(service_name) AS service_names earliest(_time) AS first_seen latest(_time) AS last_seen by user src_ip\n| where count>=5";
     }
     if (/powershell/.test(id)) {
-      return "| where match(lower(command_line),\"(-enc\\\\s|encodedcommand|frombase64string|invoke-expression|downloadstring|hidden)\")\n| table _time host user process command_line";
+      return "| where match(lower(command_line),\"(-enc\\s|encodedcommand|frombase64string|invoke-expression|downloadstring|hidden)\")\n| table _time host user process command_line";
     }
     if (/mfa-failure|ssh-bruteforce/.test(id)) {
       return "| where match(action,\"fail|deny|reject|invalid\")\n| fillnull value=\"unknown\" user src_ip\n| bin _time span=5m\n| stats count dc(user) AS targeted_accounts values(user) AS users by _time src_ip\n| where count>=10";
@@ -229,9 +229,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       ", mitre_attack_description=" + multivalueLiteral(summaries, "No ATT&CK description is available");
   }
 
+  function stripPlatformMitreMetadata(spl) {
+    var analyticSpl=String(spl || "").replace(/\\n(?=\|)/g,"\n");
+    var markers=[
+      /(?:\r?\n)?\|\s*eval\s+(?:dei_detection_id|mitre_attack_ttp)\s*=/i,
+      /(?:\r?\n)?\|\s*(?:rShell|search)"\s*,\s*(?:"\|\|"\)|mitre_attack_id\s*=)/i,
+      /n\|\s*(?:rShell|search)"\s*,\s*(?:"\|\|"\)|mitre_attack_id\s*=)/i
+    ];
+    var boundary=-1;
+    markers.forEach(function (pattern) {
+      var match=pattern.exec(analyticSpl);
+      if(match && (boundary<0 || match.index<boundary)) boundary=match.index;
+    });
+    if(boundary>=0) analyticSpl=analyticSpl.slice(0,boundary);
+    return analyticSpl.trim();
+  }
+
   function attachPlatformMitreMetadata(spl, item) {
-    var analyticSpl = String(spl || "").replace(/(?:\\r?\\n)?\\| eval (?:dei_detection_id|mitre_attack_ttp)=[^\\r\\n]*/g, "").trim();
-    return analyticSpl + "\\n" + platformMitreMetadata(item);
+    var analyticSpl=stripPlatformMitreMetadata(spl);
+    return analyticSpl+"\n"+platformMitreMetadata(item);
   }
 
   function artifactRecommendation(artifact) {
@@ -778,9 +794,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       // Generation remains available when browser storage is unavailable.
     }
     var existingArtifact = storedArtifact("dei-" + item.detection_id);
-    var artifact = existingArtifact || buildArtifact(item);
-    var mitreMetadataMigrated = enforcePlatformMitreMetadata(artifact, item);
-    generatedBaseline = buildArtifact(item);
+    var artifact = buildArtifact(item);
+    generatedBaseline = $.extend(true, {}, artifact);
+    if (existingArtifact) {
+      artifact.version=Number(existingArtifact.version || 1);
+      artifact.history=Array.isArray(existingArtifact.history) ? existingArtifact.history : [];
+      artifact.validation_history=Array.isArray(existingArtifact.validation_history) ? existingArtifact.validation_history : [];
+    }
     artifact.source_readiness = item.readiness;
     artifact.unresolved_fields = unresolvedFields(item);
     artifact.engineering_warnings = engineeringWarnings(item);
@@ -788,8 +808,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
       return;
     }
-    if (!existingArtifact || mitreMetadataMigrated) { saveArtifact(artifact); }
+    saveArtifact(artifact);
     renderArtifact(artifact);
+    setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
   }
 
   $("#builder-detection-select").on("change", function () {
