@@ -39,6 +39,7 @@ def test_engineering_operations_owns_queue_and_action_center() -> None:
     root = ElementTree.parse(OPERATIONS_PATH).getroot()
     for element_id in (
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
+        "lifecycle-visible-rows",
         "lifecycle-queue-count", "lifecycle-queue-total", "lifecycle-work-queue",
         "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
@@ -47,6 +48,27 @@ def test_engineering_operations_owns_queue_and_action_center() -> None:
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     assert root.find(".//*[@id='dei-detection-flow']") is None
+
+
+def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> None:
+    root = ElementTree.parse(OPERATIONS_PATH).getroot()
+    queue_section = root.find(".//*[@class='dei-lifecycle-section dei-lifecycle-queue-section']")
+    row_filter = root.find(".//*[@id='lifecycle-visible-rows']")
+    stylesheet = (STATIC_ROOT / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    assert queue_section is not None and queue_section.attrib["data-visible-rows"] == "10"
+    assert row_filter is not None
+    assert [(option.attrib["value"], option.text) for option in row_filter.findall("option")] == [
+        ("10", "10 rows"), ("25", "25 rows")
+    ]
+    assert 'data-visible-rows="25"' in stylesheet
+    assert "max-height:762px" in stylesheet
+    assert "max-height:1842px" in stylesheet
+    assert "overflow-y:auto" in stylesheet
+    assert "scrollbar-gutter:stable" in stylesheet
+    assert '#lifecycle-work-queue tr{height:72px}' in stylesheet
+    assert '#lifecycle-visible-rows' in javascript
+    assert '.attr("data-visible-rows",rows==="25"?"25":"10")' in javascript
 
 
 def test_detection_lifecycle_is_registered_in_navigation() -> None:
