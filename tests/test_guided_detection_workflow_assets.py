@@ -88,6 +88,20 @@ def test_guided_workflow_layout_prioritizes_current_action() -> None:
         assert contract in stylesheet
 
 
+def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
+    root = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
+    navigation = root.find(".//nav[@class='dei-workspace-nav']")
+    assert navigation is not None
+    assert navigation.find(".//a[@href='detection_workflow']") is None
+    selector = navigation.find(".//select[@id='lifecycle-workspace-menu']")
+    assert selector is not None
+    assert [option.text for option in selector.findall("option")] == [
+        "Builder", "Lifecycle overview", "Operations", "Catalog",
+    ]
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    assert 'root.is("#dei-guided-detection-page")' in javascript
+
+
 def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v1.js").read_text(encoding="utf-8")

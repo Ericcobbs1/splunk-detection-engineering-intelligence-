@@ -625,7 +625,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var nav=bar.find(".dei-workspace-nav").first();
     if (nav.length && !nav.find('a[href="detection_health"]').length) { nav.append('<a href="detection_health">Health</a>'); }
     var status = bar.find(".dei-status").first();
-    if (status.length) { status.before(toolbar()); } else { bar.append(toolbar()); }
+    var simplifiedBuilder = root.is("#dei-guided-detection-page");
+    if (!simplifiedBuilder) {
+      if (status.length) { status.before(toolbar()); } else { bar.append(toolbar()); }
+    }
     applyMode(safeStorageGet(MODE_KEY, "analyst"));
     applyDensity(safeStorageGet(DENSITY_KEY, "comfortable"));
     renderHomePipeline();
