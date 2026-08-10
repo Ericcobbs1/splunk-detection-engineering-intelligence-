@@ -42,7 +42,7 @@ def test_engineering_operations_owns_queue_and_action_center() -> None:
         "lifecycle-visible-rows",
         "lifecycle-queue-count", "lifecycle-queue-total", "lifecycle-work-queue",
         "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
-        "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
+        "lifecycle-action-position", "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
         "lifecycle-action-history", "lifecycle-action-progress",
     ):
@@ -165,6 +165,12 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "start_tuning" in javascript
     assert "detection_retired" in javascript
     assert "workflowProgress" in javascript
+    assert "lifecyclePosition" in javascript
+    assert 'label:"Catalog ready"' in javascript
+    assert 'aria-current="step"' in javascript
+    assert '"Stage "+position.index+" of "+position.total' in javascript
+    assert '"Current stage: "+label(position.stage)+" · Version "' in javascript
+    assert '"Next required action: "+nextAction' in javascript
     assert "gateGuidance" in javascript
     assert "renderGateGuide" in javascript
     assert "renderPipelineState" in javascript

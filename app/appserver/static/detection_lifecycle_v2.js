@@ -8,7 +8,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var records = [];
   var selectedRecord = null;
   var Store = null;
-  var STATE_ORDER = ["draft","testing","peer_review","production","monitoring","tuning","retired"];
 
   function safeJson(value) { try { return JSON.parse(value || "null"); } catch (error) { return null; } }
   function esc(value) { return String(value == null ? "" : value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
@@ -205,14 +204,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function workflowProgress(record) {
     var states=[
       {id:"draft",label:"Draft"},{id:"testing",label:"Testing"},{id:"peer_review",label:"Peer review"},
-      {id:"production",label:"Production"},{id:"monitoring",label:"Monitoring"},
+      {id:"catalog",label:"Catalog ready"},{id:"production",label:"Production"},{id:"monitoring",label:"Monitoring"},
       {id:"tuning",label:"Tuning"},{id:"retired",label:"Retired"}
     ];
-    var current=Math.max(0,STATE_ORDER.indexOf(record.state));
+    var currentStage=record.catalog && record.catalog.status==="ready" ? "catalog" : record.state;
+    var current=Math.max(0,states.map(function (state) { return state.id; }).indexOf(currentStage));
     return '<div class="dei-lifecycle-progress">'+states.map(function (state,index) {
       var status=index<current?"complete":(index===current?"current":"future");
-      return '<div class="dei-progress-step '+status+'"><span>'+(status==="complete"?"✓":String(index+1))+'</span><strong>'+esc(state.label)+'</strong></div>';
+      var statusLabel=status==="complete"?"Complete":(status==="current"?"Current stage":"Upcoming");
+      return '<div class="dei-progress-step '+status+'"'+(status==="current"?' aria-current="step"':"")+'><span>'+(status==="complete"?"✓":String(index+1))+'</span><div><strong>'+esc(state.label)+'</strong><small>'+statusLabel+'</small></div></div>';
     }).join("")+"</div>";
+  }
+
+  function lifecyclePosition(record) {
+    var stages=["draft","testing","peer_review","catalog","production","monitoring","tuning","retired"];
+    var current=record.catalog && record.catalog.status==="ready" ? "catalog" : record.state;
+    var index=Math.max(0,stages.indexOf(current));
+    return {stage:current,index:index+1,total:stages.length};
   }
 
   function gateGuidance(record) {
@@ -279,8 +287,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!selectedRecord) { return; }
     $(".dei-lifecycle-workspace-grid").addClass("has-selection");
     $("#lifecycle-action-center").show(); $("#lifecycle-action-title").text(selectedRecord.name);
-    $("#lifecycle-action-state").text(label(selectedRecord.state)+" · v"+(selectedRecord.version||1));
-    $("#lifecycle-action-summary").text(nextAction(selectedRecord,selectedRecord));
+    var position=lifecyclePosition(selectedRecord);
+    $("#lifecycle-action-position").text("Stage "+position.index+" of "+position.total);
+    $("#lifecycle-action-state").text("Current stage: "+label(position.stage)+" · Version "+(selectedRecord.version||1));
+    $("#lifecycle-action-summary").text("Next required action: "+nextAction(selectedRecord,selectedRecord));
     $("#lifecycle-action-progress").html(renderGateGuide(selectedRecord));
     $("#lifecycle-action-evidence").html(evidence(selectedRecord));
     $("#lifecycle-action-fields").html(fieldMarkup(selectedRecord));
