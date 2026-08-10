@@ -64,8 +64,10 @@ def test_work_queue_joins_recommendations_and_records() -> None:
     assert "No lifecycle work is available." in javascript
     assert "No items match these filters." in javascript
     assert "lifecycle-reset-filters" in javascript
-    for state in ("draft", "testing", "peer_review", "production", "monitoring", "tuning", "retired"):
+    for state in ("draft", "testing", "production", "monitoring", "tuning", "retired"):
         assert f'countState("{state}")' in javascript
+    assert 'record.state==="peer_review" && !(record.catalog && record.catalog.cataloged_at)' in javascript
+    assert "state-catalog" in javascript
 
 
 def test_builder_writes_drafts_and_validation_to_shared_store() -> None:

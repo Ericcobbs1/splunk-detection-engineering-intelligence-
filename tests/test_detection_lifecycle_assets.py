@@ -7,6 +7,7 @@ APP_ROOT = Path("app")
 VIEW_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_lifecycle.xml"
 BUILDER_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_builder.xml"
 OPERATIONS_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_operations.xml"
+CATALOG_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_catalog.xml"
 NAV_PATH = APP_ROOT / "default" / "data" / "ui" / "nav" / "default.xml"
 STATIC_ROOT = APP_ROOT / "appserver" / "static"
 FRAMEWORK_PATH = Path("docs") / "DETECTION_ENGINEERING_FRAMEWORK.md"
@@ -26,7 +27,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "life-mitre-mapped", "life-field-verified", "life-telemetry-ready",
         "life-spl-generated", "stage-discover", "stage-profile", "stage-qualify",
         "stage-recommend", "stage-design", "stage-generate", "stage-validate",
-        "state-draft", "state-testing", "state-review", "state-production",
+        "state-draft", "state-testing", "state-review", "state-catalog", "state-production",
         "state-monitoring", "state-tuning", "state-retired", "lifecycle-workspace-menu",
         "dei-detection-flow", "dei-flow-status",
     ):
@@ -53,7 +54,36 @@ def test_detection_lifecycle_is_registered_in_navigation() -> None:
     assert root.find(".//view[@name='detection_lifecycle']") is not None
     assert root.find(".//view[@name='detection_action_center']") is not None
     assert root.find(".//view[@name='detection_operations']") is not None
+    assert root.find(".//view[@name='detection_catalog']") is not None
     assert root.find(".//view[@name='detection_builder']") is not None
+
+
+def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
+    catalog = ElementTree.parse(CATALOG_PATH).getroot()
+    operations = ElementTree.parse(OPERATIONS_PATH).getroot()
+    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    catalog_javascript = (STATIC_ROOT / "detection_catalog_v1.js").read_text(encoding="utf-8")
+    assert "detection_catalog_v1.js" in catalog.attrib["script"].split(",")
+    assert "detection_catalog_v1.css" in catalog.attrib["stylesheet"].split(",")
+    for element_id in (
+        "dei-detection-catalog-page", "catalog-total", "catalog-table",
+        "catalog-search", "catalog-status-filter", "catalog-action-panel",
+        "catalog-deployment-target", "catalog-external-id", "catalog-action-buttons",
+    ):
+        assert catalog.find(f".//*[@id='{element_id}']") is not None
+    assert operations.find(".//option[@value='detection_catalog']") is not None
+    assert "isEngineeringWork" in javascript
+    assert "mergedQueue().filter(isEngineeringWork)" in javascript
+    assert 'status:"ready"' in javascript
+    assert '"added_to_detection_catalog"' in javascript
+    assert "saveAndOpenCatalog" in javascript
+    assert 'window.location.href="detection_catalog?detection="' in javascript
+    for contract in (
+        "cataloged(record)", 'status==="ready"', 'data-catalog-action="enable"',
+        'copy.state="production"', 'status:"enabled"', "catalog_detection_disabled",
+        "detection_operations?detection=", "Record health, tune, or retire",
+    ):
+        assert contract in catalog_javascript
 
 
 def test_detection_builder_is_valid_and_owns_action_workspace() -> None:

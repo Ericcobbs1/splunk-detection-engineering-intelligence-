@@ -62,6 +62,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return items;
   }
 
+  function isEngineeringWork(item) {
+    var record=item.lifecycle_record;
+    if (!record) { return true; }
+    if (record.state==="tuning" || record.state==="draft" || record.state==="testing") { return true; }
+    if (record.state==="peer_review" && !(record.catalog && record.catalog.cataloged_at)) { return true; }
+    return false;
+  }
+
   function loadReport() {
     report=safeJson(window.sessionStorage.getItem(REPORT_KEY));
     var timestamp=Number(window.sessionStorage.getItem(REPORT_TIME_KEY)||0);
@@ -136,8 +144,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       designBlocked:items.length>0 && buildableCount===0,
       validationBlocked:failed>0 && passed===0
     });
+    var catalogReady=records.filter(function (record) { return record.catalog && record.catalog.status==="ready"; }).length;
+    var reviewPending=records.filter(function (record) { return record.state==="peer_review" && !(record.catalog && record.catalog.cataloged_at); }).length;
     $("#state-draft").text(countState("draft")); $("#state-testing").text(countState("testing"));
-    $("#state-review").text(countState("peer_review")); $("#state-production").text(countState("production"));
+    $("#state-review").text(reviewPending); $("#state-catalog").text(catalogReady); $("#state-production").text(countState("production"));
     $("#state-monitoring").text(countState("monitoring")); $("#state-tuning").text(countState("tuning"));
     $("#state-retired").text(countState("retired"));
   }
@@ -146,7 +156,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var query=String($("#lifecycle-search").val()||"").toLowerCase();
     var readiness=$("#lifecycle-readiness").val()||"all";
     var stage=$("#lifecycle-stage").val()||"all";
-    var all=mergedQueue();
+    var all=mergedQueue().filter(isEngineeringWork);
     var items=all.filter(function (item) {
       var record=item.lifecycle_record; var current=stateFor(item,record);
       var haystack=[item.name,item.capability,item.pack_id,observedSourcetypes(item).join(" "),
@@ -303,6 +313,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
   }
 
+  function saveAndOpenCatalog(record) {
+    Store.write(record).done(function () {
+      window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
+    }).fail(function (error) {
+      $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to catalog the approved detection."));
+    });
+  }
+
   function handleAction(action) {
     var record=$.extend(true,{},selectedRecord); var comment=note();
     if (!record) { return; }
@@ -317,8 +335,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (action==="approve_review") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Approval rationale is required."); return; }
-      var approved=$.extend(true,{},record,{review:$.extend({},record.review,{decision:"approved",reviewed_at:new Date().toISOString(),reviewer:Store.username(),comments:comment})});
-      approved=Store.appendHistory(approved,"peer_review_approved",comment); saveAndReload(Store.write(approved),"Peer review approved. Record deployment next."); return;
+      var catalogedAt=new Date().toISOString();
+      var approved=$.extend(true,{},record,{review:$.extend({},record.review,{decision:"approved",reviewed_at:catalogedAt,reviewer:Store.username(),comments:comment}),catalog:{status:"ready",cataloged_at:catalogedAt,cataloged_by:Store.username()}});
+      approved=Store.appendHistory(approved,"peer_review_approved",comment);
+      approved=Store.appendHistory(approved,"added_to_detection_catalog","Ready to enable");
+      saveAndOpenCatalog(approved); return;
     }
     if (action==="return_draft") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Change rationale is required."); return; }
@@ -338,7 +359,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (action==="start_tuning") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A tuning rationale is required."); return; }
       var previousVersion={version:Number(record.version||1),spl:record.spl,schedule:record.schedule,validation:record.validation,review:record.review,deployment:record.deployment,monitoring:record.monitoring,closed_at:new Date().toISOString()};
-      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. Prior operational evidence was archived."); return;
+      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,catalog:$.extend({},record.catalog,{status:"tuning"}),previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. The detection returned to the engineering queue and prior operational evidence was archived."); return;
     }
     if (action==="retire") {
       var reason=comment; if (!reason) { $("#lifecycle-action-feedback").addClass("error").text("A retirement reason is required in Lifecycle note."); return; }

@@ -388,7 +388,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "dei-environment-insights":"environment_insights",
       "dei-mitre-page":"mitre",
       "dei-detection-builder-page":"builder",
-      "dei-lifecycle-page":"lifecycle"
+      "dei-lifecycle-page":"lifecycle",
+      "dei-detection-catalog-page":"catalog"
     }[id] || "home";
   }
 
@@ -404,6 +405,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var operational=artifacts.filter(function (item) {
       return item.state==="production" || item.state==="monitoring";
     }).length;
+    var cataloged=artifacts.filter(function (item) {
+      return item.catalog && item.catalog.cataloged_at;
+    }).length;
     return {
       report:report,
       recommendations:recommendations,
@@ -412,6 +416,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       reviewed:recommendations.length>0 && mapped>0,
       built:generated>0,
       validated:validated>0,
+      cataloged:cataloged>0,
       operational:operational>0
     };
   }
@@ -422,7 +427,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       {key:"review",label:"Review",detail:"MITRE and readiness",href:"mitre_coverage"},
       {key:"build",label:"Build",detail:"Generate SPL",href:"detection_builder"},
       {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_builder#builder-validation-title"},
-      {key:"operate",label:"Operate",detail:"Approve and monitor",href:"detection_operations"}
+      {key:"operate",label:"Operate",detail:"Approve, enable, monitor",href:"detection_operations"}
     ];
     return [
       '<section id="dei-guided-workflow" class="dei-guided-workflow" aria-labelledby="dei-guided-workflow-title">',
@@ -468,7 +473,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       review:{label:"Review MITRE coverage",href:"mitre_coverage"},
       build:{label:"Build a detection",href:"detection_builder"},
       validate:{label:"Validate generated SPL",href:"detection_builder#builder-validation-title"},
-      operate:{label:"Manage detection lifecycle",href:"detection_operations"}
+      operate:snapshot.cataloged && !snapshot.operational ? {label:"Enable approved detection",href:"detection_catalog"} :
+        {label:"Manage detection lifecycle",href:snapshot.operational?"detection_catalog":"detection_operations"}
     };
     var current="operate";
     sequence.some(function (stage) {
