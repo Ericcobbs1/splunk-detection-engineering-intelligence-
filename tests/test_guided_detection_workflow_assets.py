@@ -105,6 +105,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
 def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v1.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     operations = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
     guided = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     assert operations.find(".//*[@id='lifecycle-action-center']") is None
@@ -114,6 +115,12 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert "dei:workflow-detection-selected" in workflow
     assert "dei:lifecycle-records-updated" in lifecycle
     assert "dei:lifecycle-records-updated" in workflow
+    assert "generatedDrafts" in lifecycle
+    assert "draftStarted" in lifecycle
+    assert "dei:detection-draft-reset" in lifecycle
+    assert "dei:detection-draft-generated" in lifecycle
+    assert "dei:detection-draft-reset" in generator
+    assert "dei:detection-draft-generated" in generator
     for action in (
         "submit_review", "approve_review", "return_draft", "record_health",
         "start_tuning", "retire",
