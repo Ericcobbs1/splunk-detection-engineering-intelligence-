@@ -146,6 +146,7 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "analyticLogic" in javascript
     assert "platformMitreMetadata" in javascript
     assert "stripPlatformMitreMetadata" in javascript
+    assert "generatedSplIntegrity" in javascript
     assert "attachPlatformMitreMetadata" in javascript
     assert "enforcePlatformMitreMetadata" in javascript
     for field in ("mitre_attack_ttp", "mitre_attack_id", "mitre_attack_description"):
@@ -215,7 +216,9 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert 'return analyticSpl + "\\\\n"' not in javascript
     assert '(-enc\\\\s|encodedcommand' in javascript
     assert '(-enc\\\\\\\\s|encodedcommand' not in javascript
-    assert "var artifact = buildArtifact(item)" in javascript
+    assert "artifact=buildArtifact(item)" in javascript
+    assert "Generated SPL integrity check failed" in javascript
+    assert "DEI blocked an invalid generated query" in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:

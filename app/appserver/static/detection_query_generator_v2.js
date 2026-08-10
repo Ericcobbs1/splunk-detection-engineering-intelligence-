@@ -250,6 +250,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return analyticSpl+"\n"+platformMitreMetadata(item);
   }
 
+  function generatedSplIntegrity(spl) {
+    var value=String(spl || ""),errors=[],allowed={
+      mitre_attack_ttp:true,mitre_attack_id:true,mitre_attack_description:true
+    };
+    Object.keys(allowed).forEach(function (field) {
+      var count=(value.match(new RegExp("\\b"+field+"\\s*=","g")) || []).length;
+      if(count!==1) errors.push(field+" must appear exactly once");
+    });
+    (value.match(/\bmitre_attack_[a-z_]+\b/gi) || []).forEach(function (field) {
+      if(!allowed[field.toLowerCase()]) errors.push("unsupported MITRE output field "+field);
+    });
+    if(/\\n(?=\|)/.test(value)) errors.push("literal newline escape remains");
+    if(/mitre_attack_(?:ttp|id|description)\s*=\s*split\s*\(/i.test(value)) errors.push("legacy MITRE split output remains");
+    if(/n?\|\s*rShell"/i.test(value)) errors.push("legacy rShell fragment remains");
+    if(!/\n\|\s*eval\s+mitre_attack_ttp\s*=/.test(value)) errors.push("MITRE output is not the final pipeline stage");
+    var syntax=pipelineSyntax(value);
+    if(!syntax.balancedQuotes) errors.push("generated SPL contains an unmatched quote");
+    if(syntax.emptyPipes.length) errors.push("generated SPL contains an empty pipeline stage");
+    return {valid:errors.length===0,errors:errors};
+  }
+
   function artifactRecommendation(artifact) {
     return {
       detection_id:String(artifact.id || artifact.detection_id || "").replace(/^dei-/, ""),
@@ -305,6 +326,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var timing = schedule(item);
     var spl = attachPlatformMitreMetadata("search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
       "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item), item);
+    var integrity=generatedSplIntegrity(spl);
+    if(!integrity.valid) throw new Error("Generated SPL integrity check failed: "+integrity.errors.join("; "));
     var esEnabled = window.sessionStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     var artifact={
@@ -794,7 +817,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       // Generation remains available when browser storage is unavailable.
     }
     var existingArtifact = storedArtifact("dei-" + item.detection_id);
-    var artifact = buildArtifact(item);
+    var artifact;
+    try { artifact=buildArtifact(item); }
+    catch (error) {
+      setFeedback(error && error.message ? error.message : "DEI blocked an invalid generated query.","error");
+      $("#generator-output").hide();
+      return;
+    }
     generatedBaseline = $.extend(true, {}, artifact);
     if (existingArtifact) {
       artifact.version=Number(existingArtifact.version || 1);

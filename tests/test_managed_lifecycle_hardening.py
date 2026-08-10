@@ -85,7 +85,7 @@ def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     assert "function stripPlatformMitreMetadata(spl)" in javascript
     assert "function attachPlatformMitreMetadata(spl, item)" in javascript
     assert "function enforcePlatformMitreMetadata(artifact, item)" in javascript
-    assert "var artifact = buildArtifact(item)" in javascript
+    assert "artifact=buildArtifact(item)" in javascript
     assert "saveArtifact(artifact)" in javascript
     assert "A fresh detection draft replaced the prior saved SPL" in javascript
     assert 'artifact.spl = attachPlatformMitreMetadata(String($("#generator-spl").val()' in javascript
