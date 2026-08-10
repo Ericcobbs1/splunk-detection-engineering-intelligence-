@@ -202,7 +202,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function multivalueLiteral(values, fallback) {
     var cleaned = uniqueValues(values || []);
-    return cleaned.length ? "split(" + quote(cleaned.join("||")) + ', "||")' : quote(fallback || "Unknown");
+    if (!cleaned.length) { return quote(fallback || "Unknown"); }
+    if (cleaned.length === 1) { return quote(cleaned[0]); }
+    return "mvappend(" + cleaned.map(quote).join(", ") + ")";
   }
 
   function techniqueUrl(id) {
@@ -439,11 +441,52 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
   }
 
+  function pipelineSyntax(spl) {
+    var value=String(spl || ""),quoteCharacter="",escaped=false,emptyPipes=[],previousPipe=-1;
+    for (var index=0;index<value.length;index+=1) {
+      var character=value.charAt(index);
+      if (escaped) { escaped=false; continue; }
+      if (character==="\\" && quoteCharacter) { escaped=true; continue; }
+      if (quoteCharacter) {
+        if (character===quoteCharacter) { quoteCharacter=""; }
+        continue;
+      }
+      if (character==='"' || character==="'") { quoteCharacter=character; continue; }
+      if (character==="|") {
+        if (previousPipe>=0 && !value.slice(previousPipe+1,index).trim()) {
+          emptyPipes.push({first:previousPipe,second:index});
+        }
+        previousPipe=index;
+      } else if (!/\s/.test(character)) {
+        previousPipe=-1;
+      }
+    }
+    return {balancedQuotes:!quoteCharacter,emptyPipes:emptyPipes};
+  }
+
+  function collapseEmptyPipelines(spl) {
+    var value=String(spl || ""),syntax=pipelineSyntax(value);
+    syntax.emptyPipes.slice().reverse().forEach(function (pair) {
+      value=value.slice(0,pair.first+1)+" "+value.slice(pair.second+1).replace(/^\s*/,"");
+    });
+    return value;
+  }
+
+  function canAddSearchPrefix(spl) {
+    var value=String(spl || "").trim();
+    var first=String(value.split("|")[0] || "").trim();
+    var generating=/^(?:search|tstats|inputlookup|metadata|metasearch|datamodel|makeresults|loadjob|savedsearch|eventcount|rest|from)\b/i;
+    var filterExpression=/^(?:\(|[A-Za-z_][A-Za-z0-9_.:-]*\s*(?:=|!=|<=|>=|<|>))/;
+    return !!value && value.charAt(0)!=="|" && !generating.test(first) && filterExpression.test(first);
+  }
+
   function validationResolution(error, spl) {
     var message=String(error || "Splunk rejected or could not execute the search.");
     var lower=message.toLowerCase();
     var unknown=message.match(/Unknown search command\s+['\"]?([A-Za-z][A-Za-z0-9_-]*)['\"]?/i);
     var command=unknown ? unknown[1] : "";
+    var syntax=pipelineSyntax(spl);
+    var missingBeforePipe=/missing a search command before\s+['\"]?\|/i.test(message);
     var result={category:"Search review",summary:"Review the Splunk error, inspect the generated SPL, apply a safe correction when available, and validate again.",steps:[
       "Read the complete Splunk error shown below.",
       "Open the SPL editor and inspect the command or field named by Splunk.",
@@ -457,17 +500,34 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         "Run validation again against the same bounded time window."];
       result.fix="rshell_to_search"; result.fixLabel="Replace rshell with search";
       result.correctedSpl=replaceCommandAtBoundary(spl, "rshell", "search");
+      result.autoApply=true;
+      result.appliedSummary="DEI replaced the invalid command-position token rshell with search. No quoted text or field values were changed.";
+    } else if (missingBeforePipe && syntax.emptyPipes.length) {
+      result.category="SPL syntax";
+      result.summary="Splunk found an empty pipeline stage. DEI can safely collapse the adjacent pipe delimiters without changing commands or field expressions.";
+      result.steps=["Remove only the empty pipeline delimiter.","Review the corrected command boundary highlighted by the Splunk error position.","Run validation again against the same bounded window."];
+      result.fix="empty_pipeline"; result.fixLabel="Remove empty pipeline stage";
+      result.correctedSpl=collapseEmptyPipelines(spl); result.autoApply=true;
+      result.appliedSummary="DEI removed an empty pipeline stage. Commands, quoted strings, field expressions, and MITRE metadata values were preserved.";
     } else if (/timeout|timed out|time range|exceeded the 60 second/.test(lower)) {
       result.category="Search scope";
       result.summary="The validation search exceeded its safety boundary. Use a narrower window before changing detection logic.";
       result.steps=["Apply the bounded 15-minute validation window.","Review high-cardinality stats or transaction commands.","Run validation again and expand the window only after the search completes."];
       result.fix="narrow_window"; result.fixLabel="Apply 15-minute window";
-    } else if (/must begin with search|missing a search command|first command|searchparser/.test(lower) &&
-        !/unknown search command|unknown command|macro/.test(lower)) {
+    } else if ((/must begin with search|missing a search command|first command/.test(lower)) &&
+        !/unknown search command|unknown command|macro/.test(lower) && canAddSearchPrefix(spl)) {
       result.category="SPL syntax";
       result.summary="Splunk could not identify a valid generating command. DEI can add the required search prefix when the query begins with a filter expression.";
       result.steps=["Apply the search-prefix correction.","Review the beginning of the SPL for unmatched quotes or parentheses.","Run validation again."];
       result.fix="search_prefix"; result.fixLabel="Add search prefix";
+      result.correctedSpl="search "+String(spl || "").trim(); result.autoApply=true;
+      result.appliedSummary="DEI added search before the opening field-filter expression. The remaining pipeline was not changed.";
+    } else if (missingBeforePipe) {
+      result.category="SPL syntax";
+      result.summary="The SPL already has a generating search, so adding another search prefix would be incorrect. Splunk found a malformed pipe boundary or an unmatched quote near the reported position.";
+      result.steps=["Inspect the exact error position and the command immediately before it.",
+        syntax.balancedQuotes ? "Check for a missing command between pipe delimiters." : "Close the unmatched quoted string before the next pipe delimiter.",
+        "Correct the SPL in the editor, then run validation again."];
     } else if (/unknown search command|unknown command|cannot find.*macro|macro .*not found/.test(lower)) {
       result.category="Missing command or macro";
       result.summary="The SPL references a command or macro that is unavailable in this Splunk environment. DEI will not guess a replacement because that could change detection meaning.";
@@ -494,14 +554,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       pendingValidationFix=null; panel.prop("hidden",true); return;
     }
     var resolution=validation.resolution || validationResolution(validation.error,String($("#generator-spl").val() || ""));
-    pendingValidationFix=resolution.fix;
-    $("#builder-validation-resolution-category").text(resolution.category);
-    $("#builder-validation-resolution-summary").text(resolution.summary);
+    pendingValidationFix=resolution.applied ? null : resolution.fix;
+    $("#builder-validation-resolution-category").text(resolution.category+(resolution.applied ? " · corrected automatically" : ""));
+    $("#builder-validation-resolution-summary").text(resolution.applied ? resolution.appliedSummary : resolution.summary);
     $("#builder-validation-error").text(validation.error || "No detailed Splunk error was returned.");
     $("#builder-validation-resolution-steps").html(resolution.steps.map(function (step) {
       return "<li>"+escapeHtml(step)+"</li>";
     }).join(""));
-    $("#builder-apply-validation-fix").prop("hidden",!resolution.fix).text(resolution.fixLabel || "Apply recommended fix");
+    $("#builder-apply-validation-fix").prop("hidden",!resolution.fix || resolution.applied).text(resolution.fixLabel || "Apply recommended fix");
     panel.prop("hidden",false);
   }
 
@@ -558,6 +618,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "Splunk rejected or could not execute the search.";
   }
 
+  function applyValidationCorrection(artifact, resolution) {
+    if (!resolution || !resolution.fix) { return false; }
+    if (resolution.correctedSpl) {
+      artifact.spl=resolution.correctedSpl;
+      $("#generator-spl").val(resolution.correctedSpl);
+      if (artifact.enterprise_security) { artifact.enterprise_security.drilldown_search=resolution.correctedSpl; }
+    } else if (resolution.fix==="narrow_window") {
+      artifact.schedule={cron:"*/5 * * * *",earliest:"-15m@m",latest:"-2m@m"};
+      $("#builder-cron").val(artifact.schedule.cron);
+      $("#builder-earliest").val(artifact.schedule.earliest);
+      $("#builder-latest").val(artifact.schedule.latest);
+    } else { return false; }
+    return true;
+  }
+
   function runValidation() {
     var artifact = saveCurrentDraft();
     if (artifact && window.DEIDetectionStandards) {
@@ -589,14 +664,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
     }).fail(function (xhr, status) {
       var error=validationError(xhr,status);
+      var resolution=validationResolution(error,artifact.spl);
       artifact.validation = {status:"failed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
         result_count:0, result_limit:VALIDATION_RESULT_LIMIT, sample_results:[], error:error,
-        resolution:validationResolution(error,artifact.spl)};
+        resolution:resolution};
+      if (resolution.autoApply && applyValidationCorrection(artifact,resolution)) {
+        artifact.validation_history=Array.isArray(artifact.validation_history) ? artifact.validation_history : [];
+        artifact.validation_history.push($.extend(true,{},artifact.validation));
+        resolution.applied=true;
+      }
       artifact.updated_at = artifact.validation.validated_at;
       selected = artifact;
       saveArtifact(artifact);
-      renderValidation(artifact.validation);
-      setFeedback(artifact.validation.error, "error");
+      renderArtifact(artifact);
+      setFeedback(resolution.applied ? resolution.appliedSummary+" Review the update and run validation again." : artifact.validation.error, resolution.applied ? "working" : "error");
     }).always(function () {
       $("#builder-run-validation").prop("disabled", false).text("Run validation");
     });
@@ -751,20 +832,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setFeedback("No safe automatic correction is available. Follow the displayed guidance and edit the SPL manually.", "error");
       return;
     }
-    if (pendingValidationFix==="narrow_window") {
-      $("#builder-cron").val("*/5 * * * *");
-      $("#builder-earliest").val("-15m@m");
-      $("#builder-latest").val("-2m@m");
-    } else if (pendingValidationFix==="search_prefix") {
-      var spl=String($("#generator-spl").val() || "").trim();
-      if (!/^(?:search\s|\|)/i.test(spl)) { $("#generator-spl").val("search "+spl); }
-    } else if (pendingValidationFix==="rshell_to_search") {
-      var failedResolution=selected.validation && selected.validation.resolution;
-      if (!failedResolution || !failedResolution.correctedSpl) {
-        setFeedback("The rshell correction is no longer applicable. Review the current SPL manually.","error");
-        return;
-      }
-      $("#generator-spl").val(failedResolution.correctedSpl);
+    var failedResolution=selected.validation && selected.validation.resolution;
+    if (!failedResolution || !applyValidationCorrection(selected,failedResolution)) {
+      setFeedback("The recommended correction is no longer applicable. Review the current SPL manually.","error");
+      return;
     }
     var artifact=currentArtifact();
     if (!artifact) { return; }
