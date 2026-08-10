@@ -131,6 +131,14 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "Initial releases must not automatically deploy or enable detections" in framework
 
 
+def test_detection_standards_block_malformed_pipeline_syntax() -> None:
+    javascript = (STATIC_ROOT / "dei_detection_standards_v1.js").read_text(encoding="utf-8")
+    assert 'VERSION="1.1.0"' in javascript
+    assert "function syntaxSummary(text)" in javascript
+    assert 'issue("spl.empty-pipeline","error"' in javascript
+    assert 'issue("spl.unbalanced-quote","error"' in javascript
+
+
 def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     javascript = (STATIC_ROOT / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     assert "production_ready" in javascript
@@ -193,6 +201,16 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "field values and quoted text are not modified" in javascript
     assert "DEI will not guess a replacement" in javascript
     assert 'result.fix="rshell_to_search"' in javascript
+    assert "function pipelineSyntax(spl)" in javascript
+    assert "function collapseEmptyPipelines(spl)" in javascript
+    assert "function canAddSearchPrefix(spl)" in javascript
+    assert 'result.fix="empty_pipeline"' in javascript
+    assert "result.autoApply=true" in javascript
+    assert "function applyValidationCorrection(artifact, resolution)" in javascript
+    assert "corrected automatically" in javascript
+    assert "adding another search prefix would be incorrect" in javascript
+    assert 'return "mvappend("' in javascript
+    assert 'split(" + quote(cleaned.join("||"))' not in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:
