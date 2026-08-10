@@ -846,6 +846,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var hasSelection = !!$(this).val();
     $("#builder-generate").prop("disabled", false);
     if (hasSelection) { $("#generator-empty").text("Selection ready. Choose Generate detection draft to build its SPL."); }
+    if (hasSelection && $("#workflow-detection-select").length && $("#workflow-detection-select").val() !== $(this).val()) {
+      $("#workflow-detection-select").val($(this).val()).trigger("change");
+    }
   });
   $("#builder-generate").on("click", generateSelectedDetection);
   $("#builder-save-draft").on("click", saveCurrentDraft);

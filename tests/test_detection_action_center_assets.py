@@ -40,7 +40,7 @@ def test_action_center_prioritizes_real_pipeline_evidence() -> None:
     for contract in (
         "dei.latestRecommendationReport", "DEILifecycleStore", "field_unverified",
         'validation.status==="failed"', 'health==="degraded"', 'health==="failing"',
-        "detection_builder?detection=", "detection_workflow?detection=",
+        "detection_workflow?detection=", "detection_workflow?detection=",
         "command_center#dei-telemetry", "highest priority first", "URLSearchParams",
     ):
         assert contract in javascript

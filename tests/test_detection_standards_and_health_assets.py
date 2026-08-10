@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 def test_detection_standards_engine_is_packaged_and_integrated() -> None:
     engine = (STATIC / "dei_detection_standards_v1.js").read_text(encoding="utf-8")
-    builder = ElementTree.parse(VIEWS / "detection_builder.xml").getroot()
+    builder = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     generator = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
     assert "DEIDetectionStandards" in engine
     for contract in ("index\\s*=\\s*\\*", "command.transaction", "command.join", "schedule.window", "mitre.missing", "context.entity", "es.risk-object"):
@@ -29,7 +29,7 @@ def test_detection_health_is_a_real_workspace() -> None:
     for element_id in ("dei-detection-health-page", "health-refresh", "health-managed", "health-healthy", "health-attention", "health-failed", "health-unvalidated", "health-filter", "health-state", "health-records"):
         assert view.find(f".//*[@id='{element_id}']") is not None
     assert nav.find(".//view[@name='detection_health']") is not None
-    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "detection_builder?detection=", "detection_operations?detection=", "Run intelligence scan"):
+    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "detection_workflow?detection=", "Run intelligence scan"):
         assert contract in javascript
 
 

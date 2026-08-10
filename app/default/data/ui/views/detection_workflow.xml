@@ -1,19 +1,19 @@
-<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,detection_workflow_v1.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css">
-  <label>Guided Detection Workflow</label>
-  <description>A simplified, detection-specific journey through engineering, approval, enablement, and monitoring.</description>
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v2.js,detection_lifecycle_v2.js,detection_workflow_v1.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css">
+  <label>Guided Detection Builder</label>
+  <description>Build, validate, approve, enable, and monitor one detection through a single guided workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
   <row>
     <panel>
       <html>
         <main id="dei-guided-detection-page" class="dei-shell dei-guided-detection-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
-            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Guided Workflow</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_workflow" selected="selected">Guided Workflow</option><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations">Engineering Operations</option><option value="detection_catalog">Detection Catalog</option><option value="detection_builder">Detection Builder</option></select></label></nav>
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Guided Detection Builder</span></div></div>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a class="active" href="detection_workflow">Guided Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_workflow" selected="selected">Guided Detection Builder</option><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations">Engineering Operations</option><option value="detection_catalog">Detection Catalog</option></select></label></nav>
             <div id="workflow-data-status" class="dei-status">Workflow: loading</div>
           </section>
 
           <header class="dei-workflow-hero">
-            <div><p class="dei-eyebrow">Guided Detection Workflow</p><h1>Move one detection forward at a time.</h1><p>Select a detection. DEI will explain its current position, show only what is required now, and send you to the exact next action.</p></div>
+            <div><p class="dei-eyebrow">Guided Detection Builder</p><h1>Move one detection from idea to operation.</h1><p>Select a detection. DEI will show its lifecycle position and keep generation, validation, approval, enablement, and monitoring actions on this page.</p></div>
             <a href="detection_lifecycle">View lifecycle overview →</a>
           </header>
 
@@ -35,14 +35,41 @@
               <article class="dei-workflow-next-card">
                 <p>Do this next</p><h3 id="workflow-next-title">Review the recommendation</h3><p id="workflow-next-explanation"></p>
                 <div id="workflow-requirements" class="dei-workflow-requirements"></div>
-                <a id="workflow-primary-action" href="detection_builder">Continue →</a>
-                <small id="workflow-action-note">You will open the exact detection in its owning workspace.</small>
+                <a id="workflow-primary-action" href="#detection-generator">Continue →</a>
+                <small id="workflow-action-note">The required workspace is available below.</small>
               </article>
               <aside class="dei-workflow-help-card">
                 <p>Why this stage matters</p><h3 id="workflow-why-title">Evidence before action</h3><p id="workflow-why-text"></p>
                 <details><summary>View advanced evidence</summary><div id="workflow-advanced-evidence"></div></details>
               </aside>
             </div>
+          </section>
+
+          <section id="guided-builder-workspace" class="dei-guided-builder-workspace" hidden="hidden" aria-labelledby="guided-builder-title">
+            <section class="dei-lifecycle-section dei-builder-selector-section">
+              <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Build and validate</p><h2 id="guided-builder-title">Detection engineering workspace</h2><p>Generate or revise the selected detection, apply SPL standards, and preserve bounded validation evidence without leaving the guided lifecycle.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
+              <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button">Generate detection draft</button></div>
+            </section>
+
+            <section id="detection-generator" class="dei-lifecycle-section dei-generator-section">
+              <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Review telemetry-scoped SPL, ATT&amp;CK mappings, scheduling, Enterprise Security settings, and validation evidence.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
+              <div id="generator-empty" class="dei-generator-empty">Select a recommendation above to begin. Unsupported detections and recommendations without observed telemetry remain blocked.</div>
+              <div id="generator-output" class="dei-generator-output" style="display:none">
+                <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="builder-save-draft" type="button">Save draft</button><button id="builder-reset-draft" type="button">Reset generated values</button><button id="builder-clear-spl" type="button">Clear SPL</button><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
+                <div id="builder-feedback" class="dei-builder-feedback" role="status" aria-live="polite">Generated draft is ready for review.</div>
+                <div class="dei-builder-editor-meta"><label><span>Cron schedule</span><input id="builder-cron" type="text" spellcheck="false" /></label><label><span>Earliest time</span><input id="builder-earliest" type="text" spellcheck="false" /></label><label><span>Latest time</span><input id="builder-latest" type="text" spellcheck="false" /></label></div>
+                <div class="dei-generator-grid"><article><label class="dei-generator-label" for="generator-spl">Detection SPL</label><textarea id="generator-spl" spellcheck="false" aria-describedby="builder-validation-help"></textarea><small id="builder-validation-help">Validation runs this SPL as an authenticated, bounded historical search and returns at most 25 result rows.</small></article><article><span class="dei-generator-label">Enterprise Security configuration</span><div id="generator-es-output"></div></article></div>
+                <section id="builder-quality-workspace" class="dei-quality-workspace" aria-labelledby="builder-quality-title"><div class="dei-quality-heading"><div><span class="dei-generator-label">Detection engineering standards</span><h3 id="builder-quality-title">SPL quality and production readiness</h3><p>Required checks cover correctness, telemetry scope, performance, scheduling, analyst context, MITRE mapping, and Enterprise Security readiness.</p></div><div><strong id="builder-quality-score">0%</strong><span id="builder-quality-state" data-state="blocked">Generate a draft</span></div></div><div id="builder-quality-dimensions" class="dei-quality-dimensions"></div><div id="builder-quality-issues" class="dei-quality-issues"><p>Generate a draft to evaluate its engineering quality.</p></div></section>
+                <section class="dei-validation-workspace" aria-labelledby="builder-validation-title">
+                  <div class="dei-validation-heading"><div><span class="dei-generator-label">Historical validation</span><h3 id="builder-validation-title">Test against Splunk telemetry</h3><p>Runs only the selected draft, applies a hard result cap, and records evidence in the shared lifecycle record.</p></div><button id="builder-run-validation" type="button">Run validation</button></div>
+                  <div id="builder-validation-state" class="dei-validation-state idle">Not run</div>
+                  <div id="builder-validation-metrics" class="dei-validation-metrics" style="display:none"><div><span>Status</span><strong id="validation-status">—</strong></div><div><span>Results</span><strong id="validation-result-count">0</strong></div><div><span>Runtime</span><strong id="validation-runtime">—</strong></div><div><span>Validated</span><strong id="validation-time">—</strong></div></div>
+                  <section id="builder-validation-resolution" class="dei-validation-resolution" hidden="hidden" aria-labelledby="builder-validation-resolution-title"><div class="dei-validation-resolution-head"><div><span>Validation resolution</span><h4 id="builder-validation-resolution-title">Correct the failed search</h4></div><span id="builder-validation-resolution-category">Review required</span></div><p id="builder-validation-resolution-summary"></p><pre id="builder-validation-error"></pre><ol id="builder-validation-resolution-steps"></ol><div class="dei-validation-resolution-actions"><button id="builder-apply-validation-fix" type="button">Apply recommended fix</button><button id="builder-edit-validation-query" type="button">Edit detection SPL</button><button id="builder-retry-validation" type="button">Run validation again</button></div></section>
+                  <div id="builder-validation-results" class="dei-validation-results" style="display:none"><table><thead id="validation-result-head"></thead><tbody id="validation-result-body"></tbody></table></div>
+                </section>
+                <p class="dei-generator-safety">Drafts and validation evidence are persisted in the shared DEI lifecycle store. DEI does not enable or deploy detections without analyst review.</p>
+              </div>
+            </section>
           </section>
 
           <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center dei-guided-action-center" style="display:none">

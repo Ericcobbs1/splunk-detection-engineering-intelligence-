@@ -267,7 +267,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     ):
         assert contract in shared
     assert "dei-mitre-next-action" in mitre
-    assert "detection_builder?detection=" in mitre
+    assert "detection_workflow?detection=" in mitre
     assert 'document.execCommand("copy")' in builder
     assert "Clipboard access is unavailable" in builder
 
@@ -280,7 +280,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
         "refreshHomeLifecycleRecords", "DEILifecycleStore", "homeLifecycleRecords",
         "renderHomeHealthActions", "missingHealth", "validation.status===\"failed\"",
         'qualify:ready>0', "buildable===0", "detection_workflow?detection=",
-        "detection_builder?detection=", "homeStageDestination",
+        "detection_workflow?detection=", "homeStageDestination",
         "#dei-home-health-action", "detection_action_center",
     ):
         assert contract in javascript

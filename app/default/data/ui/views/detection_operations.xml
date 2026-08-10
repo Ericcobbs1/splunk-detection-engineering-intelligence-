@@ -8,12 +8,12 @@
         <div id="dei-lifecycle-page" class="dei-shell dei-lifecycle-page dei-lifecycle-operations-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Engineering Operations</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_workflow">Guided Workflow</option><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations" selected="selected">Engineering Operations</option><option value="detection_catalog">Detection Catalog</option><option value="detection_builder">Detection Builder</option></select></label></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_workflow">Guided Detection Builder</option><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations" selected="selected">Engineering Operations</option><option value="detection_catalog">Detection Catalog</option></select></label></nav>
             <div id="lifecycle-data-status" class="dei-status">Analysis: checking</div>
           </section>
 
           <section class="dei-lifecycle-hero dei-operations-hero">
-            <div><p class="dei-eyebrow">Lifecycle Operations</p><h1>Prioritize active engineering work.</h1><p>Filter recommendations, drafts, testing, peer-review, and tuning work. Guided Workflow owns the detection-specific evidence gates and actions.</p></div>
+            <div><p class="dei-eyebrow">Lifecycle Operations</p><h1>Prioritize active engineering work.</h1><p>Filter recommendations, drafts, testing, peer-review, and tuning work. Guided Detection Builder owns the detection-specific evidence gates and actions.</p></div>
             <div class="dei-lifecycle-hero-state"><span id="lifecycle-analysis-age">No analysis loaded</span><strong id="lifecycle-queue-total">0</strong><small>current work items</small></div>
           </section>
 

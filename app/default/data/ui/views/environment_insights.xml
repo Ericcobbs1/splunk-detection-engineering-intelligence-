@@ -8,12 +8,12 @@
         <div id="dei-environment-insights" class="dei-shell dei-environment-insights">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Environment Intelligence</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 
           <section class="dei-environment-insights-head">
-            <div><p class="dei-eyebrow">Environment Intelligence</p><h1>Understand the discovery results.</h1><p>Review readiness, coverage, telemetry domains, and snapshot evidence before moving into MITRE analysis or Detection Builder.</p></div>
+            <div><p class="dei-eyebrow">Environment Intelligence</p><h1>Understand the discovery results.</h1><p>Review readiness, coverage, telemetry domains, and snapshot evidence before moving into MITRE analysis or Guided Detection Builder.</p></div>
             <a class="dei-link-button dei-back-to-discovery" href="command_center#dei-telemetry">← Back to telemetry discovery</a>
           </section>
 

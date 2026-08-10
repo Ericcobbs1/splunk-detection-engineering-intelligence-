@@ -65,7 +65,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       home:[
         {label:"Run an environment scan",target:".dei-run-intelligence-scan",activate:true,detail:"Collect current telemetry and field evidence now."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped tactics and recommended use cases."},
-        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate and validate reviewable SPL."},
+        {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate and validate reviewable SPL."},
         {label:"Continue guided workflow",href:"detection_workflow",detail:"Resume one detection at its exact next required action."}
       ],
       environment:[
@@ -76,11 +76,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       environment_insights:[
         {label:"Run a new scan",target:".dei-run-intelligence-scan",activate:true,detail:"Replace the active session intelligence with fresh evidence."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped techniques and Detection Advisor recommendations."},
-        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL from a telemetry-supported recommendation."}
+        {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate SPL from a telemetry-supported recommendation."}
       ],
       mitre:[
         {label:"Filter Detection Advisor",target:"#mitre-sourcetype-filter",detail:"Narrow recommendations to one observed sourcetype."},
-        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL for a selected qualified recommendation."},
+        {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate SPL for a selected qualified recommendation."},
         {label:"Continue guided workflow",href:"detection_workflow",detail:"Resume one detection at its exact next required action."}
       ],
       builder:[
@@ -92,7 +92,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       lifecycle:[
         {label:"Search the work queue",target:"#lifecycle-search",detail:"Find a recommendation or persisted detection record."},
         {label:"Reset work-queue filters",target:"#lifecycle-reset-filters",detail:"Restore the complete actionable work queue."},
-        {label:"Open Detection Builder",href:"detection_builder",detail:"Generate or revise the selected detection artifact."}
+        {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate or revise the selected detection artifact."}
       ]
     };
     return actions[workflowPage()] || actions.home;
@@ -112,13 +112,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       ],
       environment_insights:[
         {label:"Inspect ATT&CK coverage",href:"mitre_coverage",detail:"Move from summary coverage into tactic and technique evidence."},
-        {label:"Build a coverage-closing detection",href:"detection_builder",detail:"Generate SPL for a qualified recommendation."},
+        {label:"Build a coverage-closing detection",href:"detection_workflow",detail:"Generate SPL for a qualified recommendation."},
         {label:"Run a new assessment",target:".dei-run-intelligence-scan",activate:true,detail:"Replace the current coverage snapshot with fresh telemetry."}
       ],
       mitre:[
         {label:"Filter by sourcetype",target:"#mitre-sourcetype-filter",detail:"Find coverage recommendations supported by one telemetry source."},
         {label:"Inspect the ATT&CK matrix",target:"#mitre-matrix",detail:"Review tactic columns and mapped technique state."},
-        {label:"Build a mapped detection",href:"detection_builder",detail:"Generate SPL with embedded ATT&CK context."}
+        {label:"Build a mapped detection",href:"detection_workflow",detail:"Generate SPL with embedded ATT&CK context."}
       ],
       builder:[
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Confirm the coverage gap and technique mapping before building."},
@@ -293,15 +293,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var canBuild=["field_gap","field_unverified"].indexOf(item.readiness)!==-1;
       putIssue(key,{name:item.name || key,
         reason:"Readiness is "+String(item.readiness||"unknown").replace(/_/g," ")+". "+(item.next_action || "Resolve the required telemetry or field evidence."),
-        href:canBuild ? "detection_builder?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
+        href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
         action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence",severity:"attention",priority:1});
     });
     artifacts.forEach(function (item,index) {
       var key=itemKey(item,index); var name=item.name || key;
       var health=item.monitoring && item.monitoring.health;
       if (item.validation && item.validation.status==="failed") {
-        putIssue(key,{name:name,reason:"The latest bounded validation failed. Open Builder to inspect the error, SPL, and schedule.",
-          href:"detection_builder?detection="+encodeURIComponent(key),action:"Repair and validate",severity:"critical",priority:3});
+        putIssue(key,{name:name,reason:"The latest bounded validation failed. Open guided builder to inspect the error, SPL, and schedule.",
+          href:"detection_workflow?detection="+encodeURIComponent(key),action:"Repair and validate",severity:"critical",priority:3});
       }
       if (health==="degraded" || health==="failing") {
         putIssue(key,{name:name,reason:"Monitoring health is "+health+". Review result volume, runtime, analyst outcomes, and tuning evidence.",
@@ -426,8 +426,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var steps=[
       {key:"discover",label:"Discover",detail:"Analyze telemetry",href:"command_center#dei-telemetry"},
       {key:"review",label:"Review",detail:"MITRE and readiness",href:"mitre_coverage"},
-      {key:"build",label:"Build",detail:"Generate SPL",href:"detection_builder"},
-      {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_builder#builder-validation-title"},
+      {key:"build",label:"Build",detail:"Generate SPL",href:"detection_workflow"},
+      {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_workflow#builder-validation-title"},
       {key:"operate",label:"Operate",detail:"Approve, enable, monitor",href:"detection_operations"}
     ];
     return [
@@ -472,8 +472,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var actions={
       discover:{label:"Analyze telemetry",href:"command_center#dei-telemetry"},
       review:{label:"Review MITRE coverage",href:"mitre_coverage"},
-      build:{label:"Build a detection",href:"detection_builder"},
-      validate:{label:"Validate generated SPL",href:"detection_builder#builder-validation-title"},
+      build:{label:"Build a detection",href:"detection_workflow"},
+      validate:{label:"Validate generated SPL",href:"detection_workflow#builder-validation-title"},
       operate:{label:"Continue guided workflow",href:"detection_workflow"}
     };
     var current="operate";

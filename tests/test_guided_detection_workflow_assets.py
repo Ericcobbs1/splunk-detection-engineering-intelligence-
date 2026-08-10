@@ -14,6 +14,8 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
     assert root.attrib["theme"] == "dark"
     assert "detection_workflow_v1.js" in root.attrib["script"].split(",")
     assert "detection_lifecycle_v2.js" in root.attrib["script"].split(",")
+    assert "detection_query_generator_v2.js" in root.attrib["script"].split(",")
+    assert "dei_detection_standards_v1.js" in root.attrib["script"].split(",")
     assert "detection_workflow_v1.css" in root.attrib["stylesheet"].split(",")
     for element_id in (
         "dei-guided-detection-page", "workflow-data-status", "workflow-detection-select",
@@ -25,6 +27,9 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
+        "guided-builder-workspace", "builder-detection-select", "builder-generate",
+        "detection-generator", "generator-spl", "builder-quality-workspace",
+        "builder-run-validation", "builder-validation-resolution",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -43,17 +48,14 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '"Current stage: "+label(stage)' in javascript
 
 
-def test_workflow_routes_one_primary_action_to_the_owning_workspace() -> None:
+def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
     javascript = (STATIC / "detection_workflow_v1.js").read_text(encoding="utf-8")
-    for destination in (
-        "detection_builder?detection=", "detection_operations?detection=",
-        "detection_catalog?detection=", "detection_action_center?category=telemetry",
-    ):
+    for destination in ("#detection-generator", "#lifecycle-action-center", "detection_catalog?detection=", "detection_action_center?category=telemetry"):
         assert destination in javascript
     for action in (
-        "Start detection draft", "Review telemetry actions", "Open Builder and validate", "Open validation handoff",
+        "Start detection draft", "Review telemetry actions", "Review SPL and validate", "Open validation handoff",
         "Open peer review", "Open catalog enablement", "Record monitoring baseline",
-        "Manage monitoring", "Open Builder for tuning", "Review retired detection",
+        "Manage monitoring", "Open tuning workspace", "Review retired detection",
     ):
         assert action in javascript
     assert "workflow-primary-action" in javascript
@@ -68,10 +70,12 @@ def test_guided_workflow_is_primary_but_advanced_workspaces_remain_available() -
     assert nav.find(".//view[@name='detection_workflow']") is not None
     home = ElementTree.tostring(ElementTree.parse(VIEWS / "dei_home.xml").getroot(), encoding="unicode")
     assert 'href="detection_workflow"' in home
-    assert "Guided Detection Workflow" in home
-    for view_name in ("detection_lifecycle", "detection_operations", "detection_catalog", "detection_builder"):
+    assert "Guided Detection Builder" in home
+    for view_name in ("detection_lifecycle", "detection_operations", "detection_catalog"):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
         assert root.find(".//option[@value='detection_workflow']") is not None
+    redirect = ElementTree.parse(VIEWS / "detection_builder.xml").getroot()
+    assert "detection_builder_redirect_v1.js" in redirect.attrib["script"].split(",")
 
 
 def test_guided_workflow_layout_prioritizes_current_action() -> None:
