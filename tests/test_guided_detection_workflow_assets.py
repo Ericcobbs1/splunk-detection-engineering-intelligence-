@@ -13,6 +13,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
     assert "detection_workflow_v1.js" in root.attrib["script"].split(",")
+    assert "detection_lifecycle_v2.js" in root.attrib["script"].split(",")
     assert "detection_workflow_v1.css" in root.attrib["stylesheet"].split(",")
     for element_id in (
         "dei-guided-detection-page", "workflow-data-status", "workflow-detection-select",
@@ -20,6 +21,10 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "workflow-detection-title", "workflow-current-stage", "workflow-stage-rail",
         "workflow-next-title", "workflow-next-explanation", "workflow-requirements",
         "workflow-primary-action", "workflow-action-note", "workflow-advanced-evidence",
+        "lifecycle-action-center", "lifecycle-action-title", "lifecycle-action-position",
+        "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
+        "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
+        "lifecycle-action-buttons", "lifecycle-action-history",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -77,3 +82,22 @@ def test_guided_workflow_layout_prioritizes_current_action() -> None:
         "@media(max-width:1100px)", "@media(max-width:700px)",
     ):
         assert contract in stylesheet
+
+
+def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    workflow = (STATIC / "detection_workflow_v1.js").read_text(encoding="utf-8")
+    operations = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
+    guided = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
+    assert operations.find(".//*[@id='lifecycle-action-center']") is None
+    assert guided.find(".//*[@id='lifecycle-action-center']") is not None
+    assert 'href="detection_workflow?detection=' in lifecycle
+    assert "dei:workflow-detection-selected" in lifecycle
+    assert "dei:workflow-detection-selected" in workflow
+    assert "dei:lifecycle-records-updated" in lifecycle
+    assert "dei:lifecycle-records-updated" in workflow
+    for action in (
+        "submit_review", "approve_review", "return_draft", "record_health",
+        "start_tuning", "retire",
+    ):
+        assert f'action==="{action}"' in lifecycle

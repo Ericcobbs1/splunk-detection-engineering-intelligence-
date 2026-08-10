@@ -47,7 +47,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function renderSelected() {
     var id=String($("#workflow-detection-select").val()||""); var item=items.filter(function (candidate) { return key(candidate)===id; })[0];
-    if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver").prop("hidden",true); return; }
+    if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
+    if (item.record) {
+      $("#workflow-empty,#workflow-driver").prop("hidden",true);
+      $(document).trigger("dei:workflow-detection-selected",[key(item)]);
+      try { window.history.replaceState({},"",window.location.pathname+"?detection="+encodeURIComponent(key(item))); } catch (error) { /* URL state is optional. */ }
+      return;
+    }
+    $("#lifecycle-action-center").hide();
     var stage=stageFor(item); var current=Math.max(0,STAGES.map(function (value) { return value.id; }).indexOf(stage)); var config=guide(item); var record=item.record||{};
     $("#workflow-empty").prop("hidden",true); $("#workflow-driver").prop("hidden",false);
     $("#workflow-stage-count").text("Stage "+(current+1)+" of "+STAGES.length); $("#workflow-detection-title").text(item.name||key(item));
@@ -65,4 +72,5 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function initialize(attempt) { Store=window.DEILifecycleStore; if (!Store&&attempt<40) { window.setTimeout(function () { initialize(attempt+1); },50); return; } recommendations=(safeJson(window.sessionStorage.getItem(REPORT_KEY),{}).recommendations)||[]; if (!Store) { records=[]; populate(); return; } Store.load().done(function (loaded) { records=Array.isArray(loaded)?loaded:[]; populate(); }); }
 
   $("#workflow-detection-select").on("change",renderSelected); $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if (destination) { window.location.href=destination; } }); initialize(0);
+  $(document).on("dei:lifecycle-records-updated",function (event,loaded) { records=Array.isArray(loaded)?loaded:records; populate(); });
 });

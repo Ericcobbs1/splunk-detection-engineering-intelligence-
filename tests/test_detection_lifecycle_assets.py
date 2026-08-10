@@ -35,19 +35,17 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     assert root.find(".//*[@id='lifecycle-work-queue']") is None
 
 
-def test_engineering_operations_owns_queue_and_action_center() -> None:
+def test_engineering_operations_owns_only_the_work_queue() -> None:
     root = ElementTree.parse(OPERATIONS_PATH).getroot()
     for element_id in (
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
         "lifecycle-visible-rows",
         "lifecycle-queue-count", "lifecycle-queue-total", "lifecycle-work-queue",
-        "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
-        "lifecycle-action-position", "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
-        "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
-        "lifecycle-action-history", "lifecycle-action-progress",
+        "lifecycle-reset-filters",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     assert root.find(".//*[@id='dei-detection-flow']") is None
+    assert root.find(".//*[@id='lifecycle-action-center']") is None
 
 
 def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> None:
@@ -104,7 +102,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     for contract in (
         "cataloged(record)", 'status==="ready"', 'data-catalog-action="enable"',
         'copy.state="production"', 'status:"enabled"', "catalog_detection_disabled",
-        "detection_operations?detection=", "Record health, tune, or retire",
+        "detection_workflow?detection=", "Record health, tune, or retire",
     ):
         assert contract in catalog_javascript
 
