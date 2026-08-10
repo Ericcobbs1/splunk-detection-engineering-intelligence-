@@ -8,6 +8,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var records = [];
   var selectedRecord = null;
   var Store = null;
+  var generatedDrafts = {};
 
   function safeJson(value) { try { return JSON.parse(value || "null"); } catch (error) { return null; } }
   function esc(value) { return String(value == null ? "" : value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
@@ -16,6 +17,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function sourceMappings() { return report && report.source_mappings ? report.source_mappings : []; }
   function recordKey(item) { return String(item && (item.detection_id || item._key || item.id) || "").replace(/^dei-/,""); }
   function recordFor(item) { var key=recordKey(item); return records.filter(function (record) { return recordKey(record)===key; })[0] || null; }
+  function guidedBuilderPage() { return $("#dei-guided-detection-page").length>0; }
+  function draftStarted(key) { return generatedDrafts[String(key||"")]===true; }
 
   function observedSourcetypes(item) {
     if (item.sourcetypes && item.sourcetypes.length) { return item.sourcetypes; }
@@ -417,7 +420,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $(document).trigger("dei:lifecycle-records-updated",[records]);
       applyRequestedPipelineStage();
       var requested=requestedDetection();
-      if (requested) {
+      if (requested && (!guidedBuilderPage() || draftStarted(requested))) {
         selectRecord(requested);
         if (selectedRecord) {
           var center=document.querySelector("#lifecycle-action-center"); if (center) { center.scrollIntoView({behavior:"smooth",block:"start"}); }
@@ -454,7 +457,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var id=String($(this).data("detection")||""); window.localStorage.setItem(SELECTED_DETECTION_KEY,id);
     window.location.href="detection_workflow?detection="+encodeURIComponent(id);
   });
-  $(document).on("dei:workflow-detection-selected",function (event,key) { if (key) { selectRecord(String(key)); } else { $("#lifecycle-action-center").hide(); } });
+  $(document).on("dei:workflow-detection-selected",function (event,key) {
+    if (key && (!guidedBuilderPage() || draftStarted(key))) { selectRecord(String(key)); }
+    else { $("#lifecycle-action-center").hide(); }
+  });
+  $(document).on("dei:detection-draft-reset",function (event,key) {
+    if (key) { generatedDrafts[String(key)]=false; }
+    selectedRecord=null;
+    $("#lifecycle-action-center").hide();
+  });
+  $(document).on("dei:detection-draft-generated",function (event,key,record) {
+    var value=String(key||"");
+    if (!value || !record) { return; }
+    generatedDrafts[value]=true;
+    records=records.filter(function (item) { return recordKey(item)!==value; });
+    records.push(record);
+    selectRecord(value);
+  });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });
   $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });

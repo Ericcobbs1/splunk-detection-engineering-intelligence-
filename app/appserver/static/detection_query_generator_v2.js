@@ -776,6 +776,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#builder-quality-issues").html("<p>Generate a draft to evaluate its engineering quality.</p>");
     $("#generator-es-state").text("Select a telemetry-ready detection");
     renderValidation(null);
+    $(document).trigger("dei:detection-draft-reset", [String($("#builder-detection-select").val() || "")]);
   }
 
   function selectorGroup(items, readiness, label) {
@@ -856,6 +857,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#detection-generator").show();
     saveArtifact(artifact);
     renderArtifact(artifact);
+    $(document).trigger("dei:detection-draft-generated", [item.detection_id, lifecycleRecord(artifact)]);
     setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
   }
 
