@@ -7,6 +7,7 @@
     <view name="detection_lifecycle" />
     <view name="detection_action_center" />
     <view name="detection_operations" />
+    <view name="detection_catalog" />
     <view name="detection_builder" />
     <view name="detection_health" />
   </collection>

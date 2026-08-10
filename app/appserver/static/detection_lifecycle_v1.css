@@ -37,3 +37,6 @@
 .dei-action-center .dei-generator-actions button.danger{border-color:rgba(255,115,129,.35);background:rgba(255,115,129,.07);color:#ffadb5}
 @media(max-width:1150px){.dei-lifecycle-progress{grid-template-columns:repeat(4,minmax(0,1fr))}.dei-gate-guide{grid-template-columns:1fr}}
 @media(max-width:700px){.dei-lifecycle-progress{grid-template-columns:1fr 1fr}.dei-progress-step strong{white-space:normal}}
+.dei-state-grid{grid-template-columns:repeat(8,minmax(0,1fr))}
+@media(max-width:1350px){.dei-state-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:850px){.dei-state-grid{grid-template-columns:1fr}}

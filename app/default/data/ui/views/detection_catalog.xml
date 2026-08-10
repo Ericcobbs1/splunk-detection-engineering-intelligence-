@@ -1,0 +1,50 @@
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_catalog_v1.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_catalog_v1.css">
+  <label>Detection Catalog</label>
+  <description>Approved and operational detections available for controlled enablement and monitoring.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <main id="dei-detection-catalog-page" class="dei-shell dei-lifecycle-page dei-catalog-page">
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Catalog</span></div></div>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations">Engineering Operations</option><option value="detection_catalog" selected="selected">Detection Catalog</option><option value="detection_builder">Detection Builder</option></select></label></nav>
+            <div id="catalog-data-status" class="dei-status">Catalog: loading</div>
+          </section>
+
+          <section class="dei-lifecycle-hero dei-catalog-hero">
+            <div><p class="dei-eyebrow">Operational Detection Catalog</p><h1>Enable and operate approved detections.</h1><p>Peer-approved detections leave the engineering queue and enter this governed catalog. Record the exact platform object before enablement, then manage monitoring, tuning, disablement, or retirement.</p></div>
+            <div class="dei-lifecycle-hero-state"><span>Cataloged detections</span><strong id="catalog-total">0</strong><small>approved and operational</small></div>
+          </section>
+
+          <section class="dei-catalog-summary" aria-label="Catalog status summary">
+            <button type="button" data-catalog-filter="all" class="active"><span>All cataloged</span><strong id="catalog-count-all">0</strong></button>
+            <button type="button" data-catalog-filter="ready"><span>Ready to enable</span><strong id="catalog-count-ready">0</strong></button>
+            <button type="button" data-catalog-filter="enabled"><span>Enabled</span><strong id="catalog-count-enabled">0</strong></button>
+            <button type="button" data-catalog-filter="disabled"><span>Disabled</span><strong id="catalog-count-disabled">0</strong></button>
+            <button type="button" data-catalog-filter="monitoring"><span>Monitoring</span><strong id="catalog-count-monitoring">0</strong></button>
+          </section>
+
+          <section class="dei-lifecycle-section dei-catalog-workspace">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Portfolio</p><h2>Approved detection catalog</h2><p id="catalog-results-summary" aria-live="polite">Loading lifecycle records…</p></div><button id="catalog-refresh" type="button">Refresh catalog</button></div>
+            <div class="dei-catalog-filters"><input id="catalog-search" type="search" placeholder="Search detection, MITRE ID, sourcetype, or object ID…"/><select id="catalog-status-filter"><option value="all">All catalog states</option><option value="ready">Ready to enable</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option><option value="monitoring">Monitoring</option><option value="retired">Retired</option></select><button id="catalog-reset-filters" type="button">Reset filters</button></div>
+            <div class="dei-lifecycle-table-wrap"><table class="dei-lifecycle-table"><thead><tr><th>Detection</th><th>MITRE ATT&amp;CK</th><th>Lifecycle</th><th>Catalog status</th><th>Deployment object</th><th>Health</th><th>Action</th></tr></thead><tbody id="catalog-table"><tr><td colspan="7">Loading detection catalog…</td></tr></tbody></table></div>
+          </section>
+
+          <section id="catalog-action-panel" class="dei-lifecycle-section dei-catalog-action" hidden="hidden" aria-labelledby="catalog-action-title">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Catalog Control</p><h2 id="catalog-action-title">Select a detection</h2><p id="catalog-action-summary">Review the approved artifact before enabling it.</p></div><span id="catalog-action-state" class="dei-lifecycle-contract">Not selected</span></div>
+            <div id="catalog-action-evidence" class="dei-catalog-evidence"></div>
+            <div id="catalog-enable-fields" class="dei-catalog-enable-fields">
+              <label><span>Deployment target *</span><select id="catalog-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label>
+              <label><span>Environment *</span><select id="catalog-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label>
+              <label><span>Saved-search or object ID *</span><input id="catalog-external-id" type="text" placeholder="Exact deployed object reference"/></label>
+              <label class="wide"><span>Enablement note</span><textarea id="catalog-enable-note" placeholder="Change ticket, deployment evidence, or operational note"></textarea></label>
+            </div>
+            <div id="catalog-action-feedback" class="dei-action-feedback" role="status" aria-live="polite">Catalog changes preserve peer-review and lifecycle history.</div>
+            <div id="catalog-action-buttons" class="dei-generator-actions"></div>
+          </section>
+        </main>
+      </html>
+    </panel>
+  </row>
+</form>

@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center"):
+    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
