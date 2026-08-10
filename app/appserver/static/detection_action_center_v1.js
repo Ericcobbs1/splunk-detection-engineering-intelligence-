@@ -60,7 +60,7 @@
         reason:"Monitoring health is "+health+".",
         evidence:"Current health evidence indicates degraded execution or analyst outcomes.",
         recommendation:"Review result volume, runtime, analyst outcomes, and tuning evidence before advancing the detection.",
-        href:"detection_operations?detection="+encodeURIComponent(key),action:"Review health evidence"};
+        href:"detection_workflow?detection="+encodeURIComponent(key),action:"Review health evidence"};
     }
     if ((item.state==="production" || item.state==="monitoring") && !(item.monitoring && item.monitoring.last_checked_at)) {
       return {key:key,name:name,severity:"attention",priority:2,category:"monitoring",readiness:item.readiness || "",
@@ -68,7 +68,7 @@
         reason:"This operational detection has no monitoring baseline.",
         evidence:"No last health-check timestamp is recorded for the production artifact.",
         recommendation:"Record result volume, runtime, and analyst outcome evidence to establish the health baseline.",
-        href:"detection_operations?detection="+encodeURIComponent(key),action:"Record health baseline"};
+        href:"detection_workflow?detection="+encodeURIComponent(key),action:"Record health baseline"};
     }
     return null;
   }

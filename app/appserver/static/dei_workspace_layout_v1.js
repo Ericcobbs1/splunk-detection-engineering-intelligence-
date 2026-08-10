@@ -305,11 +305,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }
       if (health==="degraded" || health==="failing") {
         putIssue(key,{name:name,reason:"Monitoring health is "+health+". Review result volume, runtime, analyst outcomes, and tuning evidence.",
-          href:"detection_operations?detection="+encodeURIComponent(key),action:"Review health evidence",severity:"critical",priority:3});
+          href:"detection_workflow?detection="+encodeURIComponent(key),action:"Review health evidence",severity:"critical",priority:3});
       } else if ((item.state==="production" || item.state==="monitoring") &&
           !(item.monitoring && item.monitoring.last_checked_at)) {
         putIssue(key,{name:name,reason:"This operational detection has no recorded monitoring baseline.",
-          href:"detection_operations?detection="+encodeURIComponent(key),action:"Record health baseline",severity:"attention",priority:2});
+          href:"detection_workflow?detection="+encodeURIComponent(key),action:"Record health baseline",severity:"attention",priority:2});
       }
     });
     var issueItems=Object.keys(issues).map(function (key) { return issues[key]; });

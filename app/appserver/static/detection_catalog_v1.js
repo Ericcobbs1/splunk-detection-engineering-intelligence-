@@ -58,9 +58,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#catalog-deployment-target").val(deployment.target||"splunk_platform"); $("#catalog-deployment-environment").val(deployment.environment||"production"); $("#catalog-external-id").val(deployment.external_object_id||""); $("#catalog-enable-note").val("");
     $("#catalog-enable-fields").toggle(status==="ready");
     var buttons=status==="ready"?'<button class="primary" data-catalog-action="enable">Enable detection</button>':
-      status==="disabled"?'<button class="primary" data-catalog-action="reenable">Re-enable detection</button><a href="detection_operations?detection='+encodeURIComponent(key(selected))+'">Open lifecycle record</a>':
-      status==="retired"?'<a href="detection_operations?detection='+encodeURIComponent(key(selected))+'">Review retained history</a>':
-      '<button class="danger" data-catalog-action="disable">Disable detection</button><a href="detection_operations?detection='+encodeURIComponent(key(selected))+'">Record health, tune, or retire →</a>';
+      status==="disabled"?'<button class="primary" data-catalog-action="reenable">Re-enable detection</button><a href="detection_workflow?detection='+encodeURIComponent(key(selected))+'">Open guided workflow</a>':
+      status==="retired"?'<a href="detection_workflow?detection='+encodeURIComponent(key(selected))+'">Review retained history</a>':
+      '<button class="danger" data-catalog-action="disable">Disable detection</button><a href="detection_workflow?detection='+encodeURIComponent(key(selected))+'">Record health, tune, or retire →</a>';
     $("#catalog-action-buttons").html(buttons); $("#catalog-action-feedback").removeClass("error success").text("Catalog changes preserve peer-review and lifecycle history.");
     document.getElementById("catalog-action-panel").scrollIntoView({behavior:"smooth",block:"start"});
   }

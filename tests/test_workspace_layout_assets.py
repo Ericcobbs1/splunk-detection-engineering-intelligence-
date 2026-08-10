@@ -279,7 +279,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     for contract in (
         "refreshHomeLifecycleRecords", "DEILifecycleStore", "homeLifecycleRecords",
         "renderHomeHealthActions", "missingHealth", "validation.status===\"failed\"",
-        'qualify:ready>0', "buildable===0", "detection_operations?detection=",
+        'qualify:ready>0', "buildable===0", "detection_workflow?detection=",
         "detection_builder?detection=", "homeStageDestination",
         "#dei-home-health-action", "detection_action_center",
     ):
