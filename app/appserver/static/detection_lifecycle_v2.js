@@ -445,8 +445,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#lifecycle-work-queue").on("click",".dei-manage-lifecycle",function () { selectRecord(String($(this).data("detection")||"")); });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });
   $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
-  $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); renderQueue(); });
+  $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
+  $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); });
   $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if(destination){window.location.href=destination;} });
   $(window).on("storage",function (event) { if(!event.originalEvent||event.originalEvent.key===REPORT_KEY){render();} });
   initialize(0);
