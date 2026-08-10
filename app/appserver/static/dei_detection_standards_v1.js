@@ -1,17 +1,33 @@
 (function (root) {
   "use strict";
 
-  var VERSION="1.0.0";
+  var VERSION="1.1.0";
   function issue(id,severity,title,detail,remediation,automatic) {
     return {id:id,severity:severity,title:title,detail:detail,remediation:remediation,automatic:!!automatic};
   }
   function has(text,pattern) { return pattern.test(String(text||"")); }
+  function syntaxSummary(text) {
+    var value=String(text||""),quoteCharacter="",escaped=false,previousPipe=false,emptyPipeline=false;
+    for(var index=0;index<value.length;index+=1) {
+      var character=value.charAt(index);
+      if(escaped) { escaped=false; continue; }
+      if(character==="\\" && quoteCharacter) { escaped=true; continue; }
+      if(quoteCharacter) { if(character===quoteCharacter) quoteCharacter=""; continue; }
+      if(character==='"'||character==="'") { quoteCharacter=character; continue; }
+      if(character==="|") { if(previousPipe) emptyPipeline=true; previousPipe=true; continue; }
+      if(!/\s/.test(character)) previousPipe=false;
+    }
+    return {balancedQuotes:!quoteCharacter,emptyPipeline:emptyPipeline};
+  }
   function evaluate(artifact) {
     artifact=artifact||{}; var spl=String(artifact.spl||"").trim(); var schedule=artifact.schedule||{};
+    var syntax=syntaxSummary(spl);
     var issues=[], scores={correctness:100,performance:100,telemetry:100,scheduling:100,analyst_context:100,mitre:100,es_readiness:100};
     function add(bucket,value) { issues.push(value); scores[bucket]=Math.max(0,scores[bucket]-(value.severity==="error"?30:value.severity==="warning"?15:6)); }
     if(!spl) add("correctness",issue("spl.empty","error","Detection SPL is empty","No executable search was generated.","Return to the qualified recommendation and generate the draft again."));
     if(spl && !/^(search\s+|\|\s*(tstats|from|inputlookup)\b)/i.test(spl)) add("correctness",issue("spl.generating-command","error","Missing supported generating command","The query does not begin with search, tstats, from, or an approved lookup.","Add an explicit generating command before pipeline commands.",true));
+    if(syntax.emptyPipeline) add("correctness",issue("spl.empty-pipeline","error","Empty pipeline stage","Two pipe delimiters appear without a command between them.","Remove the empty pipe boundary while preserving the adjacent commands.",true));
+    if(!syntax.balancedQuotes) add("correctness",issue("spl.unbalanced-quote","error","Unmatched quoted value","A quoted string or field identifier is not closed, so later pipes can be parsed as text.","Close the quoted value at the reported parser position before validation."));
     if(has(spl,/\bindex\s*=\s*\*/i)) add("performance",issue("scope.index-star","error","Unbounded index scope","index=* can create expensive searches and ambiguous evidence.","Replace it with the indexes confirmed by telemetry discovery."));
     if(!has(spl,/\b(index|sourcetype)\s*=|\|\s*tstats\b/i)) add("telemetry",issue("scope.telemetry","error","No explicit telemetry scope","The query does not identify an index, sourcetype, or accelerated data model.","Use the discovered sourcetypes or an approved data model."));
     if(has(spl,/\|\s*transaction\b/i)) add("performance",issue("command.transaction","warning","Expensive transaction command","transaction can consume substantial memory on scheduled detections.","Prefer stats, streamstats, or eventstats with explicit grouping and time bounds."));
