@@ -15,7 +15,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_workspace_layout_v1.js"
+    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css"
     )
@@ -49,7 +49,7 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
     builder = ElementTree.parse(BUILDER_PATH).getroot()
     assert builder.tag == "form"
     assert builder.attrib["theme"] == "dark"
-    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v2.js,dei_workspace_layout_v1.js"
+    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js"
     assert builder.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,"
         "dei_workspace_layout_v1.css"
@@ -184,4 +184,3 @@ def test_dashboard_clear_removes_detection_drafts() -> None:
     javascript = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
     assert 'ARTIFACT_KEY = "dei.detectionDraftArtifacts"' in javascript
     assert "DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY" in javascript
-
