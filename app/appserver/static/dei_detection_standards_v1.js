@@ -26,9 +26,9 @@
     if(!schedule.earliest||!schedule.latest) add("scheduling",issue("schedule.window","error","Search window is incomplete","A scheduled detection needs explicit earliest and latest boundaries.","Set a bounded window that accounts for the run interval and ingestion delay."));
     if(schedule.latest==="now") add("scheduling",issue("schedule.delay","warning","No ingestion-delay allowance","Searching through now can miss events that have not become searchable.","Measure ingestion latency and use an appropriate latest-time delay."));
     var mitre=artifact.mitre_attack||[];
-    if(!mitre.length && !has(spl,/mitre_attack_technique_id/i)) add("mitre",issue("mitre.missing","error","MITRE mapping is missing","The detection has no ATT&CK technique context.","Select a mapped recommendation or add a reviewed technique mapping."));
-    ["dei_detection_name","dei_detection_id","mitre_attack_technique_id"].forEach(function(field){
-      if(!has(spl,new RegExp("\\b"+field+"\\b","i"))) add(field.indexOf("mitre")===0?"mitre":"analyst_context",issue("output."+field,"warning","Missing "+field+" output","Analysts will not receive this context in standard Splunk results.","Add the field to the final detection output."));
+    if(!mitre.length && !has(spl,/mitre_attack_id/i)) add("mitre",issue("mitre.missing","error","MITRE mapping is missing","The detection has no ATT&CK technique context.","Select a mapped recommendation or add a reviewed technique mapping."));
+    ["mitre_attack_ttp","mitre_attack_id","mitre_attack_description"].forEach(function(field){
+      if(!has(spl,new RegExp("\\b"+field+"\\b","i"))) add("mitre",issue("output."+field,"warning","Missing "+field+" output","Analysts will not receive this context in standard Splunk results.","Add the field to the final detection output."));
     });
     if(!has(spl,/\b(user|src_ip|dest_ip|host|process_name|file_name)\b/i)) add("analyst_context",issue("context.entity","warning","No investigation entity identified","The result does not expose a primary user, system, network, process, or file entity.","Return at least one stable investigation entity."));
     if(artifact.enterprise_security) {

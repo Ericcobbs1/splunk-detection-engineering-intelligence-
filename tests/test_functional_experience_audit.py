@@ -71,6 +71,7 @@ def test_core_action_controls_have_implementation_bindings():
     controls = {
         "dei-analyze": "discoverEnvironment(true)",
         "builder-generate": "generateSelectedDetection",
+        "builder-clear-spl": '$("#generator-spl").val("")',
         "builder-save-draft": "saveCurrentDraft",
         "builder-run-validation": "runValidation",
         "builder-apply-validation-fix": "Recommended correction applied",

@@ -87,23 +87,18 @@ def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
     assert "var mitreMetadataMigrated = enforcePlatformMitreMetadata(artifact, item)" in javascript
     assert "if (!existingArtifact || mitreMetadataMigrated)" in javascript
     assert 'artifact.spl = attachPlatformMitreMetadata(String($("#generator-spl").val()' in javascript
-    assert "mitre_attack_framework" in javascript
-    assert "mitre_attack_technique_id" in javascript
-    assert "mitre_attack_mapping_status" in javascript
-    for field in (
-        "mitre_attack_technique_name", "mitre_attack_technique_url",
-        "mitre_attack_subtechnique_id", "mitre_attack_subtechnique_name",
-        "mitre_attack_subtechnique_url", "mitre_attack_tactic_id",
-        "mitre_attack_tactic_name", "mitre_attack_tactic_url",
-        "mitre_attack_platform", "mitre_attack_description",
-        "mitre_attack_detection_guidance", "mitre_attack_version",
-        "mitre_attack_last_modified",
-    ):
+    for field in ("mitre_attack_ttp", "mitre_attack_id", "mitre_attack_description"):
         assert field in javascript
+    for removed_field in (
+        "mitre_attack_framework", "mitre_attack_technique_url",
+        "mitre_attack_subtechnique_id", "mitre_attack_tactic_url",
+        "mitre_attack_platform", "mitre_attack_detection_guidance",
+        "mitre_attack_version", "mitre_attack_last_modified",
+    ):
+        assert removed_field not in javascript
     for value in (
         "T1567.001", "T1567.002", "T1567.003", "T1567.004",
         "Exfiltration", "TA0010", "ESXi", "Office Suite", "macOS",
-        "https://attack.mitre.org/techniques/",
     ):
         assert value in javascript
     assert "var spl = attachPlatformMitreMetadata" in javascript

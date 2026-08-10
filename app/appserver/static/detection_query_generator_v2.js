@@ -221,38 +221,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         summary:"No bundled ATT&CK description is available.", detection:"Review the current MITRE ATT&CK technique guidance."},
         MITRE_REFERENCE[id] || {});
     });
-    var tactics = uniqueValues([].concat.apply([], references.map(function (entry) { return entry.tactics || []; })));
-    var subtechniques = [].concat.apply([], references.map(function (entry) { return entry.subtechniques || []; }));
-    var platforms = uniqueValues([].concat.apply([], references.map(function (entry) {
-      return String(entry.platforms || "").split(/,\\s*/).filter(Boolean);
-    })));
-    var parentIds = uniqueValues(references.map(function (entry) { return entry.parent || ""; }));
     var summaries = references.map(function (entry) { return entry.id + ": " + entry.summary; });
-    var guidance = references.map(function (entry) { return entry.id + ": " + entry.detection; });
-    return "| eval dei_detection_id=" + quote(item.detection_id) +
-      ", dei_detection_name=" + quote(item.name) +
-      ", mitre_attack_framework=" + quote("MITRE ATT&CK Enterprise") +
-      ", mitre_attack_reference_snapshot=" + quote(ATTACK_SNAPSHOT) +
-      ", mitre_attack_mapping_status=" + quote(techniques.length ? "mapped" : "unmapped") +
-      ", mitre_attack_technique_id=" + multivalueLiteral(techniques, "Unmapped") +
-      ", mitre_attack_technique_name=" + multivalueLiteral(references.map(function (entry) { return entry.name; })) +
-      ", mitre_attack_technique_url=" + multivalueLiteral(techniques.map(techniqueUrl)) +
-      ", mitre_attack_parent_technique_id=" + multivalueLiteral(parentIds, "Not applicable") +
-      ", mitre_attack_subtechnique_id=" + multivalueLiteral(subtechniques.map(function (entry) { return entry.id; }), "None") +
-      ", mitre_attack_subtechnique_name=" + multivalueLiteral(subtechniques.map(function (entry) { return entry.name; }), "None") +
-      ", mitre_attack_subtechnique_url=" + multivalueLiteral(subtechniques.map(function (entry) { return techniqueUrl(entry.id); }), "None") +
-      ", mitre_attack_tactic_id=" + multivalueLiteral(tactics) +
-      ", mitre_attack_tactic_name=" + multivalueLiteral(tactics.map(function (id) { return MITRE_TACTIC_NAMES[id] || id; })) +
-      ", mitre_attack_tactic_url=" + multivalueLiteral(tactics.map(tacticUrl)) +
-      ", mitre_attack_platform=" + multivalueLiteral(platforms) +
-      ", mitre_attack_description=" + multivalueLiteral(summaries) +
-      ", mitre_attack_detection_guidance=" + multivalueLiteral(guidance) +
-      ", mitre_attack_version=" + multivalueLiteral(references.map(function (entry) { return entry.version || "Not recorded"; })) +
-      ", mitre_attack_last_modified=" + multivalueLiteral(references.map(function (entry) { return entry.modified || "Not recorded"; }));
+    return "| eval mitre_attack_ttp=" + multivalueLiteral(references.map(function (entry) { return entry.name; }), "Unmapped") +
+      ", mitre_attack_id=" + multivalueLiteral(techniques, "Unmapped") +
+      ", mitre_attack_description=" + multivalueLiteral(summaries, "No ATT&CK description is available");
   }
 
   function attachPlatformMitreMetadata(spl, item) {
-    var analyticSpl = String(spl || "").replace(/(?:\\r?\\n)?\\| eval dei_detection_id=[^\\r\\n]*/g, "").trim();
+    var analyticSpl = String(spl || "").replace(/(?:\\r?\\n)?\\| eval (?:dei_detection_id|mitre_attack_ttp)=[^\\r\\n]*/g, "").trim();
     return analyticSpl + "\\n" + platformMitreMetadata(item);
   }
 
@@ -528,10 +504,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function resultColumns(rows) {
-    var preferred = ["_time", "dei_detection_name", "mitre_attack_technique_id",
-      "mitre_attack_technique_name", "mitre_attack_tactic_name", "mitre_attack_platform",
-      "mitre_attack_subtechnique_id", "mitre_attack_mapping_status", "user", "src_ip",
-      "dest_ip", "host", "action", "count", "dei_detection_id"];
+    var preferred = ["_time", "mitre_attack_ttp", "mitre_attack_id",
+      "mitre_attack_description", "user", "src_ip", "dest_ip", "host", "action", "count"];
     var found = {};
     rows.forEach(function (row) { Object.keys(row || {}).forEach(function (key) { found[key] = true; }); });
     return preferred.filter(function (key) { return found[key]; }).concat(
@@ -667,12 +641,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selectorGroup(items, "field_gap", "Confirmed field gaps"));
     if (!report || !report.recommendations) {
       $("#generator-empty").html('No environment analysis is loaded. Return to <a href="command_center#dei-telemetry">Environment Discovery</a> and run an intelligence scan.');
-      $("#builder-generate").prop("disabled", true);
+      $("#builder-generate").prop("disabled", false);
       return;
     }
     if (!items.length) {
       $("#generator-empty").text("No buildable recommendations are available. Unsupported and missing-telemetry detections remain blocked.");
-      $("#builder-generate").prop("disabled", true);
+      $("#builder-generate").prop("disabled", false);
       return;
     }
     if (requested && items.some(function (item) { return item.detection_id === requested; })) {
@@ -681,7 +655,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       generateSelectedDetection();
     } else {
       $("#generator-empty").text("Select a detection above. Telemetry-ready items can proceed normally; field gaps generate an explicitly flagged engineering draft.");
-      $("#builder-generate").prop("disabled", true);
+      $("#builder-generate").prop("disabled", false);
     }
   }
 
@@ -690,7 +664,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var item = buildableRecommendations().filter(function (candidate) {
       return candidate.detection_id === id;
     })[0];
-    if (!item) { return; }
+    if (!item) {
+      $("#generator-empty").text("Select a detection first, then choose Generate detection draft.");
+      setFeedback("Select a qualified recommendation before generating SPL.", "ready");
+      $("#builder-detection-select").focus();
+      return;
+    }
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
       // Generation remains available when browser storage is unavailable.
     }
@@ -711,8 +690,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#builder-detection-select").on("change", function () {
     var hasSelection = !!$(this).val();
-    $("#builder-generate").prop("disabled", !hasSelection);
-    if (hasSelection) { generateSelectedDetection(); }
+    $("#builder-generate").prop("disabled", false);
+    if (hasSelection) { $("#generator-empty").text("Selection ready. Choose Generate detection draft to build its SPL."); }
   });
   $("#builder-generate").on("click", generateSelectedDetection);
   $("#builder-save-draft").on("click", saveCurrentDraft);
@@ -723,6 +702,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     saveArtifact(selected);
     renderArtifact(selected);
     setFeedback("Draft reset to the current generated values.", "success");
+  });
+  $("#builder-clear-spl").on("click", function () {
+    $("#generator-spl").val("").focus();
+    renderValidation(null);
+    setFeedback("Detection SPL cleared. Generate again to restore the recommended query.", "success");
   });
   $("#generator-spl, #builder-cron, #builder-earliest, #builder-latest").on("input", function () {
     if (selected) { setFeedback("Unsaved changes. Save the draft or run validation to persist them.", "ready"); }
@@ -807,4 +791,3 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   initializeBuilder(0);
 });
-
