@@ -651,23 +651,11 @@ body.dei-onboarding-open{overflow:hidden}
 .dei-official-home .dei-home-flow-heading>div>p:not(.dei-kicker){max-width:900px;margin:9px 0 0!important;color:#aec0d1;font-size:14px!important;line-height:1.5}
 .dei-home-flow-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
 .dei-home-flow-tags span{padding:5px 9px;border:1px solid rgba(92,178,220,.28);border-radius:999px;background:rgba(18,45,61,.64);color:#b7cada;font-size:11px;font-weight:700}
-.dei-flow-health-card #dei-home-health-action{display:inline-flex;align-items:center;justify-content:flex-start;margin-top:9px;padding:0;border:0;background:transparent;color:#72ddc5;font-size:11px;font-weight:850;text-align:left}
+.dei-flow-health-card #dei-home-health-action{display:inline-flex;align-items:center;justify-content:flex-start;margin-top:9px;padding:0;border:0;background:transparent;color:#72ddc5;font-size:11px;font-weight:850;text-align:left;text-decoration:none}
 .dei-flow-health-card #dei-home-health-action:hover{color:#eafff9;text-decoration:underline}
-.dei-home-health-actions{order:3;flex:0 0 auto;padding:18px 20px;border:1px solid rgba(113,148,181,.24);border-radius:13px;background:rgba(7,17,27,.96)}
-.dei-home-health-actions[hidden]{display:none!important}
-.dei-home-health-actions-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:12px}
-.dei-home-health-actions-head h2{margin:2px 0 0;color:#eff7ff;font-size:18px}
-#dei-home-health-actions-close{min-height:34px;padding:0 12px;border:1px solid rgba(146,173,199,.3);border-radius:8px;background:#0a1521;color:#bbcede;font-weight:800}
-#dei-home-health-actions-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.dei-home-health-issue{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 14px;border:1px solid rgba(143,166,190,.2);border-radius:10px;background:#08131f}
-.dei-home-health-issue[data-severity="critical"]{border-color:rgba(255,107,125,.42)}
-.dei-home-health-issue[data-severity="attention"]{border-color:rgba(245,191,106,.38)}
-.dei-home-health-issue strong{color:#eaf3fc;font-size:13px}
-.dei-home-health-issue p{margin:4px 0 0;color:#9fb2c4;font-size:11px;line-height:1.45}
-.dei-home-health-issue a{flex:0 0 auto;color:#70dec6;font-size:11px;font-weight:850;text-decoration:none}
 .dei-topology-node[role="link"]{cursor:pointer}
 .dei-topology-node[role="link"]:focus{outline:2px solid #6ce2ca;outline-offset:4px}
-@media(max-width:850px){#dei-home-health-actions-list{grid-template-columns:1fr}.dei-home-health-issue{align-items:flex-start;flex-direction:column}.dei-official-home .dei-home-flow-heading{padding:0 18px 14px!important}}
+@media(max-width:850px){.dei-official-home .dei-home-flow-heading{padding:0 18px 14px!important}}
 
 /* Validation failures must provide diagnosis, safe remediation, and a retry path. */
 .dei-validation-resolution{margin-top:14px;padding:16px;border:1px solid rgba(255,107,125,.38);border-radius:11px;background:linear-gradient(145deg,rgba(41,14,23,.62),rgba(9,19,30,.96))}
