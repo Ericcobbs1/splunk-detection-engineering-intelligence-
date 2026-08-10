@@ -120,7 +120,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
     assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
-    assert "background-position:center,center,44% center" in stylesheet
+    assert "rotateY(-5deg)" in stylesheet
+    assert "rotateY(5deg)" in stylesheet
+    assert "animation:dei-realistic-earth-rotation 28s linear infinite" in stylesheet
     assert (STATIC / "dei_realistic_earth_v1.webp").stat().st_size < 200_000
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet

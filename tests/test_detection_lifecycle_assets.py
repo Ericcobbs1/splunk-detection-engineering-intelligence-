@@ -71,7 +71,7 @@ def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
         "detection-generator", "generator-es-state", "generator-empty",
         "generator-output", "generator-title", "generator-badges",
         "builder-feedback", "builder-cron", "builder-earliest", "builder-latest",
-        "generator-spl", "builder-save-draft", "builder-reset-draft",
+        "generator-spl", "builder-save-draft", "builder-reset-draft", "builder-clear-spl",
         "builder-run-validation", "builder-validation-state",
         "builder-validation-metrics", "validation-status",
         "validation-result-count", "validation-runtime", "validation-time",
@@ -140,15 +140,14 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "attachPlatformMitreMetadata" in javascript
     assert "enforcePlatformMitreMetadata" in javascript
     assert "mitreMetadataMigrated" in javascript
-    assert "mitre_attack_framework" in javascript
-    assert "mitre_attack_technique_id" in javascript
-    assert "mitre_attack_mapping_status" in javascript
-    assert "mitre_attack_technique_name" in javascript
-    assert "mitre_attack_subtechnique_id" in javascript
-    assert "mitre_attack_subtechnique_name" in javascript
-    assert "mitre_attack_tactic_name" in javascript
-    assert "mitre_attack_platform" in javascript
-    assert "mitre_attack_detection_guidance" in javascript
+    for field in ("mitre_attack_ttp", "mitre_attack_id", "mitre_attack_description"):
+        assert field in javascript
+    for removed_field in (
+        "mitre_attack_framework", "mitre_attack_technique_url",
+        "mitre_attack_subtechnique_id", "mitre_attack_tactic_url",
+        "mitre_attack_platform", "mitre_attack_detection_guidance",
+    ):
+        assert removed_field not in javascript
     assert "var spl = attachPlatformMitreMetadata" in javascript
     assert "mitre_attack:item.mitre_techniques" in javascript
     assert 'cron:"*/5 * * * *"' in javascript
