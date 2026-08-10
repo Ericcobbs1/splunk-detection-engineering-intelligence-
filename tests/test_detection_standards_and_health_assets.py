@@ -29,7 +29,7 @@ def test_detection_health_is_a_real_workspace() -> None:
     for element_id in ("dei-detection-health-page", "health-refresh", "health-managed", "health-healthy", "health-attention", "health-failed", "health-unvalidated", "health-filter", "health-state", "health-records"):
         assert view.find(f".//*[@id='{element_id}']") is not None
     assert nav.find(".//view[@name='detection_health']") is not None
-    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "detection_builder?detection=", "detection_lifecycle?detection=", "Run intelligence scan"):
+    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "detection_builder?detection=", "detection_operations?detection=", "Run intelligence scan"):
         assert contract in javascript
 
 
