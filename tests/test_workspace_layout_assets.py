@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_builder"):
+    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
@@ -71,7 +71,9 @@ def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> N
 def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     lifecycle_view = ElementTree.parse(VIEWS / "detection_lifecycle.xml").getroot()
-    assert lifecycle_view.find(".//*[@class='dei-lifecycle-workspace-grid']") is not None
+    operations_view = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
+    assert lifecycle_view.find(".//*[@class='dei-lifecycle-workspace-grid']") is None
+    assert operations_view.find(".//*[@class='dei-lifecycle-workspace-grid']") is not None
     for selector in (
         '.dei-lifecycle-workspace-grid.has-selection',
         '#dei-lifecycle-page[data-dei-workspace-mode="analyst"]',
@@ -80,9 +82,6 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
         '#dei-detection-builder-page .dei-generator-grid>article:nth-child(2)',
     ):
         assert selector in stylesheet
-    analyst_pipeline = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-pipeline-section{order:3}')
-    analyst_queue = stylesheet.index('#dei-lifecycle-page[data-dei-workspace-mode="analyst"]>.dei-lifecycle-workspace-grid{order:4}')
-    assert analyst_pipeline >= 0 and analyst_queue > analyst_pipeline
     assert "position:sticky" in stylesheet
 
 
@@ -120,7 +119,8 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-topology-orbit" in stylesheet
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
     assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
-    assert "@keyframes dei-realistic-earth-drift" in stylesheet
+    assert "@keyframes dei-realistic-earth-rotation" in stylesheet
+    assert "background-position:center,center,44% center" in stylesheet
     assert (STATIC / "dei_realistic_earth_v1.webp").stat().st_size < 200_000
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet
@@ -276,7 +276,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     for contract in (
         "refreshHomeLifecycleRecords", "DEILifecycleStore", "homeLifecycleRecords",
         "renderHomeHealthActions", "missingHealth", "validation.status===\"failed\"",
-        'qualify:ready>0', "buildable===0", "detection_lifecycle?detection=",
+        'qualify:ready>0', "buildable===0", "detection_operations?detection=",
         "detection_builder?detection=", "homeStageDestination",
         "#dei-home-health-action", "#dei-home-health-actions-close",
     ):
@@ -289,10 +289,10 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert "field-evidence verification" in lifecycle
     assert "telemetry ready" in lifecycle
     for destination in (
-        "command_center#dei-telemetry", "detection_lifecycle?pipeline=profile",
-        "detection_lifecycle?pipeline=qualify", "mitre_coverage#mitre-detection-list",
-        "detection_lifecycle?pipeline=design", "detection_lifecycle?pipeline=generate",
-        "detection_lifecycle?pipeline=validate",
+        "command_center#dei-telemetry", "detection_operations?pipeline=profile",
+        "detection_operations?pipeline=qualify", "mitre_coverage#mitre-detection-list",
+        "detection_operations?pipeline=design", "detection_operations?pipeline=generate",
+        "detection_operations?pipeline=validate",
     ):
         assert destination in javascript
     assert "focusDeepLinkedWorkspace" in javascript

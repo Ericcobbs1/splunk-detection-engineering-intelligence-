@@ -53,7 +53,7 @@ def test_tour_targets_exist_in_their_owning_views():
         "command_center.xml": ".//*[@id='dei-telemetry']",
         "mitre_coverage.xml": ".//*[@class='dei-mitre-advisor']",
         "detection_builder.xml": ".//*[@id='dei-detection-builder-page']",
-        "detection_lifecycle.xml": ".//*[@id='lifecycle-work-queue']",
+        "detection_operations.xml": ".//*[@id='lifecycle-work-queue']",
     }
     for view, xpath in targets.items():
         assert ElementTree.parse(VIEWS / view).getroot().find(xpath) is not None, view
