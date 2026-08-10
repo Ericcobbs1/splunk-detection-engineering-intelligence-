@@ -143,7 +143,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var liveId = meta && meta.currentId ? meta.currentId : focus;
     var attackLink = liveId ? "https://attack.mitre.org/techniques/" + liveId.replace(".", "/") + "/" : "https://attack.mitre.org/matrices/enterprise/";
     var buildable = ["production_ready","field_unverified","field_gap"].indexOf(item.readiness) !== -1;
-    var nextHref = buildable ? "detection_builder?detection=" + encodeURIComponent(item.detection_id) : "command_center#dei-telemetry";
+    var nextHref = buildable ? "detection_workflow?detection=" + encodeURIComponent(item.detection_id) : "command_center#dei-telemetry";
     var nextLabel = buildable ? "Build this detection" : "Resolve telemetry gaps";
     var nextDetail = buildable ? "Generate SPL, scheduling guidance, and validation evidence." : "Run a new scan after onboarding the required telemetry.";
     var offlineReference = meta ? [

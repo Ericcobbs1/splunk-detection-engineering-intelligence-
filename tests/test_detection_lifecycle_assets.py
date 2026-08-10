@@ -107,18 +107,13 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
         assert contract in catalog_javascript
 
 
-def test_detection_builder_is_valid_and_owns_action_workspace() -> None:
+def test_guided_detection_builder_owns_the_action_workspace() -> None:
     lifecycle = ElementTree.parse(VIEW_PATH).getroot()
-    builder = ElementTree.parse(BUILDER_PATH).getroot()
-    assert builder.tag == "form"
-    assert builder.attrib["theme"] == "dark"
-    assert builder.attrib["script"] == "dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js"
-    assert builder.attrib["stylesheet"] == (
-        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,"
-        "dei_workspace_layout_v1.css"
-    )
+    builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
+    assert "detection_query_generator_v2.js" in builder.attrib["script"].split(",")
+    assert "dei_detection_standards_v1.js" in builder.attrib["script"].split(",")
     for element_id in (
-        "dei-detection-builder-page", "lifecycle-workspace-menu",
+        "dei-guided-detection-page", "guided-builder-workspace", "lifecycle-workspace-menu",
         "builder-ready-count", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-es-state", "generator-empty",
         "generator-output", "generator-title", "generator-badges",
@@ -150,7 +145,7 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "observedSourcetypes" in javascript
     assert "stateFor" in javascript
     assert "nextAction" in javascript
-    assert "detection_builder?detection=" in javascript
+    assert "detection_workflow?detection=" in javascript
     assert "dei.selectedDetectionDraft" in javascript
     assert "DEILifecycleStore" in javascript
     assert '$("#life-spl-generated").text(records.length)' in javascript

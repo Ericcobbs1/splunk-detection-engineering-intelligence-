@@ -38,7 +38,7 @@
       reason:"Readiness is "+readiness.replace(/_/g," ")+".",
       recommendation:item.next_action || "Resolve the required telemetry or field evidence, then run validation again.",
       evidence:item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified.",
-      href:canBuild ? "detection_builder?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
+      href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
       action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence"
     };
   }
@@ -51,8 +51,8 @@
         source:item.sourcetype || item.source || "Generated detection",mitre:item.mitre_attack_id || "",
         reason:"The latest bounded SPL validation failed.",
         evidence:item.validation.error || item.validation.message || "Splunk did not accept the current detection search.",
-        recommendation:"Open Builder to review the validation resolution, correct the SPL, and run validation again.",
-        href:"detection_builder?detection="+encodeURIComponent(key),action:"Repair and validate"};
+        recommendation:"Open guided builder to review the validation resolution, correct the SPL, and run validation again.",
+        href:"detection_workflow?detection="+encodeURIComponent(key),action:"Repair and validate"};
     }
     if (health==="degraded" || health==="failing") {
       return {key:key,name:name,severity:"critical",priority:3,category:"monitoring",readiness:item.readiness || "",

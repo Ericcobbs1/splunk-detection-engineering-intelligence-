@@ -6,7 +6,7 @@
     <div id="dei-detection-health-page" class="dei-shell dei-health-page">
       <section class="dei-product-bar" aria-label="DEI workspace navigation">
         <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Health</span></div></div>
-        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><a href="detection_lifecycle">Lifecycle</a><a class="active" href="detection_health">Health</a></nav>
+        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a href="detection_lifecycle">Lifecycle</a><a class="active" href="detection_health">Health</a></nav>
       </section>
       <header class="dei-health-hero"><div><p class="dei-eyebrow">Operational assurance</p><h1>Detection Health</h1><p>Current lifecycle and validation evidence identifies what is healthy, what is stale, and exactly what requires action.</p></div><button id="health-refresh" type="button">Refresh health</button></header>
       <section class="dei-health-summary" aria-label="Detection health summary">

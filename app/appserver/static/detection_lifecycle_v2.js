@@ -37,7 +37,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (item.readiness==="field_gap") { return "Resolve confirmed fields in an engineering draft"; }
       return "Qualify telemetry and field prerequisites";
     }
-    if (state==="draft") { return "Complete bounded validation in Detection Builder"; }
+    if (state==="draft") { return "Complete bounded validation in Guided Detection Builder"; }
     if (state==="testing") { return record.validation && record.validation.status==="passed" ? "Submit validated evidence for peer review" : "Run or repair historical validation"; }
     if (state==="peer_review") { return record.review && record.review.decision==="approved" ? "Record the approved deployment target" : "Approve or return the detection with review comments"; }
     if (state==="production") { return "Record the first production health measurement"; }
@@ -226,12 +226,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function gateGuidance(record) {
     var approved=record.review && record.review.decision==="approved";
     var guides={
-      draft:{gate:"Gate 1 · Detection design",owner:"Detection engineer",required:"Complete and save the SPL, schedule, telemetry mappings, and ATT&CK context.",steps:["Open Detection Builder.","Review or edit the generated platform SPL and optional ES artifact.","Run bounded historical validation."],outcome:"A successful validation advances the record to Testing.",instruction:"Open Builder and complete bounded validation before continuing."},
+      draft:{gate:"Gate 1 · Detection design",owner:"Detection engineer",required:"Complete and save the SPL, schedule, telemetry mappings, and ATT&CK context.",steps:["Open Guided Detection Builder.","Review or edit the generated platform SPL and optional ES artifact.","Run bounded historical validation."],outcome:"A successful validation advances the record to Testing.",instruction:"Open guided builder and complete bounded validation before continuing."},
       testing:{gate:"Gate 2 · Validation handoff",owner:"Detection engineer",required:"A passed validation result and a review-submission note.",steps:["Review the sampled results and runtime evidence.","Describe the analytic intent, expected behavior, and known limitations.","Submit the validated version for peer review."],outcome:"The record becomes available to a reviewer in Peer Review.",instruction:"Document the validation evidence, then submit this version for peer review."},
-      peer_review:approved?{gate:"Gate 4 · Controlled deployment record",owner:"Deployment owner",required:"The exact deployed saved-search, ES detection, or external object reference.",steps:["Deploy the approved artifact through the normal change process.","Select the deployment target and environment.","Record the exact object name/ID and optional change ticket."],outcome:"Recording deployment advances the detection to Production; DEI does not silently deploy it.",instruction:"Peer review is approved. Record the real deployment reference to enter Production."}:{gate:"Gate 3 · Independent peer review",owner:"DEI lifecycle reviewer",required:"A written approval rationale or specific change request.",steps:["Open Builder and inspect SPL, ATT&CK mapping, schedule, warnings, and validation evidence.","Confirm the logic is safe, scoped, and operationally actionable.","Approve this version or return it to Draft with required changes."],outcome:"Approval unlocks deployment recording; returned work reopens Draft.",instruction:"A reviewer must approve or return this version with written rationale."},
+      peer_review:approved?{gate:"Gate 4 · Controlled deployment record",owner:"Deployment owner",required:"The exact deployed saved-search, ES detection, or external object reference.",steps:["Deploy the approved artifact through the normal change process.","Select the deployment target and environment.","Record the exact object name/ID and optional change ticket."],outcome:"Recording deployment advances the detection to Production; DEI does not silently deploy it.",instruction:"Peer review is approved. Record the real deployment reference to enter Production."}:{gate:"Gate 3 · Independent peer review",owner:"DEI lifecycle reviewer",required:"A written approval rationale or specific change request.",steps:["Open guided builder and inspect SPL, ATT&CK mapping, schedule, warnings, and validation evidence.","Confirm the logic is safe, scoped, and operationally actionable.","Approve this version or return it to Draft with required changes."],outcome:"Approval unlocks deployment recording; returned work reopens Draft.",instruction:"A reviewer must approve or return this version with written rationale."},
       production:{gate:"Gate 5 · Production health baseline",owner:"Detection owner / SOC",required:"Initial health, result volume, runtime, and analyst outcome evidence.",steps:["Confirm the deployed object is scheduled and enabled through the target platform.","Measure result volume and search runtime.","Record initial true-positive and false-positive observations."],outcome:"The first health measurement advances the record to Monitoring.",instruction:"Record the first production health measurement to begin Monitoring."},
       monitoring:{gate:"Gate 6 · Continuous detection operations",owner:"Detection owner / SOC",required:"Periodic health and analyst outcome evidence.",steps:["Record current health, result volume, runtime, and analyst outcomes.","Continue monitoring when performance remains acceptable.","Start Tuning for logic changes or Retire with a documented reason."],outcome:"Each decision is retained in the audit history.",instruction:"Record health, open a tuning version, or retire the detection with evidence."},
-      tuning:{gate:"Gate 7 · Controlled tuning cycle",owner:"Detection engineer",required:"A revised version followed by fresh validation and peer review.",steps:["Open Builder and revise the SPL or schedule.","Run bounded validation; prior approval cannot be reused.","Submit the new version through peer review and deployment again."],outcome:"Successful validation returns the new version to Testing.",instruction:"Open Builder, revise this version, and complete fresh validation."},
+      tuning:{gate:"Gate 7 · Controlled tuning cycle",owner:"Detection engineer",required:"A revised version followed by fresh validation and peer review.",steps:["Open guided builder and revise the SPL or schedule.","Run bounded validation; prior approval cannot be reused.","Submit the new version through peer review and deployment again."],outcome:"Successful validation returns the new version to Testing.",instruction:"Open guided builder, revise this version, and complete fresh validation."},
       retired:{gate:"Lifecycle closed · Retired",owner:"Detection governance",required:"No further action; retained history is immutable.",steps:["Review the retirement reason and replacement context.","Retain deployment, monitoring, and approval evidence for audit.","Create a new recommendation or draft if the capability is needed again."],outcome:"The detection remains retired with its complete history preserved.",instruction:"Lifecycle complete. The retired record is retained for audit."}
     };
     return guides[record.state]||guides.draft;
@@ -267,9 +267,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function buttonMarkup(record) {
-    if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open Builder</button>'; }
+    if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open guided builder</button>'; }
     if (record.state==="testing") {
-      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open Builder</button>';
+      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open guided builder</button>';
     }
     if (record.state==="peer_review") {
       return record.review && record.review.decision==="approved" ?
@@ -278,7 +278,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (record.state==="production") { return '<button class="primary" data-action="record_health">Record baseline and start Monitoring</button><button class="danger" data-action="retire">Retire</button>'; }
     if (record.state==="monitoring") { return '<button class="primary" data-action="record_health">Record health</button><button data-action="start_tuning">Start tuning version</button><button class="danger" data-action="retire">Retire</button>'; }
-    if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open Builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
+    if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open guided builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
     return "";
   }
 
@@ -337,7 +337,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!record) { return; }
     if (action==="open_builder") {
       window.localStorage.setItem(SELECTED_DETECTION_KEY,recordKey(record));
-      window.location.href="detection_builder?detection="+encodeURIComponent(recordKey(record)); return;
+      window.location.href="detection_workflow?detection="+encodeURIComponent(recordKey(record)); return;
     }
     if (action==="submit_review") {
       if (!record.validation || record.validation.status!=="passed") { return; }
@@ -452,7 +452,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#lifecycle-work-queue").on("click",".dei-generate-detection",function () {
     var id=String($(this).data("detection")||""); window.localStorage.setItem(SELECTED_DETECTION_KEY,id);
-    window.location.href="detection_builder?detection="+encodeURIComponent(id);
+    window.location.href="detection_workflow?detection="+encodeURIComponent(id);
   });
   $(document).on("dei:workflow-detection-selected",function (event,key) { if (key) { selectRecord(String(key)); } else { $("#lifecycle-action-center").hide(); } });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });

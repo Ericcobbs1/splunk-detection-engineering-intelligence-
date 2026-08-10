@@ -52,7 +52,7 @@ def test_tour_targets_exist_in_their_owning_views():
         "dei_home.xml": ".//*[@id='dei-home-pipeline']",
         "command_center.xml": ".//*[@id='dei-telemetry']",
         "mitre_coverage.xml": ".//*[@class='dei-mitre-advisor']",
-        "detection_builder.xml": ".//*[@id='dei-detection-builder-page']",
+        "detection_workflow.xml": ".//*[@id='guided-builder-workspace']",
         "detection_operations.xml": ".//*[@id='lifecycle-work-queue']",
     }
     for view, xpath in targets.items():

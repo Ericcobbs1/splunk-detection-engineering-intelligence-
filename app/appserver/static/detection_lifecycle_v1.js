@@ -162,7 +162,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, detectionId); } catch (error) {
       // Navigation must remain available when browser storage is unavailable.
     }
-    window.location.href = "detection_builder?detection=" + encodeURIComponent(detectionId);
+    window.location.href = "detection_workflow?detection=" + encodeURIComponent(detectionId);
   });
 
   $("#lifecycle-workspace-menu").on("change", function () {
