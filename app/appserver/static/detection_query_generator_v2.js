@@ -428,15 +428,36 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return artifact;
   }
 
-  function validationResolution(error) {
+  function commandBoundaryPattern(command) {
+    var escaped=String(command || "").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    return new RegExp("(^|\\|)(\\s*)"+escaped+"\\b","i");
+  }
+
+  function replaceCommandAtBoundary(spl, command, replacement) {
+    return String(spl || "").replace(commandBoundaryPattern(command),function (match,boundary,spacing) {
+      return boundary+spacing+replacement;
+    });
+  }
+
+  function validationResolution(error, spl) {
     var message=String(error || "Splunk rejected or could not execute the search.");
     var lower=message.toLowerCase();
+    var unknown=message.match(/Unknown search command\s+['\"]?([A-Za-z][A-Za-z0-9_-]*)['\"]?/i);
+    var command=unknown ? unknown[1] : "";
     var result={category:"Search review",summary:"Review the Splunk error, inspect the generated SPL, apply a safe correction when available, and validate again.",steps:[
       "Read the complete Splunk error shown below.",
       "Open the SPL editor and inspect the command or field named by Splunk.",
       "Save the corrected draft, then run validation again."
     ],fix:null,fixLabel:""};
-    if (/timeout|timed out|time range|exceeded the 60 second/.test(lower)) {
+    if (command.toLowerCase() === "rshell" && commandBoundaryPattern("rshell").test(String(spl || ""))) {
+      result.category="Missing command or macro";
+      result.summary="Splunk does not provide a built-in rshell command. DEI found rshell in an SPL command position and can safely correct this exact typo to search.";
+      result.steps=["Replace only the command-position token rshell with search.",
+        "Review the corrected SPL; field values and quoted text are not modified.",
+        "Run validation again against the same bounded time window."];
+      result.fix="rshell_to_search"; result.fixLabel="Replace rshell with search";
+      result.correctedSpl=replaceCommandAtBoundary(spl, "rshell", "search");
+    } else if (/timeout|timed out|time range|exceeded the 60 second/.test(lower)) {
       result.category="Search scope";
       result.summary="The validation search exceeded its safety boundary. Use a narrower window before changing detection logic.";
       result.steps=["Apply the bounded 15-minute validation window.","Review high-cardinality stats or transaction commands.","Run validation again and expand the window only after the search completes."];
@@ -449,7 +470,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       result.fix="search_prefix"; result.fixLabel="Add search prefix";
     } else if (/unknown search command|unknown command|cannot find.*macro|macro .*not found/.test(lower)) {
       result.category="Missing command or macro";
-      result.summary="The SPL references a command or macro that is unavailable in this Splunk environment.";
+      result.summary="The SPL references a command or macro that is unavailable in this Splunk environment. DEI will not guess a replacement because that could change detection meaning.";
       result.steps=["Identify the command or macro named in the error.","Confirm the required app, TA, or macro is installed and shared with this app.","Replace the unavailable command with supported SPL, then validate again."];
     } else if (/permission|not authorized|authorization|insufficient privilege|access denied/.test(lower)) {
       result.category="Splunk permissions";
@@ -472,7 +493,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!validation || validation.status!=="failed") {
       pendingValidationFix=null; panel.prop("hidden",true); return;
     }
-    var resolution=validationResolution(validation.error);
+    var resolution=validation.resolution || validationResolution(validation.error,String($("#generator-spl").val() || ""));
     pendingValidationFix=resolution.fix;
     $("#builder-validation-resolution-category").text(resolution.category);
     $("#builder-validation-resolution-summary").text(resolution.summary);
@@ -567,8 +588,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       renderArtifact(artifact);
       setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
     }).fail(function (xhr, status) {
+      var error=validationError(xhr,status);
       artifact.validation = {status:"failed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
-        result_count:0, result_limit:VALIDATION_RESULT_LIMIT, sample_results:[], error:validationError(xhr, status)};
+        result_count:0, result_limit:VALIDATION_RESULT_LIMIT, sample_results:[], error:error,
+        resolution:validationResolution(error,artifact.spl)};
       artifact.updated_at = artifact.validation.validated_at;
       selected = artifact;
       saveArtifact(artifact);
@@ -735,6 +758,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     } else if (pendingValidationFix==="search_prefix") {
       var spl=String($("#generator-spl").val() || "").trim();
       if (!/^(?:search\s|\|)/i.test(spl)) { $("#generator-spl").val("search "+spl); }
+    } else if (pendingValidationFix==="rshell_to_search") {
+      var failedResolution=selected.validation && selected.validation.resolution;
+      if (!failedResolution || !failedResolution.correctedSpl) {
+        setFeedback("The rshell correction is no longer applicable. Review the current SPL manually.","error");
+        return;
+      }
+      $("#generator-spl").val(failedResolution.correctedSpl);
     }
     var artifact=currentArtifact();
     if (!artifact) { return; }

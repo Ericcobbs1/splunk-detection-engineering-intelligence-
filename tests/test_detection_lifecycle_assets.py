@@ -188,6 +188,11 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "builder-edit-validation-query" in javascript
     assert "builder-retry-validation" in javascript
     assert "Run validation again" in javascript
+    assert 'command.toLowerCase() === "rshell"' in javascript
+    assert 'replaceCommandAtBoundary(spl, "rshell", "search")' in javascript
+    assert "field values and quoted text are not modified" in javascript
+    assert "DEI will not guess a replacement" in javascript
+    assert 'result.fix="rshell_to_search"' in javascript
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:
