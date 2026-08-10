@@ -66,7 +66,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         {label:"Run an environment scan",target:".dei-run-intelligence-scan",activate:true,detail:"Collect current telemetry and field evidence now."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped tactics and recommended use cases."},
         {label:"Open Detection Builder",href:"detection_builder",detail:"Generate and validate reviewable SPL."},
-        {label:"Manage lifecycle",href:"detection_operations",detail:"Advance drafts through approval and monitoring."}
+        {label:"Continue guided workflow",href:"detection_workflow",detail:"Resume one detection at its exact next required action."}
       ],
       environment:[
         {label:"Run intelligence scan",target:"#dei-analyze",detail:"Start a fresh seven-day telemetry and field scan."},
@@ -81,13 +81,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       mitre:[
         {label:"Filter Detection Advisor",target:"#mitre-sourcetype-filter",detail:"Narrow recommendations to one observed sourcetype."},
         {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL for a selected qualified recommendation."},
-        {label:"Manage lifecycle",href:"detection_operations",detail:"Review work-queue readiness and evidence gates."}
+        {label:"Continue guided workflow",href:"detection_workflow",detail:"Resume one detection at its exact next required action."}
       ],
       builder:[
         {label:"Select a recommendation",target:"#builder-detection-select",detail:"Choose a scan-supported detection use case."},
         {label:"Generate detection draft",target:"#builder-generate",detail:"Build editable SPL, MITRE metadata, and schedule guidance."},
         {label:"Run validation",target:"#builder-run-validation",detail:"Execute a bounded historical test after generating a draft."},
-        {label:"Manage lifecycle",href:"detection_operations",detail:"Submit validated evidence for review and deployment."}
+        {label:"Continue guided workflow",href:"detection_workflow",detail:"Move this detection through review, catalog, and monitoring."}
       ],
       lifecycle:[
         {label:"Search the work queue",target:"#lifecycle-search",detail:"Find a recommendation or persisted detection record."},
@@ -389,7 +389,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "dei-mitre-page":"mitre",
       "dei-detection-builder-page":"builder",
       "dei-lifecycle-page":"lifecycle",
-      "dei-detection-catalog-page":"catalog"
+      "dei-detection-catalog-page":"catalog",
+      "dei-guided-detection-page":"lifecycle"
     }[id] || "home";
   }
 
@@ -473,8 +474,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       review:{label:"Review MITRE coverage",href:"mitre_coverage"},
       build:{label:"Build a detection",href:"detection_builder"},
       validate:{label:"Validate generated SPL",href:"detection_builder#builder-validation-title"},
-      operate:snapshot.cataloged && !snapshot.operational ? {label:"Enable approved detection",href:"detection_catalog"} :
-        {label:"Manage detection lifecycle",href:snapshot.operational?"detection_catalog":"detection_operations"}
+      operate:{label:"Continue guided workflow",href:"detection_workflow"}
     };
     var current="operate";
     sequence.some(function (stage) {

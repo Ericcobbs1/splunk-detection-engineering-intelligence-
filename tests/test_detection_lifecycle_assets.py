@@ -74,6 +74,7 @@ def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> N
 def test_detection_lifecycle_is_registered_in_navigation() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
     assert root.find(".//view[@name='detection_lifecycle']") is not None
+    assert root.find(".//view[@name='detection_workflow']") is not None
     assert root.find(".//view[@name='detection_action_center']") is not None
     assert root.find(".//view[@name='detection_operations']") is not None
     assert root.find(".//view[@name='detection_catalog']") is not None

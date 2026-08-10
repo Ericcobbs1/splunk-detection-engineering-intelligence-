@@ -5,6 +5,7 @@
     <view name="command_center" />
     <view name="mitre_coverage" />
     <view name="detection_lifecycle" />
+    <view name="detection_workflow" />
     <view name="detection_action_center" />
     <view name="detection_operations" />
     <view name="detection_catalog" />

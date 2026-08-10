@@ -133,7 +133,7 @@
               <a href="command_center"><span>01</span><div><strong>Environment Intelligence</strong><p>Analyze sourcetypes, fields, readiness, telemetry domains, and the current environment snapshot.</p></div><b>Open →</b></a>
               <a href="mitre_coverage"><span>02</span><div><strong>MITRE ATT&amp;CK Coverage</strong><p>Inspect tactic and technique coverage, mapped recommendations, and Detection Advisor results.</p></div><b>Open →</b></a>
               <a href="detection_builder"><span>03</span><div><strong>Detection Query Builder</strong><p>Generate reviewable SPL, MITRE context, schedules, validation evidence, and optional ES artifacts.</p></div><b>Open →</b></a>
-              <a href="detection_lifecycle"><span>04</span><div><strong>Managed Lifecycle</strong><p>Advance evidence through testing, peer review, production, monitoring, tuning, and retirement.</p></div><b>Open →</b></a>
+              <a href="detection_workflow"><span>04</span><div><strong>Guided Detection Workflow</strong><p>Select one detection and follow a simplified, evidence-driven path through approval, enablement, and monitoring.</p></div><b>Continue →</b></a>
             </div>
           </section>
         </main>
