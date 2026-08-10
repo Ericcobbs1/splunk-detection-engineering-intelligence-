@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 APP_ROOT = Path("app")
 VIEW_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_lifecycle.xml"
 BUILDER_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_builder.xml"
+OPERATIONS_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "detection_operations.xml"
 NAV_PATH = APP_ROOT / "default" / "data" / "ui" / "nav" / "default.xml"
 STATIC_ROOT = APP_ROOT / "appserver" / "static"
 FRAMEWORK_PATH = Path("docs") / "DETECTION_ENGINEERING_FRAMEWORK.md"
@@ -26,21 +27,31 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "life-spl-generated", "stage-discover", "stage-profile", "stage-qualify",
         "stage-recommend", "stage-design", "stage-generate", "stage-validate",
         "state-draft", "state-testing", "state-review", "state-production",
-        "state-monitoring", "state-tuning", "state-retired",
+        "state-monitoring", "state-tuning", "state-retired", "lifecycle-workspace-menu",
+        "dei-detection-flow", "dei-flow-status",
+    ):
+        assert root.find(f".//*[@id='{element_id}']") is not None
+    assert root.find(".//*[@id='lifecycle-work-queue']") is None
+
+
+def test_engineering_operations_owns_queue_and_action_center() -> None:
+    root = ElementTree.parse(OPERATIONS_PATH).getroot()
+    for element_id in (
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
-        "lifecycle-queue-count", "lifecycle-work-queue", "lifecycle-workspace-menu",
+        "lifecycle-queue-count", "lifecycle-queue-total", "lifecycle-work-queue",
         "lifecycle-reset-filters", "lifecycle-action-center", "lifecycle-action-title",
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-evidence", "lifecycle-action-fields", "lifecycle-action-buttons",
         "lifecycle-action-history", "lifecycle-action-progress",
-        "dei-detection-flow", "dei-flow-status",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
+    assert root.find(".//*[@id='dei-detection-flow']") is None
 
 
 def test_detection_lifecycle_is_registered_in_navigation() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
     assert root.find(".//view[@name='detection_lifecycle']") is not None
+    assert root.find(".//view[@name='detection_operations']") is not None
     assert root.find(".//view[@name='detection_builder']") is not None
 
 

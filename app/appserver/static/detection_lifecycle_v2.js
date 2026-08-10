@@ -155,6 +155,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         (readiness==="all"||item.readiness===readiness) && (stage==="all"||current===stage);
     });
     $("#lifecycle-queue-count").text(items.length+" of "+all.length+" items");
+    $("#lifecycle-queue-total").text(items.length);
     if (!all.length) {
       $("#lifecycle-work-queue").html('<tr><td colspan="7"><strong>No lifecycle work is available.</strong><br/>Run Analyze Environment in Command Center or restore a persisted lifecycle record.</td></tr>');
       return;
@@ -401,6 +402,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function activatePipelineStage(card) {
+    if (!$("#lifecycle-work-queue").length) {
+      window.location.href="detection_operations?pipeline="+encodeURIComponent(String(card.data("stage")||""));
+      return;
+    }
     var state=String(card.data("filter-state")||"all");
     $("#lifecycle-stage").val(state);
     renderQueue();
@@ -421,8 +426,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
-  $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if(destination!=="detection_lifecycle"){window.location.href=destination;} });
+  $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if(destination){window.location.href=destination;} });
   $(window).on("storage",function (event) { if(!event.originalEvent||event.originalEvent.key===REPORT_KEY){render();} });
   initialize(0);
 });
-

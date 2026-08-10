@@ -66,7 +66,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         {label:"Run an environment scan",target:".dei-run-intelligence-scan",activate:true,detail:"Collect current telemetry and field evidence now."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped tactics and recommended use cases."},
         {label:"Open Detection Builder",href:"detection_builder",detail:"Generate and validate reviewable SPL."},
-        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Advance drafts through approval and monitoring."}
+        {label:"Manage lifecycle",href:"detection_operations",detail:"Advance drafts through approval and monitoring."}
       ],
       environment:[
         {label:"Run intelligence scan",target:"#dei-analyze",detail:"Start a fresh seven-day telemetry and field scan."},
@@ -81,13 +81,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       mitre:[
         {label:"Filter Detection Advisor",target:"#mitre-sourcetype-filter",detail:"Narrow recommendations to one observed sourcetype."},
         {label:"Open Detection Builder",href:"detection_builder",detail:"Generate SPL for a selected qualified recommendation."},
-        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Review work-queue readiness and evidence gates."}
+        {label:"Manage lifecycle",href:"detection_operations",detail:"Review work-queue readiness and evidence gates."}
       ],
       builder:[
         {label:"Select a recommendation",target:"#builder-detection-select",detail:"Choose a scan-supported detection use case."},
         {label:"Generate detection draft",target:"#builder-generate",detail:"Build editable SPL, MITRE metadata, and schedule guidance."},
         {label:"Run validation",target:"#builder-run-validation",detail:"Execute a bounded historical test after generating a draft."},
-        {label:"Manage lifecycle",href:"detection_lifecycle",detail:"Submit validated evidence for review and deployment."}
+        {label:"Manage lifecycle",href:"detection_operations",detail:"Submit validated evidence for review and deployment."}
       ],
       lifecycle:[
         {label:"Search the work queue",target:"#lifecycle-search",detail:"Find a recommendation or persisted detection record."},
@@ -252,8 +252,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     var empty={
       awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"command_center#dei-telemetry",action:"Run intelligence scan"},
-      building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_lifecycle",action:"Open lifecycle work queue"},
-      healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_lifecycle",action:"Review monitoring evidence"}
+      building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_operations",action:"Open lifecycle work queue"},
+      healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_operations",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
     list.html('<article class="dei-home-health-issue" data-severity="info"><div><strong>'+empty.title+
       '</strong><p>'+empty.detail+'</p></div>'+(healthState==="awaiting"?'<button class="dei-run-intelligence-scan" type="button">'+empty.action+' →</button>':'<a href="'+empty.href+'">'+empty.action+' →</a>')+'</article>');
@@ -314,11 +314,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }
       if (health==="degraded" || health==="failing") {
         putIssue(key,{name:name,reason:"Monitoring health is "+health+". Review result volume, runtime, analyst outcomes, and tuning evidence.",
-          href:"detection_lifecycle?detection="+encodeURIComponent(key),action:"Review health evidence",severity:"critical",priority:3});
+          href:"detection_operations?detection="+encodeURIComponent(key),action:"Review health evidence",severity:"critical",priority:3});
       } else if ((item.state==="production" || item.state==="monitoring") &&
           !(item.monitoring && item.monitoring.last_checked_at)) {
         putIssue(key,{name:name,reason:"This operational detection has no recorded monitoring baseline.",
-          href:"detection_lifecycle?detection="+encodeURIComponent(key),action:"Record health baseline",severity:"attention",priority:2});
+          href:"detection_operations?detection="+encodeURIComponent(key),action:"Record health baseline",severity:"attention",priority:2});
       }
     });
     var issueItems=Object.keys(issues).map(function (key) { return issues[key]; });
@@ -431,7 +431,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       {key:"review",label:"Review",detail:"MITRE and readiness",href:"mitre_coverage"},
       {key:"build",label:"Build",detail:"Generate SPL",href:"detection_builder"},
       {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_builder#builder-validation-title"},
-      {key:"operate",label:"Operate",detail:"Approve and monitor",href:"detection_lifecycle"}
+      {key:"operate",label:"Operate",detail:"Approve and monitor",href:"detection_operations"}
     ];
     return [
       '<section id="dei-guided-workflow" class="dei-guided-workflow" aria-labelledby="dei-guided-workflow-title">',
@@ -477,7 +477,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       review:{label:"Review MITRE coverage",href:"mitre_coverage"},
       build:{label:"Build a detection",href:"detection_builder"},
       validate:{label:"Validate generated SPL",href:"detection_builder#builder-validation-title"},
-      operate:{label:"Manage detection lifecycle",href:"detection_lifecycle"}
+      operate:{label:"Manage detection lifecycle",href:"detection_operations"}
     };
     var current="operate";
     sequence.some(function (stage) {
@@ -562,7 +562,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
-  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_builder",lifecycle:"detection_lifecycle#lifecycle-work-queue"}[step.page]; }
+  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_builder",lifecycle:"detection_operations#lifecycle-work-queue"}[step.page]; }
 
   function renderOnboardingStep() {
     var step=ONBOARDING_STEPS[onboardingStep],target=$(step.target).first();
@@ -640,10 +640,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function homeStageDestination(stage) {
-    return {discover:"command_center#dei-telemetry",profile:"detection_lifecycle?pipeline=profile",
-      qualify:"detection_lifecycle?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
-      design:"detection_lifecycle?pipeline=design",generate:"detection_lifecycle?pipeline=generate",
-      validate:"detection_lifecycle?pipeline=validate"}[stage] || "detection_lifecycle";
+    return {discover:"command_center#dei-telemetry",profile:"detection_operations?pipeline=profile",
+      qualify:"detection_operations?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
+      design:"detection_operations?pipeline=design",generate:"detection_operations?pipeline=generate",
+      validate:"detection_operations?pipeline=validate"}[stage] || "detection_lifecycle";
   }
 
   function focusDeepLinkedWorkspace() {

@@ -1,0 +1,38 @@
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css">
+  <label>Detection Engineering Operations</label>
+  <description>Prioritize detection work, complete evidence gates, and advance managed lifecycle records.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <div id="dei-lifecycle-page" class="dei-shell dei-lifecycle-page dei-lifecycle-operations-page">
+          <section class="dei-product-bar" aria-label="DEI workspace navigation">
+            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Engineering Operations</span></div></div>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_builder">Builder</a><label class="dei-lifecycle-workspace-menu"><span>Lifecycle workspace</span><select id="lifecycle-workspace-menu"><option value="detection_lifecycle">Lifecycle Overview</option><option value="detection_operations" selected="selected">Engineering Operations</option><option value="detection_builder">Detection Builder</option></select></label></nav>
+            <div id="lifecycle-data-status" class="dei-status">Analysis: checking</div>
+          </section>
+
+          <section class="dei-lifecycle-hero dei-operations-hero">
+            <div><p class="dei-eyebrow">Lifecycle Operations</p><h1>Prioritize work and complete the next evidence gate.</h1><p>Filter the active portfolio, open the exact detection record, and advance analyst-controlled review, deployment, monitoring, tuning, or retirement actions.</p></div>
+            <div class="dei-lifecycle-hero-state"><span id="lifecycle-analysis-age">No analysis loaded</span><strong id="lifecycle-queue-total">0</strong><small>current work items</small></div>
+          </section>
+
+          <div class="dei-lifecycle-workspace-grid">
+            <section class="dei-lifecycle-section dei-lifecycle-queue-section">
+              <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Engineering Work Queue</p><h2>Recommended next actions</h2><p>Telemetry-ready recommendations can become reviewable SPL and optional ES configurations. Testing, approval, and deployment remain explicit gates.</p></div><span id="lifecycle-queue-count" class="dei-chip">0 items</span></div>
+              <div class="dei-lifecycle-filters"><input id="lifecycle-search" type="search" placeholder="Filter detections, sourcetypes, MITRE, or lifecycle state..."/><select id="lifecycle-readiness"><option value="all">All readiness</option><option value="production_ready">Telemetry ready</option><option value="partial">Partial telemetry</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option><option value="unsupported">Unsupported</option><option value="requires_enterprise_security">Requires ES</option></select><select id="lifecycle-stage"><option value="all">All lifecycle states</option><option value="recommendation">Recommendation</option><option value="draft">Draft</option><option value="testing">Testing</option><option value="peer_review">Peer review</option><option value="production">Production</option><option value="monitoring">Monitoring</option><option value="tuning">Tuning</option><option value="retired">Retired</option></select><button id="lifecycle-reset-filters" type="button">Reset filters</button></div>
+              <div class="dei-lifecycle-table-wrap"><table class="dei-lifecycle-table"><thead><tr><th>Detection opportunity</th><th>Observed sourcetype</th><th>Readiness</th><th>MITRE ATT&amp;CK</th><th>Current stage</th><th>Next required action</th><th>Build</th></tr></thead><tbody id="lifecycle-work-queue"><tr><td colspan="7">Run an intelligence scan to populate the lifecycle queue.</td></tr></tbody></table></div>
+            </section>
+
+            <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center" style="display:none">
+              <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Lifecycle Action Center</p><h2 id="lifecycle-action-title">Select a lifecycle record</h2><p id="lifecycle-action-summary">Review evidence and complete the next analyst-controlled gate.</p></div><span id="lifecycle-action-state" class="dei-lifecycle-contract">No record selected</span></div>
+              <div id="lifecycle-action-feedback" class="dei-builder-feedback ready" role="status" aria-live="polite">Select Manage from the Work Queue.</div>
+              <div id="lifecycle-action-progress" class="dei-action-progress"></div>
+              <div class="dei-action-grid"><article><span class="dei-generator-label">Required evidence</span><div id="lifecycle-action-evidence"></div><div id="lifecycle-action-fields"></div><div id="lifecycle-action-buttons" class="dei-generator-actions"></div></article><article><span class="dei-generator-label">Audit history</span><div id="lifecycle-action-history" class="dei-audit-history"></div></article></div>
+            </section>
+          </div>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
