@@ -272,6 +272,13 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "artifact=buildArtifact(item)" in javascript
     assert "Generated SPL integrity check failed" in javascript
     assert "DEI blocked an invalid generated query" in javascript
+    assert "function resetDraftWorkspace(message)" in javascript
+    assert '$("#detection-generator,#generator-output").hide()' in javascript
+    assert '$("#detection-generator").show()' in javascript
+    assert 'return String(window.localStorage.getItem(SELECTED_DETECTION_KEY)' not in javascript
+    assert "generateSelectedDetection();" not in javascript
+    builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
+    assert builder.find(".//*[@id='detection-generator']").attrib["style"] == "display:none"
 
 
 def test_dashboard_clear_removes_detection_drafts() -> None:

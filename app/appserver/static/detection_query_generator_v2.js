@@ -759,7 +759,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (match) {
       try { return decodeURIComponent(match[1].replace(/\+/g, " ")); } catch (error) { return match[1]; }
     }
-    return String(window.localStorage.getItem(SELECTED_DETECTION_KEY) || "");
+    return "";
+  }
+
+  function resetDraftWorkspace(message) {
+    selected = null;
+    generatedBaseline = null;
+    pendingValidationFix = null;
+    $("#detection-generator,#generator-output").hide();
+    $("#generator-empty").show().text(message || "Choose Generate detection draft to start a clean workspace.");
+    $("#generator-title").text("Detection draft");
+    $("#generator-badges,#builder-quality-dimensions,#generator-es-output").empty();
+    $("#generator-spl,#builder-cron,#builder-earliest,#builder-latest").val("");
+    $("#builder-quality-score").text("0%");
+    $("#builder-quality-state").attr("data-state", "blocked").text("Generate a draft");
+    $("#builder-quality-issues").html("<p>Generate a draft to evaluate its engineering quality.</p>");
+    $("#generator-es-state").text("Select a telemetry-ready detection");
+    renderValidation(null);
   }
 
   function selectorGroup(items, readiness, label) {
@@ -795,9 +811,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (requested && items.some(function (item) { return item.detection_id === requested; })) {
       $("#builder-detection-select").val(requested);
       $("#builder-generate").prop("disabled", false);
-      generateSelectedDetection();
+      resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.");
     } else {
-      $("#generator-empty").text("Select a detection above. Telemetry-ready items can proceed normally; field gaps generate an explicitly flagged engineering draft.");
+      resetDraftWorkspace("Select a detection, then choose Generate detection draft to start.");
       $("#builder-generate").prop("disabled", false);
     }
   }
@@ -837,6 +853,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
       return;
     }
+    $("#detection-generator").show();
     saveArtifact(artifact);
     renderArtifact(artifact);
     setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
@@ -845,7 +862,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#builder-detection-select").on("change", function () {
     var hasSelection = !!$(this).val();
     $("#builder-generate").prop("disabled", false);
-    if (hasSelection) { $("#generator-empty").text("Selection ready. Choose Generate detection draft to build its SPL."); }
+    resetDraftWorkspace(hasSelection ? "Selection ready. Choose Generate detection draft to start." : "Select a detection, then choose Generate detection draft to start.");
     if (hasSelection && $("#workflow-detection-select").length && $("#workflow-detection-select").val() !== $(this).val()) {
       $("#workflow-detection-select").val($(this).val()).trigger("change");
     }

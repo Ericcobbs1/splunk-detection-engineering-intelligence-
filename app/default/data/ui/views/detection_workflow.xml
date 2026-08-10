@@ -51,7 +51,7 @@
               <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button">Generate detection draft</button></div>
             </section>
 
-            <section id="detection-generator" class="dei-lifecycle-section dei-generator-section">
+            <section id="detection-generator" class="dei-lifecycle-section dei-generator-section" style="display:none">
               <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Review telemetry-scoped SPL, ATT&amp;CK mappings, scheduling, Enterprise Security settings, and validation evidence.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
               <div id="generator-empty" class="dei-generator-empty">Select a recommendation above to begin. Unsupported detections and recommendations without observed telemetry remain blocked.</div>
               <div id="generator-output" class="dei-generator-output" style="display:none">
