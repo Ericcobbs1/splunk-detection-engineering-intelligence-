@@ -15,10 +15,10 @@
 
 /* Guided Lifecycle Action Center */
 .dei-action-progress{margin-top:16px}
-.dei-lifecycle-progress{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.dei-lifecycle-progress{display:grid;grid-template-columns:repeat(4,minmax(118px,1fr));gap:7px;padding:2px 0 8px}
 .dei-progress-step{position:relative;display:flex;align-items:center;gap:8px;min-width:0;border:1px solid rgba(168,190,214,.14);border-radius:10px;background:#07101a;padding:10px;color:#71869a}
 .dei-progress-step span{display:grid;place-items:center;flex:0 0 23px;height:23px;border:1px solid rgba(168,190,214,.2);border-radius:50%;font-size:10px;font-weight:800}
-.dei-progress-step strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.dei-progress-step>div{display:grid;min-width:0;gap:3px}.dei-progress-step strong{font-size:11px;line-height:1.25;white-space:normal}.dei-progress-step small{color:#71869a;font-size:9px;font-weight:700;line-height:1.2}.dei-progress-step.complete small{color:#65bda8}.dei-progress-step.current small{color:#9cc5ff}
 .dei-progress-step.complete{border-color:rgba(77,214,168,.2);color:#75e4c4;background:rgba(77,214,168,.05)}
 .dei-progress-step.current{border-color:rgba(110,168,255,.48);color:#dceaff;background:rgba(110,168,255,.1);box-shadow:0 0 0 2px rgba(110,168,255,.05)}
 .dei-progress-step.current span{border-color:#6ea8ff;background:#17304d;color:#dceaff}
@@ -47,3 +47,5 @@
 .dei-lifecycle-queue-section[data-visible-rows="25"] .dei-lifecycle-table-wrap{max-height:1842px}
 #lifecycle-work-queue tr{height:72px}
 @media(max-width:850px){.dei-lifecycle-queue-section .dei-lifecycle-filters{grid-template-columns:1fr}.dei-lifecycle-queue-section .dei-lifecycle-table-wrap{max-height:642px}.dei-lifecycle-queue-section[data-visible-rows="25"] .dei-lifecycle-table-wrap{max-height:1542px}#lifecycle-work-queue tr{height:60px}}
+.dei-lifecycle-position{display:grid;justify-items:end;gap:6px;min-width:230px}.dei-lifecycle-position>span{color:var(--dei-soft);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.dei-lifecycle-position>strong{display:inline-flex;border:1px solid rgba(110,168,255,.42);border-radius:999px;background:rgba(110,168,255,.08);color:#cfe3ff;padding:8px 12px;font-size:11px;white-space:nowrap}
+@media(max-width:700px){.dei-lifecycle-position{justify-items:start;min-width:0;margin-top:12px}.dei-lifecycle-position>strong{white-space:normal}}
