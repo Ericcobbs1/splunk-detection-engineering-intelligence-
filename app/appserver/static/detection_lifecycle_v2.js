@@ -318,17 +318,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     next=Store.appendHistory(next,event,detail); return Store.write(next);
   }
 
-  function saveAndReload(promise,message) {
-    promise.done(function () {
+  function saveAndReload(promise,message,action) {
+    promise.done(function (saved) {
       $("#lifecycle-action-feedback").removeClass("error ready").addClass("success").text(message);
+      $(document).trigger("dei:lifecycle-action-complete",[action,saved]);
       reloadRecords();
     }).fail(function (error) {
       $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to save lifecycle record."));
     });
   }
 
-  function saveAndOpenCatalog(record) {
-    Store.write(record).done(function () {
+  function saveAndOpenCatalog(record,action) {
+    Store.write(record).done(function (saved) {
+      $(document).trigger("dei:lifecycle-action-complete",[action,saved||record]);
       window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
     }).fail(function (error) {
       $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to catalog the approved detection."));
@@ -345,7 +347,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (action==="submit_review") {
       if (!record.validation || record.validation.status!=="passed") { return; }
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A review submission note is required."); return; }
-      saveAndReload(transition(record,"peer_review","submitted_for_review",comment,{review:{decision:"pending",submitted_at:new Date().toISOString(),submitted_by:Store.username(),submission_note:comment}}),"Submitted for peer review."); return;
+      saveAndReload(transition(record,"peer_review","submitted_for_review",comment,{review:{decision:"pending",submitted_at:new Date().toISOString(),submitted_by:Store.username(),submission_note:comment}}),"Submitted for peer review.",action); return;
     }
     if (action==="approve_review") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Approval rationale is required."); return; }
@@ -353,31 +355,31 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var approved=$.extend(true,{},record,{review:$.extend({},record.review,{decision:"approved",reviewed_at:catalogedAt,reviewer:Store.username(),comments:comment}),catalog:{status:"ready",cataloged_at:catalogedAt,cataloged_by:Store.username()}});
       approved=Store.appendHistory(approved,"peer_review_approved",comment);
       approved=Store.appendHistory(approved,"added_to_detection_catalog","Ready to enable");
-      saveAndOpenCatalog(approved); return;
+      saveAndOpenCatalog(approved,action); return;
     }
     if (action==="return_draft") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Change rationale is required."); return; }
-      saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null}),"Returned to Draft."); return;
+      saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null}),"Returned to Draft.",action); return;
     }
     if (action==="record_deployment") {
       var target=String($("#lifecycle-deployment-target").val()||""); var environment=String($("#lifecycle-deployment-environment").val()||"production"); var external=String($("#lifecycle-external-id").val()||"").trim();
       if (!external) { $("#lifecycle-action-feedback").addClass("error").text("A deployment object ID or saved-search name is required."); return; }
-      saveAndReload(transition(record,"production","deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""),{deployment:{target:target,environment:environment,external_object_id:external,change_reference:comment,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded."); return;
+      saveAndReload(transition(record,"production","deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""),{deployment:{target:target,environment:environment,external_object_id:external,change_reference:comment,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded.",action); return;
     }
     if (action==="record_health") {
       var health=String($("#lifecycle-health").val()||"healthy"); var volume=Number($("#lifecycle-result-volume").val()||0); var runtime=Number($("#lifecycle-runtime").val()||0); var truePositives=Number($("#lifecycle-true-positives").val()||0); var falsePositives=Number($("#lifecycle-false-positives").val()||0);
       if (![volume,runtime,truePositives,falsePositives].every(function (value) { return isFinite(value) && value>=0; })) { $("#lifecycle-action-feedback").addClass("error").text("Volume, runtime, and analyst outcome counts must be non-negative numbers."); return; }
       var monitoring={health:health,result_volume:volume,runtime_ms:runtime,true_positives:truePositives,false_positives:falsePositives,note:comment,last_checked_at:new Date().toISOString(),checked_by:Store.username()};
-      saveAndReload(transition(record,"monitoring","health_measured",health+", "+volume+" results, "+runtime+" ms",{monitoring:monitoring}),"Monitoring evidence recorded."); return;
+      saveAndReload(transition(record,"monitoring","health_measured",health+", "+volume+" results, "+runtime+" ms",{monitoring:monitoring}),"Monitoring evidence recorded.",action); return;
     }
     if (action==="start_tuning") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A tuning rationale is required."); return; }
       var previousVersion={version:Number(record.version||1),spl:record.spl,schedule:record.schedule,validation:record.validation,review:record.review,deployment:record.deployment,monitoring:record.monitoring,closed_at:new Date().toISOString()};
-      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,catalog:$.extend({},record.catalog,{status:"tuning"}),previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. The detection returned to the engineering queue and prior operational evidence was archived."); return;
+      saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,catalog:$.extend({},record.catalog,{status:"tuning"}),previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. The detection returned to the engineering queue and prior operational evidence was archived.",action); return;
     }
     if (action==="retire") {
       var reason=comment; if (!reason) { $("#lifecycle-action-feedback").addClass("error").text("A retirement reason is required in Lifecycle note."); return; }
-      saveAndReload(transition(record,"retired","detection_retired",reason,{retirement:{reason:reason,retired_at:new Date().toISOString(),retired_by:Store.username()}}),"Detection retired with history retained.");
+      saveAndReload(transition(record,"retired","detection_retired",reason,{retirement:{reason:reason,retired_at:new Date().toISOString(),retired_by:Store.username()}}),"Detection retired with history retained.",action);
     }
   }
 
@@ -466,7 +468,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     selectedRecord=null;
     $("#lifecycle-action-center").hide();
   });
-  $(document).on("dei:detection-draft-generated",function (event,key,record) {
+  $(document).on("dei:detection-draft-generated dei:detection-artifact-saved",function (event,key,record) {
     var value=String(key||"");
     if (!value || !record) { return; }
     generatedDrafts[value]=true;
