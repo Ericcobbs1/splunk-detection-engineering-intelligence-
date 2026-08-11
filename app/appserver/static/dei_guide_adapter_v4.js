@@ -139,9 +139,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(stepChanged) focusTarget();
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } writeStep(index+1); render(); }
+  function completeDraft(id,record) {
+    if(!id||!record||page()!=="builder") return false;
+    selectedDetection=String(id);
+    if(readStep()<=6){
+      writeStep(7);
+      renderedStep=-1;
+      window.clearTimeout(renderTimer);
+      renderTimer=window.setTimeout(render,0);
+    }
+    return readStep()>=7;
+  }
   function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
-  window.DEINextGuide={start:start,render:render,close:close};
+  window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft};
   $(document).on("click", "#dei-home-tour", function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(); });
   $(document).on("dei:scan-progress", function (_event,status) { if(readStep()===0 && status.stage==="complete") advance(); });
   $(document).on("click", "#dei-open-environment-insights", function(){ if(readStep()===1) advance(); });
@@ -149,7 +160,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#mitre-sourcetype-filter", function(){ if(readStep()===3 && $(this).val()!=="all") window.setTimeout(advance,0); });
   $(document).on("dei:advisor-detection-selected", function(_event,id){ if(readStep()===4){ selectedDetection=String(id||""); if(selectedDetection) window.localStorage.setItem("dei.selectedDetectionDraft",selectedDetection); advance(); } });
   $(document).on("change", "#builder-detection-select", function(){ if(readStep()===5 && $(this).val()) advance(); });
-  $(document).on("dei:detection-draft-generated", function(_event,id,record){ if(readStep()===6 && id && record){ advance(); } });
+  $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
   $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===7 && validation && validation.status==="passed") advance(); });
   $(document).on("click", "#lifecycle-action-buttons [data-action]", function(){ if(readStep()===8) waitingForLifecycleWrite=true; });
   $(document).on("dei:lifecycle-records-updated", function(_event,records){
