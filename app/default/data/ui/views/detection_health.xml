@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_health_v1.js,dei_environment_scan_v1.js,dei_workspace_layout_v8.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v3.css">
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_health_v1.js,dei_environment_scan_v1.js,dei_workspace_layout_v10.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v3.css">
   <label>Detection Health</label>
   <description>Operational health, validation evidence, and direct remediation for managed detections.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
