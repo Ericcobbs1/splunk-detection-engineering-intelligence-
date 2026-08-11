@@ -66,7 +66,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function save(record,message) {
-    Store.write(record).done(function () { $("#catalog-action-feedback").addClass("success").removeClass("error").text(message); load(); }).fail(function (error) { $("#catalog-action-feedback").addClass("error").removeClass("success").text(String(error||"Unable to update the catalog.")); });
+    Store.write(record).done(function () { $("#catalog-action-feedback").addClass("success").removeClass("error").text(message); $(document).trigger("dei:catalog-action-complete",[record.catalog&&record.catalog.status]); load(); }).fail(function (error) { $("#catalog-action-feedback").addClass("error").removeClass("success").text(String(error||"Unable to update the catalog.")); });
   }
 
   function handle(action) {

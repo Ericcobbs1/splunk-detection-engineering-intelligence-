@@ -16,7 +16,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == (
         "dashboard_state_v2.js,command_center.js,analysis_bridge.js,"
-        "environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v12.js"
+        "environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_interactive_guide_v1.js,dei_guide_adapter_v1.js,dei_workspace_layout_v12.js"
     )
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
@@ -45,7 +45,7 @@ def test_environment_insights_contains_saved_results_without_discovery_form() ->
     assert root.tag == "form"
     assert root.attrib["script"] == (
         "dashboard_state_v2.js,command_center.js,analysis_bridge.js,"
-        "environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v12.js"
+        "environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_interactive_guide_v1.js,dei_guide_adapter_v1.js,dei_workspace_layout_v12.js"
     )
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
@@ -172,7 +172,7 @@ def test_command_center_static_assets_are_packaged() -> None:
 def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
     home_path = APP_ROOT / "default" / "data" / "ui" / "views" / "dei_home.xml"
     root = ElementTree.parse(home_path).getroot()
-    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_workspace_layout_v11.js"
+    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_interactive_guide_v1.js,dei_guide_adapter_v1.js,dei_workspace_layout_v11.js"
     assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     for element_id in (
         "dei-home-page", "dei-home-pipeline", "dei-home-flow-title",

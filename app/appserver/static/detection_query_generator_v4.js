@@ -706,6 +706,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selected = artifact;
       saveArtifact(artifact);
       renderArtifact(artifact);
+      $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
       setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
     }).fail(function (xhr, status) {
       var error=validationError(xhr,status);
@@ -722,6 +723,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selected = artifact;
       saveArtifact(artifact);
       renderArtifact(artifact);
+      $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
       setFeedback(resolution.applied ? resolution.appliedSummary+" Review the update and run validation again." : artifact.validation.error, resolution.applied ? "working" : "error");
     }).always(function () {
       $("#builder-run-validation").prop("disabled", false).text("Run validation");

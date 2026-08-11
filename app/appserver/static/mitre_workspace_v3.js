@@ -258,6 +258,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var id = $(this).data("detection");
     selected = (report.recommendations || []).filter(function (item) { return item.detection_id === id; })[0];
     renderDetectionList(); renderMatrix(); renderInspector(selected);
+    $(document).trigger("dei:advisor-detection-selected",[id]);
   });
   $("#mitre-matrix, #mitre-inspector-body").on("click", "[data-technique]", function () {
     renderInspector(selected, $(this).data("technique"));
