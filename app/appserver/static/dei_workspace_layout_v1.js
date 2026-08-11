@@ -593,6 +593,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function ensureScanContext() {
+    if (shell().is("#dei-home-page")) { return; }
     if ($("#dei-active-scan-context").length) { return; }
     shell().find(".dei-product-bar").first().after(
       '<section id="dei-active-scan-context" class="dei-active-scan-context" aria-live="polite"></section>'
@@ -603,17 +604,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var timestamp=Number(safeSessionGet("dei.latestRecommendationTime", "0") || 0);
     var sources=Number(report.observed_source_count || 0);
+    if (shell().is("#dei-home-page")) {
+      $(".dei-home-flow-actions .dei-run-intelligence-scan").text(timestamp && sources ? "Run new scan" : "Run intelligence scan");
+      return;
+    }
     ensureScanContext();
     if (!timestamp || !sources) {
       $("#dei-active-scan-context").attr("data-state","empty").html(
         '<span><b>No active environment scan</b> â downstream intelligence remains empty until you run discovery.</span>' +
-        '<button class="dei-run-intelligence-scan" type="button">Run intelligence scan â</button>'
+        '<button class="dei-run-intelligence-scan" type="button">Run intelligence scan</button>'
       );
       return;
     }
     $("#dei-active-scan-context").attr("data-state","active").html(
       '<span><b>Active environment scan</b> Â· ' + sources + ' source types Â· completed ' +
-      new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run a new scan â</button>'
+      new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run new scan</button>'
     );
   }
 
@@ -751,7 +756,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("dei:scan-progress", function (_event,status) {
     $("#dei-home-flow-status").text(status.message);
-    $(".dei-run-intelligence-scan").text(status.stage==="complete"?"Run a new scan â":status.stage==="failed"?"Retry intelligence scan â":status.message);
+    $(".dei-run-intelligence-scan").text(status.stage==="complete"?"Run new scan":status.stage==="failed"?"Retry intelligence scan":status.message);
     announceAction(status.message,status.stage==="failed"?"error":status.stage==="complete"?"success":"info");
   });
   $(document).on("keydown", function (event) {

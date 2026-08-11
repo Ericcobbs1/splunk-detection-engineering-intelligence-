@@ -67,11 +67,13 @@
 .dei-home-flow-heading .dei-kicker{margin:0 0 6px;color:#5ce1c2;font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
 .dei-home-flow-heading h2{margin:0;color:#f0f5fa;font-size:22px;line-height:1.25}
 .dei-home-flow-heading p{margin:7px 0 0;color:#9fb2c3;font-size:13px;line-height:1.55}
-.dei-home-flow-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.dei-home-flow-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto;flex-wrap:wrap}
+.dei-home-flow-actions .dei-run-intelligence-scan{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border:1px solid rgba(110,168,255,.42);border-radius:9px;background:rgba(19,43,72,.76);color:#c6dcff;font-weight:800;cursor:pointer}
+.dei-home-flow-actions .dei-run-intelligence-scan:hover{border-color:#6ea8ff;background:rgba(25,57,94,.9)}
 #dei-home-refresh{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 14px;border:1px solid rgba(92,225,194,.42);border-radius:9px;background:rgba(12,47,47,.76);color:#b9fff0;font-weight:800;cursor:pointer}
 #dei-home-refresh:hover{border-color:#5ce1c2;background:rgba(17,67,63,.88)}
 #dei-home-refresh:disabled{cursor:progress;opacity:.72}
-#dei-home-refresh.refreshing span{animation:dei-home-refresh-spin .8s linear infinite}
+#dei-home-refresh.refreshing:before{content:"";width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:dei-home-refresh-spin .8s linear infinite}
 @keyframes dei-home-refresh-spin{to{transform:rotate(360deg)}}
 .dei-home-flow-link{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border:1px solid rgba(110,168,255,.36);border-radius:9px;color:#b9d6ff;font-size:11px;font-weight:750;text-decoration:none;white-space:nowrap}
 .dei-home-flow-link:hover,.dei-home-flow-link:focus-visible{border-color:#6ea8ff;color:#e5f0ff;outline:0;box-shadow:0 0 0 3px rgba(110,168,255,.09)}

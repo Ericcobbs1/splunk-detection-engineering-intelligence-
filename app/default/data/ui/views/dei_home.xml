@@ -6,13 +6,8 @@
     <panel>
       <html>
         <main id="dei-home-page" class="dei-shell dei-official-home">
-          <section class="dei-product-bar" aria-label="DEI workspace navigation">
-            <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Operational Home</span></div></div>
-            <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a class="active" href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
-          </section>
-
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
-            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><div class="dei-home-flow-actions"><button id="dei-home-refresh" type="button"><span aria-hidden="true">â»</span> Refresh pipeline</button><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle â</a></div></div>
+            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><div class="dei-home-flow-actions"><button class="dei-run-intelligence-scan" type="button">Run new scan</button><button id="dei-home-refresh" type="button">Refresh pipeline</button><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle</a></div></div>
             <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
