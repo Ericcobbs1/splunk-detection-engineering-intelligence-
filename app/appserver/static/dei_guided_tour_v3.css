@@ -15,3 +15,4 @@ body.dei-onboarding-open .dei-onboarding-target{z-index:10001!important}
 .dei-onboarding-production aside{grid-column:1/-1;border-color:rgba(245,191,106,.34);background:rgba(71,46,12,.22)}
 .dei-onboarding-production aside>strong{color:#f5bf6a}
 @media(max-width:760px){.dei-onboarding-production{grid-template-columns:1fr}.dei-onboarding-production aside{grid-column:auto}}
+.dei-onboarding-session-note{color:#8fa5b5;font-size:11px;line-height:1.4}
