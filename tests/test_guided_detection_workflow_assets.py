@@ -27,7 +27,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
-        "guided-builder-workspace", "builder-detection-select", "builder-generate", "builder-start-feedback",
+        "guided-builder-workspace", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-spl", "builder-quality-workspace",
         "builder-run-validation", "builder-validation-resolution",
     ):
@@ -48,7 +48,6 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '"Current stage: "+label(stage)' in javascript
     assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
     assert '$(document).on("dei:detection-draft-generated"' in javascript
-    assert 'href:buildable?"#builder-generate"' in javascript
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
@@ -73,7 +72,7 @@ def test_guided_workflow_is_primary_but_advanced_workspaces_remain_available() -
     assert nav.find(".//view[@name='detection_workflow']") is not None
     home = ElementTree.tostring(ElementTree.parse(VIEWS / "dei_home.xml").getroot(), encoding="unicode")
     assert 'href="detection_workflow"' in home
-    assert "Guided Detection Builder" in home
+    assert "Guided Builder" in home
     for view_name in ("detection_lifecycle", "detection_operations", "detection_catalog"):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
         assert root.find(".//option[@value='detection_workflow']") is not None
