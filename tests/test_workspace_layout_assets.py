@@ -107,6 +107,10 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert shell.find(".//*[@id='dei-home-refresh']") is not None
     assert shell.find(".//*[@class='dei-run-intelligence-scan']") is not None
+    lifecycle_action = shell.find(".//*[@class='dei-home-flow-link']")
+    assert lifecycle_action is not None
+    assert lifecycle_action.text == "Detection Engineering Lifecycle"
+    assert lifecycle_action.attrib["href"] == "detection_lifecycle"
     assert shell.find(".//*[@id='dei-topology-core-health']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
     assert "min-height:calc(100vh - 76px)" in stylesheet
