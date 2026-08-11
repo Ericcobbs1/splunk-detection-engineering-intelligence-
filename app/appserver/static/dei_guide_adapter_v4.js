@@ -49,7 +49,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"builder",target:"#lifecycle-action-comment",title:"Record the peer-review decision",instruction:"As the reviewer, document why the SPL is safe, scoped, supportable, and operationally actionable.",actionLabel:"Enter the approval rationale"},
     {page:"builder",target:'[data-action="approve_review"]',title:"Approve the reviewed version",instruction:"Approve this exact validated version so it can enter the governed Detection Catalog.",actionLabel:"Select Approve version"},
     {page:"catalog",target:"#catalog-external-id",title:"Identify the production object",instruction:"Record the exact saved search, correlation search, or deployment object that will run this detection.",actionLabel:"Enter the deployment object ID"},
-    {page:"catalog",target:'[data-catalog-action="enable"]',title:"Enable the approved detection",instruction:"Complete the final analyst-controlled action to enable this reviewed detection in the catalog.",actionLabel:"Select Enable detection"}
+    {page:"catalog",target:'[data-catalog-action="enable"]',title:"Enable the approved detection",instruction:"Complete the final analyst-controlled action to enable this reviewed detection in the catalog.",actionLabel:"Select Enable detection"},
+    {page:"catalog",target:"#catalog-action-panel",title:"Detection enabled — know where to manage it",instruction:"The detection lifecycle is complete. Use these locations for ongoing administration.",actionLabel:"Tutorial complete",completion:true,details:["DEI Detection Catalog: monitor status, health, deployment reference, tuning, disablement, and retirement.","Splunk Settings → Searches, reports, and alerts: manage a Splunk saved search by its exact object name.","Enterprise Security → Content Management: manage an ES detection or correlation search by its exact object name."]}
   ];
 
   function page() {
@@ -172,7 +173,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(readStep()===11&&action==="approve_review") goToStep(12);
   });
   $(document).on("input change", "#catalog-external-id", function(){ if(readStep()===12 && String($(this).val()||"").trim()) goToStep(13); });
-  $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===13 && status==="enabled") close(true); });
+  $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===13 && status==="enabled") goToStep(14); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(steps[readStep()]); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
