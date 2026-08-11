@@ -67,6 +67,9 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert 'aria-modal="false"' in home_layout
     assert "function positionOnboardingDialog(target)" in home_layout
     assert 'placement=(bounds.left+bounds.width/2)<window.innerWidth/2 ? "right" : "left"' in home_layout
+    assert 'event.key==="F6"' in home_layout
+    assert "onboardingReturnFocus.focus()" in home_layout
+    assert '.attr("aria-describedby","dei-onboarding-description")' in home_layout
     assert 'event.key==="Escape"' in home_layout
     assert "Shown once per login session" in home_layout
     assert "dei-onboarding-dismiss-permanently" not in home_layout
@@ -75,11 +78,13 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
 
 
 def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
-    tour_styles = _source("dei_guided_tour_v4.css")
+    tour_styles = _source("dei_guided_tour_v5.css")
     assert ".dei-onboarding-overlay{z-index:10002" in tour_styles
-    assert ".dei-onboarding-target{z-index:10003!important;pointer-events:auto}" in tour_styles
+    assert ".dei-onboarding-target{z-index:10001!important;pointer-events:auto}" in tour_styles
+    assert ".dei-onboarding-overlay{z-index:10002" in tour_styles
     assert '.dei-onboarding-dialog[data-placement="right"]' in tour_styles
     assert '.dei-onboarding-dialog[data-placement="left"]' in tour_styles
+    assert '.dei-onboarding-dialog::before{content:""' in tour_styles
     assert "#dei-onboarding-back,#dei-onboarding-next" in tour_styles
     for view in (
         "dei_home.xml", "command_center.xml", "environment_insights.xml",
@@ -88,7 +93,7 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
         "detection_builder.xml", "detection_action_center.xml",
     ):
         root = ElementTree.parse(VIEWS / view).getroot()
-        assert "dei_guided_tour_v4.css" in root.attrib["stylesheet"].split(",")
+        assert "dei_guided_tour_v5.css" in root.attrib["stylesheet"].split(",")
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
@@ -149,5 +154,5 @@ def test_tour_teaches_production_actions_evidence_and_cautions():
             assert section_id in source
         assert "Never enable generated SPL directly in production" in source
         assert "State changes must reflect real operational actions" in source
-    styles = _source("dei_guided_tour_v4.css")
+    styles = _source("dei_guided_tour_v5.css")
     assert ".dei-onboarding-production" in styles
