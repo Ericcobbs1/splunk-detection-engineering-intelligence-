@@ -39,9 +39,9 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    adapter = _source("dei_guide_adapter_v1.js")
+    adapter = _source("dei_guide_adapter_v2.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    bundle = _source("dei_interactive_guide_v1.js")
+    bundle = _source("dei_interactive_guide_v2.js")
     for page in ("home", "environment", "environment_insights", "mitre", "builder", "catalog"):
         assert f'page:"{page}"' in adapter
     for event in (
@@ -55,10 +55,23 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in adapter
     assert "Math.imul(hash,16777619)" in adapter
     assert "window.DEINextGuide" in adapter
+    assert 'document.createElement("script")' in adapter
+    assert "script.async=true" in adapter
+    assert "script.onerror" in adapter
     assert "Waiting for this action to complete" in react_source
     assert "The guide advances automatically" in react_source
     assert "Next" not in react_source
     assert "window.DEIInteractiveGuide" in bundle
+
+
+def test_react_bundle_is_progressive_enhancement_not_a_dashboard_dependency():
+    for view in VIEWS.glob("*.xml"):
+        scripts = ElementTree.parse(view).getroot().attrib["script"].split(",")
+        assert "dei_interactive_guide_v2.js" not in scripts, view.name
+        assert "dei_guide_adapter_v2.js" in scripts, view.name
+    adapter = _source("dei_guide_adapter_v2.js")
+    assert "finishGuideLoad(false)" in adapter
+    assert "dashboard remains available" in adapter
 
 
 def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
@@ -128,7 +141,7 @@ def test_core_action_controls_have_implementation_bindings():
 
 
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
-    adapter = _source("dei_guide_adapter_v1.js")
+    adapter = _source("dei_guide_adapter_v2.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert adapter.count("actionLabel:") == 10
     for target in (
