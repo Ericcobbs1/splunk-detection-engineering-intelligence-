@@ -11,11 +11,17 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     for view in ("command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
-        assert "dei_workspace_layout_v12.js" in root.attrib["script"]
+        scripts = root.attrib["script"].split(",")
+        assert "dei_interactive_guide_v1.js" in scripts
+        assert "dei_guide_adapter_v1.js" in scripts
+        assert "dei_workspace_layout_v12.js" in scripts
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
         assert "dei_responsive_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
-    assert "dei_workspace_layout_v11.js" in home.attrib["script"].split(",")
+    home_scripts = home.attrib["script"].split(",")
+    assert "dei_interactive_guide_v1.js" in home_scripts
+    assert "dei_guide_adapter_v1.js" in home_scripts
+    assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
@@ -266,28 +272,25 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
-    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_guide_adapter_v1.js").read_text(encoding="utf-8")
+    react_source = Path("ui/interactive-guide.jsx").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_guided_tour_v5.css").read_text(encoding="utf-8")
     for value in (
-        "dei.onboardingSeen.session", "Shown once per login session",
-        'role="dialog"', 'aria-modal="false"',
-        "Guided walkthrough", "dei-onboarding-next", "dei-onboarding-back",
-        "closeOnboarding", 'event.key==="Escape"',
-        "positionOnboardingDialog", "scrollIntoView", 'event.key==="F6"',
-        "onboardingReturnFocus.focus()",
+        "dei.nextGuide.seen", "dei.nextGuide.step", "scrollIntoView",
+        'event.key==="Escape"', 'event.key==="F6"', "sessionKey",
+        "window.DEINextGuide",
     ):
         assert value in javascript
-    assert "dei.onboardingDismissed.v1" not in javascript
-    assert "Do not show this welcome guide again" not in javascript
-    assert '.closest(".dei-onboarding-dialog,.dei-onboarding-target")' in javascript
-    assert "&times;" in javascript
+    assert 'role="dialog"' in react_source
+    assert 'aria-modal="false"' in react_source
+    assert "onClose" in react_source
+    assert "onFocusTarget" in react_source
+    assert "Next" not in react_source
     assert "Ã" not in javascript
-    assert "function onboardingSessionKey()" in javascript
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
-    assert 'safeSessionGet(onboardingSessionKey())==="true"' in javascript
     assert ".dei-onboarding-overlay" in stylesheet
-    assert ".dei-onboarding-dialog" in stylesheet
-    assert "body.dei-onboarding-open" in stylesheet
+    assert ".dei-next-guide-dialog" in stylesheet
+    assert ".dei-next-guide-action" in stylesheet
 
 
 def test_environment_workflow_is_split_between_discovery_and_results() -> None:
@@ -305,8 +308,8 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     shared = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
-    mitre = (STATIC / "mitre_workspace_v2.js").read_text(encoding="utf-8")
-    builder = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
+    mitre = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
+    builder = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
 
     handlers = {
