@@ -17,7 +17,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v12.js"
+    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_interactive_guide_v1.js,dei_guide_adapter_v1.js,dei_workspace_layout_v12.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v5.css,dei_responsive_v1.css"
     )
@@ -83,8 +83,8 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     catalog = ElementTree.parse(CATALOG_PATH).getroot()
     operations = ElementTree.parse(OPERATIONS_PATH).getroot()
     javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
-    catalog_javascript = (STATIC_ROOT / "detection_catalog_v1.js").read_text(encoding="utf-8")
-    assert "detection_catalog_v1.js" in catalog.attrib["script"].split(",")
+    catalog_javascript = (STATIC_ROOT / "detection_catalog_v2.js").read_text(encoding="utf-8")
+    assert "detection_catalog_v2.js" in catalog.attrib["script"].split(",")
     assert "detection_catalog_v1.css" in catalog.attrib["stylesheet"].split(",")
     for element_id in (
         "dei-detection-catalog-page", "catalog-total", "catalog-table",
@@ -110,7 +110,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
 def test_guided_detection_builder_owns_the_action_workspace() -> None:
     lifecycle = ElementTree.parse(VIEW_PATH).getroot()
     builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
-    assert "detection_query_generator_v3.js" in builder.attrib["script"].split(",")
+    assert "detection_query_generator_v4.js" in builder.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in builder.attrib["script"].split(",")
     for element_id in (
         "dei-guided-detection-page", "guided-builder-workspace", "lifecycle-workspace-menu",
@@ -193,7 +193,7 @@ def test_detection_standards_block_malformed_pipeline_syntax() -> None:
 
 
 def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
-    javascript = (STATIC_ROOT / "detection_query_generator_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_query_generator_v4.js").read_text(encoding="utf-8")
     assert "production_ready" in javascript
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
