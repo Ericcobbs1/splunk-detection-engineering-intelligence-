@@ -179,10 +179,8 @@ def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
         "dei-home-detection-flow", "dei-home-flow-status",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
-    for destination in (
-        "command_center", "mitre_coverage", "detection_lifecycle", "detection_workflow",
-    ):
-        assert root.find(f".//a[@href='{destination}']") is not None
+    assert root.find(".//*[@class='dei-product-bar']") is None
+    assert root.find(".//a[@href='detection_lifecycle']") is not None
     assert root.find(".//*[@id='dei-telemetry']") is None
     assert root.find(".//*[@id='dei-portfolio-section']") is None
     assert root.find(".//*[@id='dei-coverage-section']") is None
