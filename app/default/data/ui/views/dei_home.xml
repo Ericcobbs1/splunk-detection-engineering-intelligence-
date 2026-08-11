@@ -12,7 +12,7 @@
           </section>
 
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
-            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Detection Engineering Intelligence</p><h1 id="dei-home-flow-title">Move telemetry through a measurable detection pipeline.</h1><p>Start with live environmental evidence, expose coverage blockers, and move qualified detection opportunities into validation and deployment.</p><div class="dei-home-flow-tags"><span>Telemetry-driven</span><span>MITRE-mapped</span><span>Lifecycle-managed</span><span>ES-aware</span></div></div><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle workspace →</a></div>
+            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle →</a></div>
             <div class="dei-flow-health-summary" aria-label="Detection pipeline health summary">
               <article class="dei-flow-health-card"><span>Pipeline health</span><strong id="dei-home-health" data-health="awaiting">Awaiting data</strong><small id="dei-home-health-detail">Run environment analysis to establish a baseline</small><a id="dei-home-health-action" href="command_center#dei-telemetry">Run intelligence scan →</a></article>
               <article><span>Detection use cases</span><strong id="dei-home-use-case-count">0</strong><small>Known recommendations and artifacts</small></article>
@@ -128,11 +128,11 @@
 
 
           <section class="dei-home-workspaces" aria-labelledby="dei-home-workspaces-title">
-            <div class="dei-home-workspaces-heading"><p class="dei-eyebrow">Analyst Workspaces</p><h2 id="dei-home-workspaces-title">Continue the engineering workflow</h2><p>Detailed widgets remain available in focused workspaces so the landing page stays clear and action-oriented.</p></div>
+            <div class="dei-home-workspaces-heading"><p class="dei-eyebrow">Quick access</p><h2 id="dei-home-workspaces-title">Continue your work</h2></div>
             <div class="dei-home-workspace-grid">
-              <a href="command_center"><span>01</span><div><strong>Environment Intelligence</strong><p>Analyze sourcetypes, fields, readiness, telemetry domains, and the current environment snapshot.</p></div><b>Open →</b></a>
-              <a href="mitre_coverage"><span>02</span><div><strong>MITRE ATT&amp;CK Coverage</strong><p>Inspect tactic and technique coverage, mapped recommendations, and Detection Advisor results.</p></div><b>Open →</b></a>
-              <a href="detection_workflow"><span>03</span><div><strong>Guided Detection Builder</strong><p>Generate and validate SPL, then follow the same detection through approval, enablement, monitoring, and tuning.</p></div><b>Continue →</b></a>
+              <a href="command_center"><span>01</span><div><strong>Environment Intelligence</strong><p>Inspect live telemetry readiness.</p></div><b>Open →</b></a>
+              <a href="mitre_coverage"><span>02</span><div><strong>MITRE ATT&amp;CK Coverage</strong><p>Review mapped coverage and gaps.</p></div><b>Open →</b></a>
+              <a href="detection_workflow"><span>03</span><div><strong>Guided Detection Builder</strong><p>Build and validate detection logic.</p></div><b>Open →</b></a>
             </div>
           </section>
         </main>

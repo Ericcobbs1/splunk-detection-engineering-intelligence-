@@ -701,3 +701,31 @@ body.dei-onboarding-open{overflow:hidden}
 .dei-quality-issues p,.dei-quality-issues small,.dei-health-record p,.dei-health-record small{display:block;margin:5px 0 0}.dei-health-hero{padding:28px 0 18px}.dei-health-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
 .dei-health-summary strong{display:block;margin-top:5px;font-size:28px}.dei-health-controls{display:grid;grid-template-columns:1fr 260px;gap:12px;margin-bottom:14px}.dei-health-controls input,.dei-health-controls select{box-sizing:border-box;width:100%;min-height:44px}.dei-health-record-actions{display:flex;gap:9px}.dei-health-record-actions a,.dei-health-empty a{padding:9px 12px;border:1px solid #3c83bd;border-radius:8px;color:#9ed2ff;text-decoration:none;white-space:nowrap}
 @media(max-width:900px){.dei-quality-dimensions,.dei-health-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.dei-health-record,.dei-quality-issues article{align-items:flex-start;flex-direction:column}.dei-health-controls{grid-template-columns:1fr}}
+
+/* Animation-led home: the topology owns the first viewport; status and navigation support it. */
+.dei-official-home{max-width:none!important;padding:0 18px 24px!important;gap:12px!important}
+.dei-official-home>.dei-home-flow-section{justify-content:flex-start!important;min-height:calc(100vh - 70px)!important;padding:0!important}
+.dei-official-home .dei-home-flow-heading{position:relative;z-index:5;align-items:center!important;min-height:72px!important;padding:10px 24px 8px!important}
+.dei-official-home .dei-home-flow-heading>div{max-width:none!important}
+.dei-official-home .dei-home-flow-heading .dei-kicker{margin-bottom:3px!important;font-size:10px!important}
+.dei-official-home .dei-home-flow-heading h1{font-size:clamp(24px,2.1vw,36px)!important;line-height:1.08!important}
+.dei-official-home .dei-home-flow-heading>div>p:not(.dei-kicker){margin-top:5px!important;font-size:13px!important;line-height:1.35!important}
+.dei-official-home .dei-home-flow-link{position:static!important;flex:0 0 auto;min-height:38px!important;padding:0 14px!important}
+.dei-official-home .dei-topology-flow{order:1!important;flex:1 1 auto!important;min-height:620px!important;padding:0!important}
+.dei-official-home .dei-topology-flow>.dei-flow-header{position:absolute!important;top:14px!important;left:50%!important;width:auto!important;max-width:calc(100% - 48px);margin:0!important;transform:translateX(-50%);border-radius:999px!important;background:rgba(4,14,23,.78)!important}
+.dei-official-home .dei-topology-flow>.dei-topology-canvas{width:100%!important;min-height:clamp(620px,calc(100vh - 150px),820px)!important;border:1px solid rgba(110,168,255,.16)!important;border-radius:20px!important;box-shadow:inset 0 0 120px 36px rgba(1,7,13,.78),0 24px 60px rgba(0,0,0,.3)!important}
+.dei-official-home .dei-flow-health-summary{position:absolute;z-index:10;right:28px;bottom:24px;left:28px;order:2!important;display:grid!important;grid-template-columns:minmax(220px,1.35fr) repeat(4,minmax(110px,.65fr))!important;width:auto!important;margin:0!important;padding:0!important;overflow:hidden;border:1px solid rgba(110,168,255,.18)!important;border-radius:14px;background:rgba(4,14,23,.84);box-shadow:0 12px 34px rgba(0,0,0,.32);backdrop-filter:blur(12px)}
+.dei-official-home .dei-flow-health-summary article{min-height:70px;padding:11px 14px!important}
+.dei-official-home .dei-flow-health-summary article>strong{margin-top:4px!important;font-size:18px!important}
+.dei-official-home .dei-flow-health-summary article>small{display:none!important}
+.dei-official-home .dei-flow-health-card #dei-home-health-action{margin-top:4px;font-size:10px}
+.dei-official-home>.dei-home-workspaces{display:flex;align-items:center;gap:18px;padding:12px 16px!important;border-color:rgba(168,190,214,.12)!important;background:rgba(7,18,29,.72)!important}
+.dei-official-home .dei-home-workspaces-heading{flex:0 0 150px}
+.dei-official-home .dei-home-workspaces-heading .dei-eyebrow{margin:0;font-size:10px!important}
+.dei-official-home .dei-home-workspaces-heading h2{margin:2px 0 0;font-size:15px!important}
+.dei-official-home .dei-home-workspace-grid{flex:1 1 auto;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:0!important}
+.dei-official-home .dei-home-workspace-grid>a{min-height:58px!important;padding:9px 12px!important}
+.dei-official-home .dei-home-workspace-grid>a>span{width:30px;height:30px;font-size:10px}
+.dei-official-home .dei-home-workspace-grid p{display:none}
+@media(max-width:1000px){.dei-official-home .dei-flow-health-summary{grid-template-columns:repeat(5,minmax(0,1fr))!important}.dei-official-home .dei-flow-health-summary .dei-flow-health-card{grid-column:auto!important}.dei-official-home .dei-flow-health-summary article>span{font-size:9px}.dei-official-home .dei-home-workspaces{align-items:stretch;flex-direction:column}.dei-official-home .dei-home-workspaces-heading{flex-basis:auto}.dei-official-home .dei-home-workspace-grid{width:100%}}
+@media(max-width:760px){.dei-official-home{padding:0 8px 16px!important}.dei-official-home .dei-home-flow-heading{align-items:flex-start!important;flex-direction:column;padding:12px 10px!important}.dei-official-home .dei-topology-flow{min-height:auto!important}.dei-official-home .dei-topology-flow>.dei-flow-header{position:relative!important;top:auto!important;left:auto!important;align-self:center;margin:10px!important;transform:none}.dei-official-home .dei-flow-health-summary{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:10px 0 0!important}.dei-official-home .dei-flow-health-summary .dei-flow-health-card{grid-column:1/-1!important}.dei-official-home .dei-home-workspace-grid{grid-template-columns:1fr!important}}
