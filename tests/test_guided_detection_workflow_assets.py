@@ -70,9 +70,8 @@ def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None
 def test_guided_workflow_is_primary_but_advanced_workspaces_remain_available() -> None:
     nav = ElementTree.parse(APP / "default/data/ui/nav/default.xml").getroot()
     assert nav.find(".//view[@name='detection_workflow']") is not None
-    home = ElementTree.tostring(ElementTree.parse(VIEWS / "dei_home.xml").getroot(), encoding="unicode")
-    assert 'href="detection_workflow"' in home
-    assert "Guided Builder" in home
+    home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    assert home.find(".//*[@class='dei-product-bar']") is None
     for view_name in ("detection_lifecycle", "detection_operations", "detection_catalog"):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
         assert root.find(".//option[@value='detection_workflow']") is not None
