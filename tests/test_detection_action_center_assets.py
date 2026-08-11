@@ -23,11 +23,10 @@ def test_action_center_is_a_packaged_dedicated_workspace() -> None:
         assert root.find(f".//*[@id='{element_id}']") is not None
 
 
-def test_home_keeps_summary_link_but_not_embedded_findings() -> None:
+def test_home_keeps_operational_findings_off_the_landing_page() -> None:
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     action = home.find(".//*[@id='dei-home-health-action']")
-    assert action is not None and action.tag == "a"
-    assert action.attrib["href"] == "command_center#dei-telemetry"
+    assert action is None
     assert home.find(".//*[@id='dei-home-health-actions']") is None
     javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
     assert '.attr("href","detection_action_center")' in javascript
