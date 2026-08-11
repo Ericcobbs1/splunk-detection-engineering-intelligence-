@@ -589,7 +589,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function onboardingMarkup() {
     return [
       '<div id="dei-onboarding-overlay" class="dei-onboarding-overlay" role="presentation">',
-      '<section class="dei-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="dei-onboarding-title" aria-describedby="dei-onboarding-description">',
+      '<section class="dei-onboarding-dialog" role="dialog" aria-modal="false" aria-labelledby="dei-onboarding-title" aria-describedby="dei-onboarding-description">',
       '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">&times;</button>',
       '<div class="dei-onboarding-heading"><p id="dei-onboarding-step-label" class="dei-kicker"></p>',
       '<h2 id="dei-onboarding-title"></h2><p id="dei-onboarding-description"></p></div>',
@@ -633,7 +633,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var step=ONBOARDING_STEPS[onboardingStep],target=$(step.target).first();
     $(".dei-onboarding-target").removeClass("dei-onboarding-target");
     if (workflowPage()!==step.page) { safeSessionSet(ONBOARDING_STEP_KEY,String(onboardingStep)); window.location.href=onboardingPage(step); return; }
-    if (target.length) { target.addClass("dei-onboarding-target"); target[0].scrollIntoView({behavior:"smooth",block:"center"}); }
+    if (target.length) {
+      target.addClass("dei-onboarding-target");
+      target[0].scrollIntoView({behavior:"smooth",block:"center"});
+      window.setTimeout(function () { positionOnboardingDialog(target); }, 380);
+    } else { positionOnboardingDialog(target); }
     $("#dei-onboarding-step-label").text("Guided walkthrough | "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
     $("#dei-onboarding-title").text(step.title); $("#dei-onboarding-description").text(step.detail);
     $("#dei-onboarding-objective").text(step.objective);
@@ -642,6 +646,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-onboarding-caution").text(step.caution);
     $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next →");
     $("#dei-onboarding-progress-bar").css("width",((onboardingStep+1)/ONBOARDING_STEPS.length*100)+"%"); $(".dei-onboarding-progress").attr("aria-valuenow",onboardingStep+1);
+  }
+
+  function positionOnboardingDialog(target) {
+    var dialog=$(".dei-onboarding-dialog");
+    if (!dialog.length) { return; }
+    var placement="right";
+    if (target && target.length && window.innerWidth>900) {
+      var bounds=target[0].getBoundingClientRect();
+      placement=(bounds.left+bounds.width/2)<window.innerWidth/2 ? "right" : "left";
+    } else if (target && target.length) {
+      placement=target[0].getBoundingClientRect().top>window.innerHeight/2 ? "top" : "bottom";
+    }
+    dialog.attr("data-placement",placement);
   }
 
   function ensureScanContext() {
@@ -812,7 +829,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $(document).on("click", "#dei-onboarding-close, #dei-onboarding-not-now", closeOnboarding);
-  $(document).on("click", "#dei-onboarding-overlay", function (event) { if (event.target===this) { closeOnboarding(); } });
+  $(document).on("click", function (event) {
+    if ($("#dei-onboarding-overlay").length && !$(event.target).closest(".dei-onboarding-dialog,.dei-onboarding-target").length) { closeOnboarding(); }
+  });
+  $(window).on("resize.deiOnboarding", function () { positionOnboardingDialog($(ONBOARDING_STEPS[onboardingStep].target).first()); });
   $(document).on("click", "#dei-home-tour", restartOnboarding);
   $(document).on("click", "#dei-topology-core-action", function () {
     window.location.href=String($(this).attr("data-health-destination") || "detection_lifecycle");
@@ -835,13 +855,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var overlay=$("#dei-onboarding-overlay");
     if (!overlay.length) { return; }
     if (event.key==="Escape") { closeOnboarding(); return; }
-    if (event.key==="Tab") {
-      var focusable=overlay.find('a[href],button,input:not([disabled])').filter(":visible");
-      if (!focusable.length) { return; }
-      var first=focusable[0]; var last=focusable[focusable.length-1];
-      if (event.shiftKey && document.activeElement===first) { $(last).focus(); event.preventDefault(); }
-      else if (!event.shiftKey && document.activeElement===last) { $(first).focus(); event.preventDefault(); }
-    }
+    // This coachmark is non-modal so the highlighted controls remain interactive.
   });
 
   $(document).on("dei:environment-refreshed dei:environment-cleared dei:detection-artifacts-changed", function () {
