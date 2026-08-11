@@ -287,7 +287,8 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "onFocusTarget" in react_source
     assert "Next" not in react_source
     assert "Ã" not in javascript
-    assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
+    assert 'Splunk.util.getConfigValue("USERNAME")' in javascript
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' not in javascript
     assert 'document.createElement("script")' in javascript
     assert "dei_interactive_guide_v2.js" in javascript
     assert "script.onerror" in javascript

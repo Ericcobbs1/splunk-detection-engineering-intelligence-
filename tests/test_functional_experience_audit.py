@@ -52,7 +52,8 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
         assert event in adapter
     assert 'event.key==="Escape"' in adapter
     assert 'event.key==="F6"' in adapter
-    assert 'Splunk.util.getConfigValue("FORM_KEY")' in adapter
+    assert 'Splunk.util.getConfigValue("USERNAME")' in adapter
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' not in adapter
     assert "Math.imul(hash,16777619)" in adapter
     assert "window.DEINextGuide" in adapter
     assert 'document.createElement("script")' in adapter
@@ -179,5 +180,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
     assert "if(readStep()<=6)" in adapter
+    assert 'if (page()!==step.page) { close(false); return; }' in adapter
+    assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
     assert "if(stepChanged) focusTarget()" in adapter
