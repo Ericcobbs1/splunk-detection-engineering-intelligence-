@@ -94,11 +94,13 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     children = list(shell)
     ids = [child.attrib.get("id") for child in children]
     pipeline_index = ids.index("dei-home-pipeline")
-    assert pipeline_index == 1
+    assert pipeline_index == 0
+    assert shell.find(".//*[@class='dei-product-bar']") is None
     assert shell.find(".//*[@class='dei-hero dei-home-hero']") is None
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert shell.find(".//*[@id='dei-home-refresh']") is not None
+    assert shell.find(".//*[@class='dei-run-intelligence-scan']") is not None
     assert shell.find(".//*[@id='dei-topology-core-health']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
     assert "min-height:calc(100vh - 76px)" in stylesheet
@@ -124,6 +126,8 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "refreshHomeLifecycleRecords(true)" in javascript
     assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
     assert "#dei-home-refresh" in stylesheet
+    assert ".dei-home-flow-actions .dei-run-intelligence-scan" in stylesheet
+    assert 'shell().is("#dei-home-page")' in javascript
     assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "rotateY(-5deg)" in stylesheet
