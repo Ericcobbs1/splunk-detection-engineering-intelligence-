@@ -78,7 +78,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#workflow-detection-select").on("change",renderSelected); $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if (destination) { window.location.href=destination; } }); initialize(0);
   $(document).on("dei:lifecycle-records-updated",function (event,loaded) { records=Array.isArray(loaded)?loaded:records; populate(); });
-  $(document).on("dei:detection-draft-generated",function (event,id,record) {
+  $(document).on("dei:detection-draft-generated dei:detection-artifact-saved",function (event,id,record) {
     var value=String(id||"");
     if (!value || !record) { return; }
     records=records.filter(function (item) { return key(item)!==value; });
