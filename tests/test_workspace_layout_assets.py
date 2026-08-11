@@ -106,8 +106,11 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "border:0!important" in stylesheet
     assert ".dei-official-home .dei-topology-flow{order:1;flex:1 1 auto" in stylesheet
     assert ".dei-official-home .dei-flow-health-summary{order:2" in stylesheet
-    assert ".dei-home-flow-tags" in stylesheet
-    assert "Move telemetry through a measurable detection pipeline." in ElementTree.tostring(home, encoding="unicode")
+    assert "Your detection pipeline, in motion." in ElementTree.tostring(home, encoding="unicode")
+    assert "Animation-led home" in stylesheet
+    assert "min-height:clamp(620px,calc(100vh - 150px),820px)" in stylesheet
+    assert ".dei-official-home .dei-flow-health-summary{position:absolute" in stylesheet
+    assert ".dei-official-home>.dei-home-workspaces{display:flex" in stylesheet
     assert "min-height:max(780px,calc(100vh - 108px))" in stylesheet
     assert ".dei-official-home .dei-topology-core{width:340px;height:340px" in stylesheet
     assert ".dei-official-home{max-width:1880px" in stylesheet
