@@ -10,7 +10,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 def test_detection_standards_engine_is_packaged_and_integrated() -> None:
     engine = (STATIC / "dei_detection_standards_v1.js").read_text(encoding="utf-8")
     builder = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
-    generator = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
     assert "DEIDetectionStandards" in engine
     for contract in ("index\\s*=\\s*\\*", "command.transaction", "command.join", "schedule.window", "mitre.missing", "context.entity", "es.risk-object"):
         assert contract in engine
