@@ -293,9 +293,17 @@ def test_dashboard_clear_removes_detection_drafts() -> None:
 def test_generate_draft_is_single_flight_and_confirms_persistence_before_completion() -> None:
     javascript = (STATIC_ROOT / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     assert "var generationInFlight = false" in javascript
-    assert "if (generationInFlight) { return; }" in javascript
-    assert 'off("click.deiGenerate")' in javascript
+    assert "generationInFlight || window.DEIDraftGenerationInFlight" in javascript
+    assert 'off("click.deiGenerate", "#builder-generate")' in javascript
     assert "return deferred.promise()" in javascript
     assert "saveArtifact(artifact).done(function (savedRecord)" in javascript
+    assert 'attr("data-dei-generated-detection", item.detection_id)' in javascript
     assert 'trigger("dei:detection-draft-generated", [item.detection_id, savedRecord' in javascript
     assert "Detection draft generated and saved" in javascript
+
+
+def test_generate_draft_is_idempotent_for_the_confirmed_selection() -> None:
+    javascript = (STATIC_ROOT / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    assert "event.stopImmediatePropagation()" in javascript
+    assert 'attr("data-dei-generated-detection") === id' in javascript
+    assert 'removeAttr("data-dei-generated-detection")' in javascript
