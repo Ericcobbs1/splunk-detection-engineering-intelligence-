@@ -2,7 +2,7 @@
 #dei-home-page .dei-home-flow-heading>.dei-home-flow-actions{
   position:static!important;
   display:grid!important;
-  grid-template-columns:repeat(3,max-content)!important;
+  grid-template-columns:repeat(4,max-content)!important;
   grid-auto-flow:column!important;
   align-items:center!important;
   justify-content:end!important;
@@ -15,6 +15,7 @@
 }
 #dei-home-page .dei-home-flow-actions>.dei-run-intelligence-scan,
 #dei-home-page .dei-home-flow-actions>#dei-home-refresh,
+#dei-home-page .dei-home-flow-actions>#dei-home-tour,
 #dei-home-page .dei-home-flow-actions>.dei-home-flow-link{
   appearance:none!important;
   -webkit-appearance:none!important;
@@ -43,6 +44,7 @@
 }
 #dei-home-page .dei-home-flow-actions>.dei-run-intelligence-scan:hover,
 #dei-home-page .dei-home-flow-actions>#dei-home-refresh:hover,
+#dei-home-page .dei-home-flow-actions>#dei-home-tour:hover,
 #dei-home-page .dei-home-flow-actions>.dei-home-flow-link:hover{
   border-color:#6ea8ff!important;
   background:#10233a!important;

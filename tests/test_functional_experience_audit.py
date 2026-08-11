@@ -28,10 +28,19 @@ def test_home_scan_is_an_operation_not_a_redirect():
     assert 'dei_force_refresh:"1"' in service
     assert "isExplicitFreshScan" in _source("dashboard_state_v2.js")
     assert "The intelligence scan failed" in service
+    assert 'scanCollection="dei_scan_summaries"' in service
+    assert 'scanEndpoint("latest")' in service
+    assert "assessment_id" in service
+    assert "active_sourcetype_count" in service
+    assert "active_index_count" in service
+    assert "field_profile_failures" in service
+    assert "enterprise_security_enabled" in service
+    assert "function hydrate()" in service
 
 
 def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
     layout = _source("dei_workspace_layout_v1.js")
+    home_layout = _source("dei_workspace_layout_v3.js")
     stylesheet = _source("dei_workspace_layout_v1.css")
     for control in (
         "dei-onboarding-next",
@@ -44,7 +53,26 @@ def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
         assert f'page:"{page}"' in layout
     assert "window.location.href=onboardingPage(step)" in layout
     assert 'safeStorageSet(ONBOARDING_KEY, "true")' in layout
+    assert "detection_workflow#guided-builder-workspace" in layout
+    assert "restartOnboarding" in home_layout
+    assert "#dei-home-tour" in home_layout
+    assert "#dei-topology-core-action" in home_layout
+    assert 'ONBOARDING_PREFERENCE_COLLECTION = "dei_user_preferences"' in home_layout
+    assert "onboardingPreferenceKey" in home_layout
+    assert "loadOnboardingPreference().always(showOnboarding)" in home_layout
+    assert "saveOnboardingPreference(true)" in home_layout
+    assert "saveOnboardingPreference(false)" in home_layout
     assert ".dei-onboarding-target" in stylesheet
+
+
+def test_home_pipeline_drilldowns_open_owned_workspaces():
+    layout = _source("dei_workspace_layout_v3.js")
+    assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
+    assert 'validate:"detection_workflow#builder-validation-title"' in layout
+    assert '"detection_action_center"' in layout
+    assert '"detection_health"' in layout
+    assert '"command_center#dei-telemetry"' in layout
+    assert '"detection_operations"' in layout
 
 
 def test_tour_targets_exist_in_their_owning_views():

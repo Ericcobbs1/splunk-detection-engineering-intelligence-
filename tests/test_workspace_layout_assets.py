@@ -17,7 +17,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_workspace_layout_v3.js" in home.attrib["script"].split(",")
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
-    assert "grid-template-columns:repeat(3,max-content)!important" in home_actions
+    assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
     assert "height:40px!important" in home_actions
 
 
@@ -106,12 +106,16 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert shell.find(".//*[@id='dei-home-refresh']") is not None
+    assert shell.find(".//*[@id='dei-home-tour']") is not None
     assert shell.find(".//*[@class='dei-run-intelligence-scan']") is not None
     lifecycle_action = shell.find(".//*[@class='dei-home-flow-link']")
     assert lifecycle_action is not None
     assert lifecycle_action.text == "Detection Engineering Lifecycle"
     assert lifecycle_action.attrib["href"] == "detection_lifecycle"
     assert shell.find(".//*[@id='dei-topology-core-health']") is not None
+    core_action = shell.find(".//*[@id='dei-topology-core-action']")
+    assert core_action is not None
+    assert core_action.tag == "button"
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
     assert "min-height:calc(100vh - 76px)" in stylesheet
     assert "border:0!important" in stylesheet
@@ -148,7 +152,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert '!bar.length' not in javascript
     assert "#dei-home-refresh" in stylesheet
     assert ".dei-home-flow-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto;flex-wrap:nowrap" in stylesheet
-    assert ".dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>.dei-home-flow-link" in stylesheet
+    assert ".dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>#dei-home-tour,.dei-home-flow-actions>.dei-home-flow-link" in stylesheet
     assert "width:auto!important" in stylesheet
     assert 'shell().is("#dei-home-page")' in javascript
     assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
@@ -164,6 +168,10 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'id="dei-home-health-actions"' not in ElementTree.tostring(home, encoding="unicode")
     assert home.attrib["script"].startswith("dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
+    for node in shell.findall(".//*[@data-home-flow-stage]"):
+        assert node.attrib["role"] == "link"
+        assert node.attrib["tabindex"] == "0"
+        assert node.attrib["aria-label"]
     markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
         "Telemetry inventory", "Field evidence", "Readiness gates", "Use-case portfolio",
@@ -342,8 +350,8 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     for destination in (
         "command_center#dei-telemetry", "detection_operations?pipeline=profile",
         "detection_operations?pipeline=qualify", "mitre_coverage#mitre-detection-list",
-        "detection_operations?pipeline=design", "detection_operations?pipeline=generate",
-        "detection_operations?pipeline=validate",
+        "detection_operations?pipeline=design", "detection_workflow#guided-builder-workspace",
+        "detection_workflow#builder-validation-title",
     ):
         assert destination in javascript
     assert "focusDeepLinkedWorkspace" in javascript

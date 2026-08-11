@@ -68,8 +68,9 @@
 .dei-home-flow-heading h2{margin:0;color:#f0f5fa;font-size:22px;line-height:1.25}
 .dei-home-flow-heading p{margin:7px 0 0;color:#9fb2c3;font-size:13px;line-height:1.55}
 .dei-home-flow-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap}
-.dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>.dei-home-flow-link{box-sizing:border-box;position:static!important;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:auto!important;min-height:38px!important;padding:0 14px!important;border:1px solid rgba(110,168,255,.36);border-radius:9px;background:transparent;color:#b9d6ff;font-family:inherit;font-size:12px;font-weight:750;line-height:1;text-decoration:none;cursor:pointer;white-space:nowrap}
-.dei-home-flow-actions>.dei-run-intelligence-scan:hover,.dei-home-flow-actions>#dei-home-refresh:hover,.dei-home-flow-actions>.dei-home-flow-link:hover{border-color:#6ea8ff;background:rgba(110,168,255,.08);color:#e5f0ff;box-shadow:0 0 0 3px rgba(110,168,255,.09)}
+.dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>#dei-home-tour,.dei-home-flow-actions>.dei-home-flow-link{box-sizing:border-box;position:static!important;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:auto!important;min-height:38px!important;padding:0 14px!important;border:1px solid rgba(110,168,255,.36);border-radius:9px;background:transparent;color:#b9d6ff;font-family:inherit;font-size:12px;font-weight:750;line-height:1;text-decoration:none;cursor:pointer;white-space:nowrap}
+.dei-home-flow-actions>.dei-run-intelligence-scan:hover,.dei-home-flow-actions>#dei-home-refresh:hover,.dei-home-flow-actions>#dei-home-tour:hover,.dei-home-flow-actions>.dei-home-flow-link:hover{border-color:#6ea8ff;background:rgba(110,168,255,.08);color:#e5f0ff;box-shadow:0 0 0 3px rgba(110,168,255,.09)}
+.dei-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 #dei-home-refresh:disabled{cursor:progress;opacity:.72}
 #dei-home-refresh.refreshing:before{content:"";width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:dei-home-refresh-spin .8s linear infinite}
 @keyframes dei-home-refresh-spin{to{transform:rotate(360deg)}}
@@ -289,7 +290,8 @@
 .dei-topology-flow[data-pipeline-health="critical"] .dei-topology-core:before{border-color:#ff8293;box-shadow:0 0 38px rgba(255,107,125,.42),inset 0 0 30px rgba(255,107,125,.12)}
 .dei-topology-flow[data-pipeline-health="degraded"] .dei-topology-core:before{border-color:#f5bf6a;box-shadow:0 0 38px rgba(245,191,106,.34),inset 0 0 30px rgba(245,191,106,.1)}
 .dei-topology-flow[data-pipeline-health="healthy"] .dei-topology-core:before{border-color:#5ce1c2;box-shadow:0 0 42px rgba(92,225,194,.42),inset 0 0 30px rgba(92,225,194,.13)}
-.dei-topology-core{position:absolute;top:50%;left:50%;z-index:4;width:270px;height:270px;transform:translate(-50%,-50%);border-radius:50%;display:grid;place-items:center}
+.dei-topology-core{position:absolute;appearance:none;top:50%;left:50%;z-index:4;width:270px;height:270px;padding:0;transform:translate(-50%,-50%);border:0;border-radius:50%;display:grid;place-items:center;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.dei-topology-node:focus-visible,.dei-topology-core:focus-visible{outline:3px solid #9fc5ff;outline-offset:4px;box-shadow:0 0 0 6px rgba(110,168,255,.18)}
 .dei-topology-orbit{position:absolute;border-radius:50%;border:1px solid rgba(92,225,194,.28);box-shadow:inset 0 0 30px rgba(92,225,194,.035),0 0 24px rgba(60,124,255,.04)}
 .dei-topology-orbit.orbit-a{inset:0;border-style:dashed;animation:dei-topology-orbit 24s linear infinite}
 .dei-topology-orbit.orbit-b{inset:24px;border-color:rgba(110,168,255,.38);animation:dei-topology-orbit 16s linear infinite reverse}

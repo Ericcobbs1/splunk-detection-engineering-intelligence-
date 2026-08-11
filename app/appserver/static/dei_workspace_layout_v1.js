@@ -135,7 +135,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function guidedActions() {
-    var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*â\s*$/,"");
+    var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*→\s*$/,"");
     var currentHref=String($("#dei-guided-workflow-cta").attr("href") || "command_center#dei-telemetry");
     return [
       {label:currentLabel,href:currentHref,detail:String($("#dei-guided-workflow-help").text() || "Complete the highlighted workflow step.")},
@@ -173,7 +173,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-advanced-action-grid").html(config.actions.map(function (action) {
       var attrs=action.href ? 'href="'+action.href+'"' :
         'href="#" role="button" data-dei-focus="'+action.target+'"'+(action.activate?' data-dei-activate="true"':'');
-      return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>â</b></a>';
+      return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>→</b></a>';
     }).join(""));
   }
 
@@ -230,7 +230,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!$("#dei-home-detection-flow").length || homeLifecycleLoading) { return; }
     if (interactive) {
       $("#dei-home-refresh").prop("disabled",true).attr("aria-busy","true").addClass("refreshing");
-      announceAction("Refreshing telemetry and lifecycle evidenceâ¦","info");
+      announceAction("Refreshing saved lifecycle, validation, deployment, and health evidence…","info");
     }
     if (!Store || !Store.load) {
       homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
@@ -252,7 +252,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function renderHomeHealthActions(issues, healthState) {
     if (issues.length) {
-      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" â");
+      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" →");
       return;
     }
     var empty={
@@ -260,7 +260,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_operations",action:"Open lifecycle work queue"},
       healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_operations",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
-    $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" â");
+    $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" →");
   }
 
   function renderHomePipeline(skipLifecycleRefresh) {
@@ -385,7 +385,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       flow.find('[data-home-flow-stage="'+stage+'"]').attr("data-pipeline-state",state)
         .attr("role","link").attr("tabindex","0")
         .attr("aria-label",stageLabel+": "+count+" item"+(count===1?"":"s")+", "+state+". Open stage details.")
-        .attr("title",stageLabel+" Â· "+count+" Â· "+state);
+        .attr("title",stageLabel+" · "+count+" · "+state);
     });
     var progress=current===-1 ? 100 : Math.round((current/(stages.length-1))*100);
     var currentNode=current===-1 ? $() : flow.find('[data-home-flow-stage="'+stages[current]+'"]');
@@ -393,11 +393,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     flow.css("--dei-flow-progress",progress+"%").attr("data-flow-state",state)
       .attr("data-pipeline-health",healthState).toggleClass("has-flow",progress>0);
     $("#dei-topology-core-health").text(healthDetail);
+    $("#dei-topology-core-action").attr("data-health-destination",healthState==="critical" ? "detection_action_center" :
+      healthState==="healthy" ? "detection_health" : healthState==="awaiting" ? "command_center#dei-telemetry" : "detection_operations")
+      .attr("aria-label",healthLabel+". "+healthDetail+". Open the related pipeline workspace.")
+      .attr("title",healthLabel+" | "+healthDetail);
     var stageStatus=current===-1 ? "All evidence stages complete" :
       stages[current].replace(/^./,function (letter) { return letter.toUpperCase(); })+
       (state==="blocked" ? " blocked" : " active");
-    $("#dei-home-flow-status").text(healthLabel+" Â· "+stageStatus+
-      (blocked ? " Â· "+blocked+" action item"+(blocked===1?"":"s") : ""));
+    $("#dei-home-flow-status").text(healthLabel+" · "+stageStatus+
+      (blocked ? " · "+blocked+" action item"+(blocked===1?"":"s") : ""));
   }
 
   function workflowPage() {
@@ -410,7 +414,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       "dei-detection-builder-page":"builder",
       "dei-lifecycle-page":"lifecycle",
       "dei-detection-catalog-page":"catalog",
-      "dei-guided-detection-page":"lifecycle"
+      "dei-guided-detection-page":"builder"
     }[id] || "home";
   }
 
@@ -461,7 +465,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }).join(""),
       '</ol>',
       '<div class="dei-guided-workflow-action"><span id="dei-guided-workflow-status">Step 1 of 5</span>',
-      '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry â</a>',
+      '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry →</a>',
       '<button id="dei-guided-workflow-advanced" type="button" aria-expanded="false" aria-controls="dei-advanced-action-center">Show advanced tools</button></div>',
       '</section>'
     ].join("");
@@ -528,20 +532,56 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-guided-learning-text").text(learning[page]);
     $("#dei-guided-workflow-advanced").text(shell().attr("data-dei-workspace-mode")==="engineering" ? "Return to guided view" : "Show advanced tools");
     $("#dei-guided-workflow-status").text(completeCount===sequence.length ? "Workflow operational" : "Step "+(sequence.indexOf(current)+1)+" of 5");
-    $("#dei-guided-workflow-cta").attr("href",actions[current].href).text(actions[current].label+" â");
+    $("#dei-guided-workflow-cta").attr("href",actions[current].href).text(actions[current].label+" →");
   }
 
   var ONBOARDING_KEY = "dei.onboardingDismissed.v1";
   var ONBOARDING_SESSION_KEY = "dei.onboardingSeen.session";
   var ONBOARDING_STEP_KEY = "dei.onboardingStep";
+  var ONBOARDING_PREFERENCE_COLLECTION = "dei_user_preferences";
   var ONBOARDING_STEPS = [
     {page:"home",target:"#dei-home-pipeline",title:"Read the live detection pipeline",detail:"Select a stage to open the exact workspace and evidence behind its count."},
     {page:"environment",target:"#dei-telemetry",title:"Run telemetry discovery",detail:"Run a fresh scan to inventory sourcetypes, profile fields, and calculate detection readiness."},
     {page:"mitre",target:".dei-mitre-advisor",title:"Review MITRE coverage",detail:"Filter recommendations by sourcetype and inspect coverage supported by current evidence."},
-    {page:"builder",target:"#dei-detection-builder-page",title:"Build and validate SPL",detail:"Generate a telemetry-supported draft, review MITRE context, and resolve validation findings."},
+    {page:"builder",target:"#workflow-selector-title",title:"Build and validate SPL",detail:"Choose a detection, generate a telemetry-supported draft, review MITRE context, and resolve validation findings in the Guided Detection Builder."},
     {page:"lifecycle",target:"#lifecycle-work-queue",title:"Operate the lifecycle",detail:"Advance evidence through review, deployment, monitoring, tuning, and retirement."}
   ];
   var onboardingStep=0;
+
+  function onboardingPreferenceKey() {
+    var name="unknown";
+    try { name=Splunk.util.getConfigValue("USERNAME") || "unknown"; } catch (error) { name="unknown"; }
+    return "onboarding-"+String(name).replace(/[^A-Za-z0-9_-]/g,"-");
+  }
+
+  function onboardingPreferenceEndpoint(key) {
+    var parts=["splunkd","__raw","servicesNS","nobody","splunk_detection_engineering_intelligence",
+      "storage","collections","data",ONBOARDING_PREFERENCE_COLLECTION];
+    if (key) { parts.push(encodeURIComponent(key)); }
+    return Splunk.util.make_url.apply(Splunk.util,parts);
+  }
+
+  function loadOnboardingPreference() {
+    return $.ajax({url:onboardingPreferenceEndpoint(onboardingPreferenceKey()),method:"GET",dataType:"json",timeout:8000,
+      headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}})
+      .done(function (preference) {
+        if (preference&&preference.dismissed===true) { safeStorageSet(ONBOARDING_KEY,"true"); }
+      });
+  }
+
+  function saveOnboardingPreference(dismissed) {
+    var key=onboardingPreferenceKey(),payload={dismissed:dismissed===true,updated_at:new Date().toISOString()};
+    $.ajax({url:onboardingPreferenceEndpoint(key),method:"POST",contentType:"application/json",dataType:"json",
+      headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},
+      data:JSON.stringify(payload),timeout:8000}).fail(function (xhr) {
+        if (xhr&&xhr.status===404) {
+          payload._key=key;
+          $.ajax({url:onboardingPreferenceEndpoint(),method:"POST",contentType:"application/json",dataType:"json",
+            headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},
+            data:JSON.stringify(payload),timeout:8000});
+        }
+      });
+  }
 
   function safeSessionGet(key) {
     try { return window.sessionStorage.getItem(key) || ""; } catch (error) { return ""; }
@@ -564,7 +604,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '<div class="dei-onboarding-foot">',
       '<label><input id="dei-onboarding-dismiss-permanently" type="checkbox"/> <span>Do not show this welcome guide again</span></label>',
       '<div><button id="dei-onboarding-not-now" type="button">Skip tour</button><button id="dei-onboarding-back" type="button">Back</button>',
-      '<button id="dei-onboarding-next" type="button">Next â</button></div>',
+      '<button id="dei-onboarding-next" type="button">Next →</button></div>',
       '</div></section></div>'
     ].join("");
   }
@@ -579,16 +619,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
-  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_builder",lifecycle:"detection_operations#lifecycle-work-queue"}[step.page]; }
+  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_operations#lifecycle-work-queue"}[step.page]; }
+
+  function restartOnboarding() {
+    safeStorageSet(ONBOARDING_KEY, "false");
+    saveOnboardingPreference(false);
+    safeSessionSet(ONBOARDING_SESSION_KEY, "false");
+    safeSessionSet(ONBOARDING_STEP_KEY, "0");
+    onboardingStep=0;
+    $("#dei-onboarding-overlay").remove();
+    $(".dei-onboarding-target").removeClass("dei-onboarding-target");
+    showOnboarding();
+  }
 
   function renderOnboardingStep() {
     var step=ONBOARDING_STEPS[onboardingStep],target=$(step.target).first();
     $(".dei-onboarding-target").removeClass("dei-onboarding-target");
     if (workflowPage()!==step.page) { safeSessionSet(ONBOARDING_STEP_KEY,String(onboardingStep)); window.location.href=onboardingPage(step); return; }
     if (target.length) { target.addClass("dei-onboarding-target"); target[0].scrollIntoView({behavior:"smooth",block:"center"}); }
-    $("#dei-onboarding-step-label").text("Guided walkthrough Â· "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
+    $("#dei-onboarding-step-label").text("Guided walkthrough · "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
     $("#dei-onboarding-title").text(step.title); $("#dei-onboarding-description").text(step.detail);
-    $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next â");
+    $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next →");
     $("#dei-onboarding-progress-bar").css("width",((onboardingStep+1)/ONBOARDING_STEPS.length*100)+"%"); $(".dei-onboarding-progress").attr("aria-valuenow",onboardingStep+1);
   }
 
@@ -611,13 +662,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     ensureScanContext();
     if (!timestamp || !sources) {
       $("#dei-active-scan-context").attr("data-state","empty").html(
-        '<span><b>No active environment scan</b> â downstream intelligence remains empty until you run discovery.</span>' +
+        '<span><b>No active environment scan</b> — downstream intelligence remains empty until you run discovery.</span>' +
         '<button class="dei-run-intelligence-scan" type="button">Run intelligence scan</button>'
       );
       return;
     }
     $("#dei-active-scan-context").attr("data-state","active").html(
-      '<span><b>Active environment scan</b> Â· ' + sources + ' source types Â· completed ' +
+      '<span><b>Active environment scan</b> · ' + sources + ' source types · completed ' +
       new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run new scan</button>'
     );
   }
@@ -635,6 +686,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function closeOnboarding() {
     if ($("#dei-onboarding-dismiss-permanently").is(":checked")) {
       safeStorageSet(ONBOARDING_KEY, "true");
+      saveOnboardingPreference(true);
     }
     safeSessionSet(ONBOARDING_SESSION_KEY, "true");
     safeSessionSet(ONBOARDING_STEP_KEY, "");
@@ -662,15 +714,35 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderGuidedWorkflow();
     renderEnvironmentSplitState();
     renderScanContext();
-    showOnboarding();
+    loadOnboardingPreference().always(showOnboarding);
     focusDeepLinkedWorkspace();
   }
 
+  function homeStageDetection(stage) {
+    var artifacts=Array.isArray(homeLifecycleRecords) ? homeLifecycleRecords : safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
+    var recommendations=(safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {}).recommendations)||[];
+    var candidate;
+    if (stage==="validate") {
+      candidate=artifacts.filter(function (item) { return item.spl && (!item.validation || item.validation.status!=="passed"); })[0];
+    } else if (stage==="generate") {
+      candidate=recommendations.filter(function (item) {
+        return ["production_ready","field_unverified","field_gap"].indexOf(item.readiness)!==-1;
+      })[0];
+    }
+    return candidate ? String(candidate.detection_id || candidate._key || candidate.id || "").replace(/^dei-/,"") : "";
+  }
+
   function homeStageDestination(stage) {
-    return {discover:"command_center#dei-telemetry",profile:"detection_operations?pipeline=profile",
+    var destination={discover:"command_center#dei-telemetry",profile:"detection_operations?pipeline=profile",
       qualify:"detection_operations?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
-      design:"detection_operations?pipeline=design",generate:"detection_operations?pipeline=generate",
-      validate:"detection_operations?pipeline=validate"}[stage] || "detection_lifecycle";
+      design:"detection_operations?pipeline=design",generate:"detection_workflow#guided-builder-workspace",
+      validate:"detection_workflow#builder-validation-title"}[stage] || "detection_lifecycle";
+    var detection=homeStageDetection(stage);
+    if (detection) {
+      destination="detection_workflow?detection="+encodeURIComponent(detection)+
+        (stage==="validate" ? "#builder-validation-title" : "#guided-builder-workspace");
+    }
+    return destination;
   }
 
   function focusDeepLinkedWorkspace() {
@@ -748,6 +820,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $(document).on("click", "#dei-onboarding-close, #dei-onboarding-not-now", closeOnboarding);
+  $(document).on("click", "#dei-home-tour", restartOnboarding);
+  $(document).on("click", "#dei-topology-core-action", function () {
+    window.location.href=String($(this).attr("data-health-destination") || "detection_lifecycle");
+  });
   $(document).on("click", "#dei-onboarding-back", function () { if (onboardingStep>0) { onboardingStep-=1; renderOnboardingStep(); } });
   $(document).on("click", "#dei-onboarding-next", function () { if (onboardingStep<ONBOARDING_STEPS.length-1) { onboardingStep+=1; renderOnboardingStep(); } else { closeOnboarding(); } });
   $(document).on("click", ".dei-run-intelligence-scan", function () {
@@ -757,6 +833,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:safeSessionGet("dei.latestEnterpriseSecurityEnabled","")==="true"}).always(function () { button.prop("disabled",false).attr("aria-busy","false"); renderScanContext(); });
   });
   $(document).on("dei:scan-progress", function (_event,status) {
+    if (status.stage==="hydrated") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); renderScanContext(); return; }
     $("#dei-home-flow-status").text(status.message);
     $(".dei-run-intelligence-scan").text(status.stage==="complete"?"Run new scan":status.stage==="failed"?"Retry intelligence scan":status.message);
     announceAction(status.message,status.stage==="failed"?"error":status.stage==="complete"?"success":"info");

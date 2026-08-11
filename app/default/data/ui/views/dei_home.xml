@@ -7,7 +7,8 @@
       <html>
         <main id="dei-home-page" class="dei-shell dei-official-home">
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
-            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><div class="dei-home-flow-actions"><button class="dei-run-intelligence-scan" type="button">Run new scan</button><button id="dei-home-refresh" type="button">Refresh pipeline</button><a class="dei-home-flow-link" href="detection_lifecycle">Detection Engineering Lifecycle</a></div></div>
+            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><div class="dei-home-flow-actions"><button class="dei-run-intelligence-scan" type="button" title="Discover current Splunk telemetry and regenerate detection recommendations." aria-describedby="dei-home-action-help">Run new scan</button><button id="dei-home-refresh" type="button" title="Reload saved lifecycle, validation, deployment, and health evidence." aria-describedby="dei-home-action-help">Refresh pipeline</button><button id="dei-home-tour" type="button">Take a tour</button><a class="dei-home-flow-link" href="detection_lifecycle">Detection Engineering Lifecycle</a></div></div>
+            <p id="dei-home-action-help" class="dei-sr-only">Run new scan discovers current telemetry. Refresh pipeline reloads saved detection lifecycle evidence without running a new telemetry scan.</p>
             <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
@@ -92,25 +93,25 @@
                 </svg>
 
                 <div class="dei-topology-lane dei-topology-ingress" aria-label="Telemetry evidence stages">
-                  <article class="dei-topology-node" data-home-flow-stage="discover"><span>01</span><div><small>Discover</small><strong>Telemetry inventory</strong><em>Observed sources</em></div><i class="dei-flow-stage-count">0</i></article>
-                  <article class="dei-topology-node" data-home-flow-stage="profile"><span>02</span><div><small>Profile</small><strong>Field evidence</strong><em>Verified mappings</em></div><i class="dei-flow-stage-count">0</i></article>
-                  <article class="dei-topology-node" data-home-flow-stage="qualify"><span>03</span><div><small>Qualify</small><strong>Readiness gates</strong><em>Usable telemetry</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="discover" role="link" tabindex="0" aria-label="Discover telemetry inventory. Open Environment Discovery."><span>01</span><div><small>Discover</small><strong>Telemetry inventory</strong><em>Observed sources</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="profile" role="link" tabindex="0" aria-label="Profile field evidence. Open Detection Engineering Operations."><span>02</span><div><small>Profile</small><strong>Field evidence</strong><em>Verified mappings</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="qualify" role="link" tabindex="0" aria-label="Qualify telemetry readiness. Open Detection Engineering Operations."><span>03</span><div><small>Qualify</small><strong>Readiness gates</strong><em>Usable telemetry</em></div><i class="dei-flow-stage-count">0</i></article>
                 </div>
 
-                <div class="dei-topology-core" aria-label="DEI intelligence core">
+                <button id="dei-topology-core-action" class="dei-topology-core" type="button" aria-label="Open the workspace for the current pipeline health state">
                   <div class="dei-topology-orbit orbit-a"></div><div class="dei-topology-orbit orbit-b"></div><div class="dei-topology-orbit orbit-c"></div>
                   <div class="dei-topology-core-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                   <div class="dei-topology-core-label"><small>Pipeline health</small><strong id="dei-topology-core-count">0</strong><span>Detection use cases</span><em id="dei-topology-core-health">Awaiting pipeline evidence</em></div>
-                </div>
+                </button>
 
                 <div class="dei-topology-lane dei-topology-egress" aria-label="Detection engineering stages">
-                  <article class="dei-topology-node" data-home-flow-stage="recommend"><span>04</span><div><small>Recommend</small><strong>Use-case portfolio</strong><em>Mapped opportunities</em></div><i class="dei-flow-stage-count">0</i></article>
-                  <article class="dei-topology-node" data-home-flow-stage="design"><span>05</span><div><small>Design</small><strong>Detection logic</strong><em>Versioned artifacts</em></div><i class="dei-flow-stage-count">0</i></article>
-                  <article class="dei-topology-node" data-home-flow-stage="generate"><span>06</span><div><small>Generate</small><strong>Reviewable SPL</strong><em>Platform and ES logic</em></div><i class="dei-flow-stage-count">0</i></article>
-                  <article class="dei-topology-node" data-home-flow-stage="validate"><span>07</span><div><small>Validate</small><strong>Test evidence</strong><em>Passed validation</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="recommend" role="link" tabindex="0" aria-label="Review mapped detection opportunities. Open MITRE ATT&amp;CK Coverage."><span>04</span><div><small>Recommend</small><strong>Use-case portfolio</strong><em>Mapped opportunities</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="design" role="link" tabindex="0" aria-label="Design detection logic. Open Detection Engineering Operations."><span>05</span><div><small>Design</small><strong>Detection logic</strong><em>Versioned artifacts</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="generate" role="link" tabindex="0" aria-label="Generate reviewable SPL. Open Guided Detection Builder."><span>06</span><div><small>Generate</small><strong>Reviewable SPL</strong><em>Platform and ES logic</em></div><i class="dei-flow-stage-count">0</i></article>
+                  <article class="dei-topology-node" data-home-flow-stage="validate" role="link" tabindex="0" aria-label="Validate detection test evidence. Open Guided Detection Builder."><span>07</span><div><small>Validate</small><strong>Test evidence</strong><em>Passed validation</em></div><i class="dei-flow-stage-count">0</i></article>
                 </div>
               </div>
-              <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence â</a></div>
+              <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence →</a></div>
             </div>
           </section>
 
