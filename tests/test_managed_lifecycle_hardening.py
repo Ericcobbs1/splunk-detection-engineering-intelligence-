@@ -74,7 +74,7 @@ def test_work_queue_joins_recommendations_and_records() -> None:
 
 
 def test_builder_writes_drafts_and_validation_to_shared_store() -> None:
-    javascript = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
     assert "function lifecycleRecord(artifact)" in javascript
     assert "Store.appendHistory" in javascript
     assert "Store.write(record)" in javascript
@@ -85,7 +85,7 @@ def test_builder_writes_drafts_and_validation_to_shared_store() -> None:
 
 
 def test_platform_spl_always_emits_mitre_mapping_without_es() -> None:
-    javascript = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
     assert "function platformMitreMetadata(item)" in javascript
     assert "function stripPlatformMitreMetadata(spl)" in javascript
     assert "function attachPlatformMitreMetadata(spl, item)" in javascript
