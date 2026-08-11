@@ -7,6 +7,6 @@ await build({
   format: 'iife',
   target: ['es2020'],
   define: {'process.env.NODE_ENV': '"production"'},
-  outfile: 'app/appserver/static/dei_interactive_guide_v1.js',
+  outfile: 'app/appserver/static/dei_interactive_guide_v2.js',
   legalComments: 'none',
 });

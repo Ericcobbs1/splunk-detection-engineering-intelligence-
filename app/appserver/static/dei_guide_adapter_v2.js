@@ -1,5 +1,30 @@
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
+  var guideLoadState="idle";
+  var guideLoadCallbacks=[];
+  function finishGuideLoad(ready) {
+    guideLoadState=ready?"ready":"failed";
+    var callbacks=guideLoadCallbacks.slice();
+    guideLoadCallbacks=[];
+    callbacks.forEach(function(callback){ try { callback(ready); } catch(error) { window.console.error("DEI guide callback failed",error); } });
+  }
+  function loadGuide(callback) {
+    if(window.DEIInteractiveGuide){ callback(true); return; }
+    if(guideLoadState==="failed"){ callback(false); return; }
+    guideLoadCallbacks.push(callback);
+    if(guideLoadState==="loading") return;
+    guideLoadState="loading";
+    var script=document.createElement("script");
+    script.async=true;
+    script.src=Splunk.util.make_url("/static/app/splunk_detection_engineering_intelligence/dei_interactive_guide_v2.js");
+    script.setAttribute("data-dei-guide-bundle","v2");
+    script.onload=function(){
+      if(window.DEIInteractiveGuide) finishGuideLoad(true);
+      else { window.console.warn("DEI guide bundle loaded without its public API; dashboard remains available."); finishGuideLoad(false); }
+    };
+    script.onerror=function(){ window.console.warn("DEI guide bundle could not be loaded; dashboard remains available."); finishGuideLoad(false); };
+    document.head.appendChild(script);
+  }
   var STEP_KEY="dei.nextGuide.step";
   var SEEN_KEY="dei.nextGuide.seen";
   var selectedDetection="";
@@ -57,6 +82,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("body").removeClass("dei-onboarding-open");
   }
   function render() {
+    if(!window.DEIInteractiveGuide){ loadGuide(function(ready){ if(ready) render(); }); return; }
     var index=readStep(),step=steps[index];
     if (page()!==step.page) { window.location.href=route(step.page); return; }
     var target=targetFor(step);
@@ -69,7 +95,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     focusTarget();
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } writeStep(index+1); render(); }
-  function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); render(); }
+  function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
   window.DEINextGuide={start:start,render:render,close:close};
   $(document).on("click", "#dei-home-tour", function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(); });
