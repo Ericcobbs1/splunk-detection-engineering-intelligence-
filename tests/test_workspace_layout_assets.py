@@ -133,6 +133,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "bindHomePrimaryActions" in javascript
     assert 'window.location.assign(String($(this).attr("href") || "detection_lifecycle"))' in javascript
     assert 'off("click.deiHomeRefresh").on("click.deiHomeRefresh"' in javascript
+    assert '"Pipeline stages populated"' in javascript
+    assert 'healthLabel+" | "+stageStatus' in javascript
+    assert '"All evidence stages complete"' not in javascript
     assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
     assert 'if (!root.length) { return; }' in javascript
     assert 'if (bar.length && !bar.find(".dei-workspace-controls").length)' in javascript
