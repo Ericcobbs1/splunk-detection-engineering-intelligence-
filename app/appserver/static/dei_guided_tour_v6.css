@@ -38,6 +38,7 @@ body.dei-onboarding-open .dei-next-guide-dialog{width:min(380px,calc(100vw - 32p
 .dei-next-guide h2{margin:5px 0 0;color:#f3f8fc;font-size:19px;line-height:1.25}
 .dei-next-guide-close{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid rgba(168,190,214,.25);border-radius:7px;background:#0d1c2b;color:#c3d1dd;font-size:20px;cursor:pointer}
 .dei-next-guide-instruction{margin:12px 0;color:#b7c6d3;font-size:13px;line-height:1.5}
+.dei-next-guide-details{margin:0 0 12px;padding-left:18px;color:#a9bdca;font-size:11px;line-height:1.45}.dei-next-guide-details li+li{margin-top:5px}.dei-next-guide-details li::marker{color:#5ce1c2}
 .dei-next-guide-action{display:grid;grid-template-columns:34px 1fr;align-items:center;gap:10px;padding:11px;border:1px solid rgba(92,225,194,.34);border-radius:9px;background:rgba(92,225,194,.07)}
 .dei-next-guide-action>span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#16483f;color:#9af4de;font-size:12px;font-weight:850}
 .dei-next-guide-action small,.dei-next-guide-action strong{display:block}.dei-next-guide-action small{color:#8299ac;font-size:9px;text-transform:uppercase}.dei-next-guide-action strong{margin-top:2px;color:#edf7f4;font-size:12px}
