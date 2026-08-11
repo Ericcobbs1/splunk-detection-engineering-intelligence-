@@ -14,7 +14,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
-    assert "dei_workspace_layout_v3.js" in home.attrib["script"].split(",")
+    assert "dei_workspace_layout_v4.js" in home.attrib["script"].split(",")
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -93,7 +93,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v4.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
