@@ -172,7 +172,7 @@ def test_command_center_static_assets_are_packaged() -> None:
 def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
     home_path = APP_ROOT / "default" / "data" / "ui" / "views" / "dei_home.xml"
     root = ElementTree.parse(home_path).getroot()
-    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_workspace_layout_v1.js"
+    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_workspace_layout_v2.js"
     assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     for element_id in (
         "dei-home-page", "dei-home-pipeline", "dei-home-flow-title",
