@@ -110,7 +110,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
 def test_guided_detection_builder_owns_the_action_workspace() -> None:
     lifecycle = ElementTree.parse(VIEW_PATH).getroot()
     builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
-    assert "detection_query_generator_v2.js" in builder.attrib["script"].split(",")
+    assert "detection_query_generator_v3.js" in builder.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in builder.attrib["script"].split(",")
     for element_id in (
         "dei-guided-detection-page", "guided-builder-workspace", "lifecycle-workspace-menu",
@@ -193,7 +193,7 @@ def test_detection_standards_block_malformed_pipeline_syntax() -> None:
 
 
 def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
-    javascript = (STATIC_ROOT / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_query_generator_v3.js").read_text(encoding="utf-8")
     assert "production_ready" in javascript
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
@@ -222,6 +222,9 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "window.localStorage.setItem(ARTIFACT_KEY" in javascript
     assert "builder-detection-select" in javascript
     assert "populateDetectionSelector" in javascript
+    assert "setStartFeedback" in javascript
+    assert 'item.capability || ""' in javascript
+    assert 'aria-busy","true"' in javascript
     assert "requestedDetectionId" in javascript
     assert "buildableRecommendations" in javascript
     assert "field_unverified:true" in javascript

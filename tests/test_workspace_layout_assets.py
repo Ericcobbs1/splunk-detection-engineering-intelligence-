@@ -230,7 +230,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v2.js").read_text(encoding="utf-8")
-    builder = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    builder = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
 
     handlers = {
