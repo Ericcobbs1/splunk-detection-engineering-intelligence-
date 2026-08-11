@@ -144,7 +144,7 @@ def test_core_action_controls_have_implementation_bindings():
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     adapter = _source("dei_guide_adapter_v4.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    assert adapter.count("actionLabel:") == 14
+    assert adapter.count("actionLabel:") == 15
     for target in (
         ".dei-run-intelligence-scan", "#dei-open-environment-insights",
         ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
@@ -168,13 +168,18 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
 def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     adapter = _source("dei_guide_adapter_v4.js")
     layout = _source("dei_workspace_layout_v13.js")
+    react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert "window.MutationObserver" in adapter
     assert "window.setTimeout(advance,0)" in adapter
     assert 'OVERLAY_ID="dei-next-guide-overlay"' in adapter
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'readStep()===13 && status==="enabled"' in adapter
+    assert 'readStep()===13 && status==="enabled") goToStep(14)' in adapter
+    assert 'title:"Detection enabled — know where to manage it"' in adapter
+    assert "Splunk Settings → Searches, reports, and alerts" in adapter
+    assert "Enterprise Security → Content Management" in adapter
+    assert "step.completion ? 'Finish' : 'Show me'" in react_source
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
     assert 'index===6 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
