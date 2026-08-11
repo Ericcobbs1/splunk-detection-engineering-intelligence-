@@ -417,7 +417,30 @@ require([
     });
   }
 
-  $("#dei-analyze").on("click", function () { discoverEnvironment(true); });
+  $("#dei-analyze").on("click", function () {
+    if (window.DEIEnvironmentScan) {
+      $(this).prop("disabled", true).text("Discovering...");
+      window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked")})
+        .always(resetAnalyzeButton);
+      return;
+    }
+    discoverEnvironment(true);
+  });
+
+  $(document).on("dei:scan-progress", function (_event, status) {
+    if (!status) { return; }
+    $("#dei-feedback").text(status.message || "Telemetry scan in progress.");
+    if (status.stage === "profile" && status.detail && status.detail.total) {
+      $("#dei-analyze").text("Profiling fields " + (status.detail.completed || 0) + "/" + status.detail.total);
+    }
+  });
+
+  $(document).on("dei:environment-refreshed", function (_event, report) {
+    var discovery = window.sessionStorage.getItem("dei.latestDiscoveryExport") || "";
+    var discoveredRows = parseExportRows(discovery);
+    $("#dei-sources").val(uniqueValues(discoveredRows.map(function (row) { return row.sourcetype; })).join("\n"));
+    if (report && report.recommendations) { renderReport(report); }
+  });
 
   $.ajax({url: endpoints.health, method: "GET", dataType: "json", timeout: 10000})
     .then(parsePayload).done(function (health) {
