@@ -564,6 +564,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"lifecycle",target:"#lifecycle-work-queue",title:"Operate the lifecycle",detail:"Move approved detection evidence through deployment, monitoring, tuning, and retirement.",objective:"Maintain an auditable production record from peer approval through catalog enablement and ongoing health review.",actions:["Complete the required evidence gate before advancing the lifecycle state.","Move approved detections into the catalog, enable them through the authorized deployment process, and remove them from the active queue.","Assign an owner, health baseline, review cadence, tuning triggers, and retirement criteria."],evidence:["Approval, deployment reference, catalog status, and monitoring evidence are recorded.","The detection has measurable health, response ownership, and a scheduled review date."],caution:"State changes must reflect real operational actions. Do not mark a detection production or healthy without deployment and monitoring evidence."}
   ];
   var onboardingStep=0;
+  var onboardingReturnFocus=null;
 
   function onboardingSessionKey() {
     var seed="active-login";
@@ -601,7 +602,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '</div>',
       '<div class="dei-onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5"><span id="dei-onboarding-progress-bar"></span></div>',
       '<div class="dei-onboarding-foot">',
-      '<span class="dei-onboarding-session-note">Shown once per login session. Relaunch anytime from DEI Home.</span>',
+      '<span class="dei-onboarding-session-note">Shown once per login session. Press F6 to switch between this guide and the highlighted section.</span>',
       '<div><button id="dei-onboarding-not-now" type="button">Skip tour</button><button id="dei-onboarding-back" type="button">Back</button>',
       '<button id="dei-onboarding-next" type="button">Next →</button></div>',
       '</div></section></div>'
@@ -613,6 +614,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (safeSessionGet(onboardingSessionKey())==="true" || $("#dei-onboarding-overlay").length) { return; }
     if (workflowPage()!=="home" && active==="") { return; }
     onboardingStep=Math.max(0,Math.min(ONBOARDING_STEPS.length-1,Number(active||0)));
+    onboardingReturnFocus=document.activeElement;
     $("body").append(onboardingMarkup()).addClass("dei-onboarding-open");
     renderOnboardingStep();
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
@@ -625,16 +627,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     safeSessionSet(ONBOARDING_STEP_KEY, "0");
     onboardingStep=0;
     $("#dei-onboarding-overlay").remove();
-    $(".dei-onboarding-target").removeClass("dei-onboarding-target");
+    $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
     showOnboarding();
   }
 
   function renderOnboardingStep() {
     var step=ONBOARDING_STEPS[onboardingStep],target=$(step.target).first();
-    $(".dei-onboarding-target").removeClass("dei-onboarding-target");
+    $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
     if (workflowPage()!==step.page) { safeSessionSet(ONBOARDING_STEP_KEY,String(onboardingStep)); window.location.href=onboardingPage(step); return; }
     if (target.length) {
-      target.addClass("dei-onboarding-target");
+      target.addClass("dei-onboarding-target").attr("aria-describedby","dei-onboarding-description");
       target[0].scrollIntoView({behavior:"smooth",block:"center"});
       window.setTimeout(function () { positionOnboardingDialog(target); }, 380);
     } else { positionOnboardingDialog(target); }
@@ -705,8 +707,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     safeSessionSet(onboardingSessionKey(), "true");
     safeSessionSet(ONBOARDING_STEP_KEY, "");
     $("#dei-onboarding-overlay").remove();
-    $(".dei-onboarding-target").removeClass("dei-onboarding-target");
+    $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
     $("body").removeClass("dei-onboarding-open");
+    if (onboardingReturnFocus && document.contains(onboardingReturnFocus)) { window.setTimeout(function () { onboardingReturnFocus.focus(); },0); }
   }
 
   function initialize() {
@@ -855,6 +858,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var overlay=$("#dei-onboarding-overlay");
     if (!overlay.length) { return; }
     if (event.key==="Escape") { closeOnboarding(); return; }
+    if (event.key==="F6") {
+      var dialog=$(".dei-onboarding-dialog"),target=$(ONBOARDING_STEPS[onboardingStep].target).first();
+      if ($(event.target).closest(dialog).length && target.length) { target.attr("tabindex","-1").focus(); }
+      else { $("#dei-onboarding-close").focus(); }
+      event.preventDefault(); return;
+    }
     // This coachmark is non-modal so the highlighted controls remain interactive.
   });
 
