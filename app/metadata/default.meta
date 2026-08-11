@@ -13,3 +13,11 @@ export = none
 [collections/dei_lifecycle_records]
 access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
 export = none
+
+[collections/dei_scan_summaries]
+access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
+export = none
+
+[collections/dei_user_preferences]
+access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
+export = none
