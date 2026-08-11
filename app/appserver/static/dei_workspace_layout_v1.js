@@ -646,13 +646,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function initialize() {
     var root = shell();
     var bar = root.find(".dei-product-bar").first();
-    if (!root.length || !bar.length || bar.find(".dei-workspace-controls").length) { return; }
-    var nav=bar.find(".dei-workspace-nav").first();
-    if (nav.length && !nav.find('a[href="detection_health"]').length) { nav.append('<a href="detection_health">Health</a>'); }
-    var status = bar.find(".dei-status").first();
-    var simplifiedBuilder = root.is("#dei-guided-detection-page");
-    if (!simplifiedBuilder) {
-      if (status.length) { status.before(toolbar()); } else { bar.append(toolbar()); }
+    if (!root.length) { return; }
+    if (bar.length && !bar.find(".dei-workspace-controls").length) {
+      var nav=bar.find(".dei-workspace-nav").first();
+      if (nav.length && !nav.find('a[href="detection_health"]').length) { nav.append('<a href="detection_health">Health</a>'); }
+      var status = bar.find(".dei-status").first();
+      var simplifiedBuilder = root.is("#dei-guided-detection-page");
+      if (!simplifiedBuilder) {
+        if (status.length) { status.before(toolbar()); } else { bar.append(toolbar()); }
+      }
     }
     applyMode(safeStorageGet(MODE_KEY, "analyst"));
     applyDensity(safeStorageGet(DENSITY_KEY, "comfortable"));

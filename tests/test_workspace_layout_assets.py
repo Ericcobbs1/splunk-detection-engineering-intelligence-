@@ -130,6 +130,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert '[data-pipeline-health="critical"]' in stylesheet
     assert "refreshHomeLifecycleRecords(true)" in javascript
     assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
+    assert 'if (!root.length) { return; }' in javascript
+    assert 'if (bar.length && !bar.find(".dei-workspace-controls").length)' in javascript
+    assert '!bar.length' not in javascript
     assert "#dei-home-refresh" in stylesheet
     assert ".dei-home-flow-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto;flex-wrap:nowrap" in stylesheet
     assert ".dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>.dei-home-flow-link" in stylesheet
