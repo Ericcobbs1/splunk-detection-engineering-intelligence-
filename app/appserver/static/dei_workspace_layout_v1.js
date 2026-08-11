@@ -103,7 +103,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       home:[
         {label:"Review environment intelligence",href:"environment_insights",detail:"Inspect telemetry DNA, readiness, and coverage evidence."},
         {label:"Investigate MITRE coverage",href:"mitre_coverage",detail:"Filter recommendations and inspect uncovered ATT&CK behavior."},
-        {label:"Review blocked detections",target:"#dei-home-health-action",activate:true,detail:"Open the exact telemetry, validation, and health action items."}
+        {label:"Review detection action items",href:"detection_action_center",detail:"Open telemetry, validation, and health action items."}
       ],
       environment:[
         {label:"Run intelligence scan",target:".dei-run-intelligence-scan",activate:true,detail:"Generate the evidence required for a real coverage assessment."},
@@ -135,7 +135,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function guidedActions() {
-    var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*→\s*$/,"");
+    var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*â\s*$/,"");
     var currentHref=String($("#dei-guided-workflow-cta").attr("href") || "command_center#dei-telemetry");
     return [
       {label:currentLabel,href:currentHref,detail:String($("#dei-guided-workflow-help").text() || "Complete the highlighted workflow step.")},
@@ -173,7 +173,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-advanced-action-grid").html(config.actions.map(function (action) {
       var attrs=action.href ? 'href="'+action.href+'"' :
         'href="#" role="button" data-dei-focus="'+action.target+'"'+(action.activate?' data-dei-activate="true"':'');
-      return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>→</b></a>';
+      return '<a class="dei-advanced-action" '+attrs+'><strong>'+action.label+'</strong><span>'+action.detail+'</span><b>â</b></a>';
     }).join(""));
   }
 
@@ -220,27 +220,39 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { return JSON.parse(value || "null") || fallback; } catch (error) { return fallback; }
   }
 
-  function refreshHomeLifecycleRecords() {
+  function finishHomeRefresh(message, state) {
+    $("#dei-home-refresh").prop("disabled",false).attr("aria-busy","false").removeClass("refreshing");
+    if (message) { announceAction(message,state); }
+  }
+
+  function refreshHomeLifecycleRecords(interactive) {
     var Store=window.DEILifecycleStore;
     if (!$("#dei-home-detection-flow").length || homeLifecycleLoading) { return; }
+    if (interactive) {
+      $("#dei-home-refresh").prop("disabled",true).attr("aria-busy","true").addClass("refreshing");
+      announceAction("Refreshing telemetry and lifecycle evidenceâ¦","info");
+    }
     if (!Store || !Store.load) {
       homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
       renderHomePipeline(true);
+      if (interactive) { finishHomeRefresh("Pipeline refreshed from the latest browser evidence.","success"); }
       return;
     }
     homeLifecycleLoading=true;
     Store.load().done(function (records) {
       homeLifecycleRecords=Array.isArray(records) ? records : [];
       renderHomePipeline(true);
+      if (interactive) { finishHomeRefresh("Pipeline refreshed with the latest lifecycle evidence.","success"); }
     }).fail(function () {
       homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
       renderHomePipeline(true);
+      if (interactive) { finishHomeRefresh("Lifecycle service was unavailable. Showing the latest saved browser evidence.","error"); }
     }).always(function () { homeLifecycleLoading=false; });
   }
 
   function renderHomeHealthActions(issues, healthState) {
     if (issues.length) {
-      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" →");
+      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" â");
       return;
     }
     var empty={
@@ -248,7 +260,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_operations",action:"Open lifecycle work queue"},
       healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_operations",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
-    $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" →");
+    $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" â");
   }
 
   function renderHomePipeline(skipLifecycleRefresh) {
@@ -368,16 +380,24 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
           (stage==="qualify" && recommendations.length>0 && ready===0) ||
           (stage==="design" && recommendations.length>0 && buildable===0) ||
           (stage==="validate" && failed>0 && passed===0))) { state="blocked"; }
+      var count=stageCounts[stage];
+      var stageLabel=stage.replace(/^./,function (letter) { return letter.toUpperCase(); });
       flow.find('[data-home-flow-stage="'+stage+'"]').attr("data-pipeline-state",state)
-        .attr("role","link").attr("tabindex","0");
+        .attr("role","link").attr("tabindex","0")
+        .attr("aria-label",stageLabel+": "+count+" item"+(count===1?"":"s")+", "+state+". Open stage details.")
+        .attr("title",stageLabel+" Â· "+count+" Â· "+state);
     });
     var progress=current===-1 ? 100 : Math.round((current/(stages.length-1))*100);
     var currentNode=current===-1 ? $() : flow.find('[data-home-flow-stage="'+stages[current]+'"]');
     var state=current===-1 ? "complete" : (currentNode.attr("data-pipeline-state")==="blocked" ? "blocked" : "active");
-    flow.css("--dei-flow-progress",progress+"%").attr("data-flow-state",state).toggleClass("has-flow",progress>0);
-    $("#dei-home-flow-status").text(current===-1 ? "All evidence stages complete" :
+    flow.css("--dei-flow-progress",progress+"%").attr("data-flow-state",state)
+      .attr("data-pipeline-health",healthState).toggleClass("has-flow",progress>0);
+    $("#dei-topology-core-health").text(healthDetail);
+    var stageStatus=current===-1 ? "All evidence stages complete" :
       stages[current].replace(/^./,function (letter) { return letter.toUpperCase(); })+
-      (state==="blocked" ? " is blocked by required evidence" : " is the active evidence stage"));
+      (state==="blocked" ? " blocked" : " active");
+    $("#dei-home-flow-status").text(healthLabel+" Â· "+stageStatus+
+      (blocked ? " Â· "+blocked+" action item"+(blocked===1?"":"s") : ""));
   }
 
   function workflowPage() {
@@ -441,7 +461,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }).join(""),
       '</ol>',
       '<div class="dei-guided-workflow-action"><span id="dei-guided-workflow-status">Step 1 of 5</span>',
-      '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry →</a>',
+      '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry â</a>',
       '<button id="dei-guided-workflow-advanced" type="button" aria-expanded="false" aria-controls="dei-advanced-action-center">Show advanced tools</button></div>',
       '</section>'
     ].join("");
@@ -508,7 +528,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-guided-learning-text").text(learning[page]);
     $("#dei-guided-workflow-advanced").text(shell().attr("data-dei-workspace-mode")==="engineering" ? "Return to guided view" : "Show advanced tools");
     $("#dei-guided-workflow-status").text(completeCount===sequence.length ? "Workflow operational" : "Step "+(sequence.indexOf(current)+1)+" of 5");
-    $("#dei-guided-workflow-cta").attr("href",actions[current].href).text(actions[current].label+" →");
+    $("#dei-guided-workflow-cta").attr("href",actions[current].href).text(actions[current].label+" â");
   }
 
   var ONBOARDING_KEY = "dei.onboardingDismissed.v1";
@@ -537,14 +557,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return [
       '<div id="dei-onboarding-overlay" class="dei-onboarding-overlay" role="presentation">',
       '<section class="dei-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="dei-onboarding-title" aria-describedby="dei-onboarding-description">',
-      '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">×</button>',
+      '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">Ã</button>',
       '<div class="dei-onboarding-heading"><p id="dei-onboarding-step-label" class="dei-kicker"></p>',
       '<h2 id="dei-onboarding-title"></h2><p id="dei-onboarding-description"></p></div>',
       '<div class="dei-onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5"><span id="dei-onboarding-progress-bar"></span></div>',
       '<div class="dei-onboarding-foot">',
       '<label><input id="dei-onboarding-dismiss-permanently" type="checkbox"/> <span>Do not show this welcome guide again</span></label>',
       '<div><button id="dei-onboarding-not-now" type="button">Skip tour</button><button id="dei-onboarding-back" type="button">Back</button>',
-      '<button id="dei-onboarding-next" type="button">Next →</button></div>',
+      '<button id="dei-onboarding-next" type="button">Next â</button></div>',
       '</div></section></div>'
     ].join("");
   }
@@ -566,9 +586,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $(".dei-onboarding-target").removeClass("dei-onboarding-target");
     if (workflowPage()!==step.page) { safeSessionSet(ONBOARDING_STEP_KEY,String(onboardingStep)); window.location.href=onboardingPage(step); return; }
     if (target.length) { target.addClass("dei-onboarding-target"); target[0].scrollIntoView({behavior:"smooth",block:"center"}); }
-    $("#dei-onboarding-step-label").text("Guided walkthrough · "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
+    $("#dei-onboarding-step-label").text("Guided walkthrough Â· "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
     $("#dei-onboarding-title").text(step.title); $("#dei-onboarding-description").text(step.detail);
-    $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next →");
+    $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next â");
     $("#dei-onboarding-progress-bar").css("width",((onboardingStep+1)/ONBOARDING_STEPS.length*100)+"%"); $(".dei-onboarding-progress").attr("aria-valuenow",onboardingStep+1);
   }
 
@@ -586,14 +606,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     ensureScanContext();
     if (!timestamp || !sources) {
       $("#dei-active-scan-context").attr("data-state","empty").html(
-        '<span><b>No active environment scan</b> — downstream intelligence remains empty until you run discovery.</span>' +
-        '<button class="dei-run-intelligence-scan" type="button">Run intelligence scan →</button>'
+        '<span><b>No active environment scan</b> â downstream intelligence remains empty until you run discovery.</span>' +
+        '<button class="dei-run-intelligence-scan" type="button">Run intelligence scan â</button>'
       );
       return;
     }
     $("#dei-active-scan-context").attr("data-state","active").html(
-      '<span><b>Active environment scan</b> · ' + sources + ' source types · completed ' +
-      new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run a new scan →</button>'
+      '<span><b>Active environment scan</b> Â· ' + sources + ' source types Â· completed ' +
+      new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run a new scan â</button>'
     );
   }
 
@@ -667,6 +687,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.location.href=homeStageDestination(String($(this).data("home-flow-stage") || ""));
   });
 
+  $(document).on("click", "#dei-home-refresh", function () {
+    if (homeLifecycleLoading) { return; }
+    homeLifecycleRecords=null;
+    refreshHomeLifecycleRecords(true);
+  });
+
   $(document).on("click", ".dei-view-mode button", function () {
     openExperienceActions(String($(this).data("mode") || "analyst"));
   });
@@ -725,7 +751,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("dei:scan-progress", function (_event,status) {
     $("#dei-home-flow-status").text(status.message);
-    $(".dei-run-intelligence-scan").text(status.stage==="complete"?"Run a new scan →":status.stage==="failed"?"Retry intelligence scan →":status.message);
+    $(".dei-run-intelligence-scan").text(status.stage==="complete"?"Run a new scan â":status.stage==="failed"?"Retry intelligence scan â":status.message);
     announceAction(status.message,status.stage==="failed"?"error":status.stage==="complete"?"success":"info");
   });
   $(document).on("keydown", function (event) {
