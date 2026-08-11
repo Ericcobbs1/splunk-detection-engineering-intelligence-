@@ -92,6 +92,11 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
         "catalog-deployment-target", "catalog-external-id", "catalog-action-buttons",
     ):
         assert catalog.find(f".//*[@id='{element_id}']") is not None
+    external_id = catalog.find(".//*[@id='catalog-external-id']")
+    external_id_help = catalog.find(".//*[@id='catalog-external-id-help']")
+    assert external_id.attrib["aria-describedby"] == "catalog-external-id-help"
+    assert "DEI - <Detection Name> - <Environment>" in "".join(external_id_help.itertext())
+    assert "Settings → Searches, reports, and alerts" in "".join(external_id_help.itertext())
     assert operations.find(".//option[@value='detection_catalog']") is not None
     assert "isEngineeringWork" in javascript
     assert "mergedQueue().filter(isEngineeringWork)" in javascript
