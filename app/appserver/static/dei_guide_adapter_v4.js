@@ -33,6 +33,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var waitingForLifecycleWrite=false;
   var renderTimer=null;
   var targetObserver=null;
+  var renderedStep=-1;
+  var activeTarget=null;
+  var renderingGuide=false;
   var steps=[
     {page:"home",target:".dei-run-intelligence-scan",title:"Discover active telemetry",instruction:"Start a current, permission-aware scan of the Splunk data available to DEI.",actionLabel:"Select Run new scan"},
     {page:"environment",target:"#dei-open-environment-insights",title:"Open the readiness results",instruction:"Continue to the intelligence generated from the completed telemetry scan.",actionLabel:"Select View intelligence results"},
@@ -74,7 +77,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function scheduleRender(delay) { window.clearTimeout(renderTimer); renderTimer=window.setTimeout(render,delay||80); }
   function observeTargets() {
     if(targetObserver||!window.MutationObserver) return;
-    targetObserver=new window.MutationObserver(function(){ if($("#"+OVERLAY_ID).length) scheduleRender(60); });
+    targetObserver=new window.MutationObserver(function(){
+      if(renderingGuide||!$("#"+OVERLAY_ID).length) return;
+      var candidate=targetFor(steps[readStep()]);
+      if(!candidate.length||candidate[0]!==activeTarget) scheduleRender(60);
+    });
     targetObserver.observe(document.body,{childList:true,subtree:true});
   }
   function updateMarker(target) {
@@ -96,6 +103,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
     window.clearTimeout(renderTimer);
     if(targetObserver){ targetObserver.disconnect(); targetObserver=null; }
+    renderedStep=-1;
+    activeTarget=null;
     if (window.DEIInteractiveGuide) window.DEIInteractiveGuide.unmount();
     $("#"+OVERLAY_ID+",#dei-guide-action-marker").remove();
     $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
@@ -106,18 +115,28 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var index=readStep(),step=steps[index];
     if (page()!==step.page) { window.location.href=route(step.page); return; }
     if(index===5 && $("#builder-detection-select").val()){ writeStep(6); scheduleRender(0); return; }
-    if(index===6 && $("#generator-output").filter(":visible").length && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
+    if(index===6 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
     if(index===9 && !$("#catalog-external-id").filter(":visible").length && $(steps[10].target).filter(":visible").length){ writeStep(10); scheduleRender(0); return; }
     var target=targetFor(step);
     if (!target.length) { scheduleRender(180); return; }
+    var stepChanged=index!==renderedStep;
+    var targetChanged=target[0]!==activeTarget;
     if (!$("#"+OVERLAY_ID).length) $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open");
     observeTargets();
-    $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
-    target.addClass("dei-onboarding-target").attr("aria-describedby","dei-guide-instruction");
+    if(targetChanged){
+      $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
+      target.addClass("dei-onboarding-target").attr("aria-describedby","dei-guide-instruction");
+      activeTarget=target[0];
+    }
     updateMarker(target);
     position(target);
-    window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ if(index>0){writeStep(index-1);render();}},onClose:function(){close(true);},onFocusTarget:focusTarget});
-    focusTarget();
+    if(stepChanged||targetChanged){
+      renderingGuide=true;
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ if(index>0){writeStep(index-1);render();}},onClose:function(){close(true);},onFocusTarget:focusTarget});
+      renderedStep=index;
+      window.setTimeout(function(){ renderingGuide=false; },0);
+    }
+    if(stepChanged) focusTarget();
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } writeStep(index+1); render(); }
   function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
