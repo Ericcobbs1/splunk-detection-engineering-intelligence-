@@ -99,7 +99,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
     assert [option.text for option in selector.findall("option")] == [
         "Builder", "Lifecycle overview", "Operations", "Catalog",
     ]
-    javascript = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     assert 'root.is("#dei-guided-detection-page")' in javascript
 
 

@@ -11,10 +11,10 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     for view in ("command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
-        assert "dei_workspace_layout_v8.js" in root.attrib["script"]
+        assert "dei_workspace_layout_v10.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
-    assert "dei_workspace_layout_v7.js" in home.attrib["script"].split(",")
+    assert "dei_workspace_layout_v9.js" in home.attrib["script"].split(",")
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -22,7 +22,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
 
 
 def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     for value in (
         "dei.workspaceMode", "dei.workspaceDensity", "analyst", "coverage",
         "engineering", "aria-pressed", "ArrowLeft", "ArrowRight",
@@ -93,7 +93,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v7.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v9.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
@@ -232,7 +232,7 @@ def test_removed_home_widgets_remain_available_in_owned_workspaces() -> None:
 
 def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     for stage in ("discover", "review", "build", "validate", "operate"):
         assert f'key:"{stage}"' in javascript
     for selector in (
@@ -255,7 +255,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for value in (
         "dei.onboardingSeen.session", "Shown once per login session",
@@ -268,6 +268,9 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "dei.onboardingDismissed.v1" not in javascript
     assert "Do not show this welcome guide again" not in javascript
     assert '$(document).on("click", "#dei-onboarding-overlay"' in javascript
+    assert "function onboardingSessionKey()" in javascript
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
+    assert 'safeSessionGet(onboardingSessionKey())==="true"' in javascript
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-onboarding-dialog" in stylesheet
     assert "body.dei-onboarding-open" in stylesheet
@@ -285,7 +288,7 @@ def test_environment_workflow_is_split_between_discovery_and_results() -> None:
 
 
 def test_visible_controls_have_handlers_or_real_destinations() -> None:
-    shared = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    shared = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v2.js").read_text(encoding="utf-8")
@@ -332,7 +335,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
 
 
 def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v8.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v10.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for contract in (
