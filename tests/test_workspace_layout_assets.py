@@ -12,15 +12,15 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     for view in ("command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
-        assert "dei_interactive_guide_v1.js" in scripts
-        assert "dei_guide_adapter_v1.js" in scripts
+        assert "dei_interactive_guide_v2.js" not in scripts
+        assert "dei_guide_adapter_v2.js" in scripts
         assert "dei_workspace_layout_v12.js" in scripts
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
         assert "dei_responsive_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     home_scripts = home.attrib["script"].split(",")
-    assert "dei_interactive_guide_v1.js" in home_scripts
-    assert "dei_guide_adapter_v1.js" in home_scripts
+    assert "dei_interactive_guide_v2.js" not in home_scripts
+    assert "dei_guide_adapter_v2.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
@@ -272,7 +272,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_guide_adapter_v1.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_guide_adapter_v2.js").read_text(encoding="utf-8")
     react_source = Path("ui/interactive-guide.jsx").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_guided_tour_v5.css").read_text(encoding="utf-8")
     for value in (
@@ -288,6 +288,10 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "Next" not in react_source
     assert "Ã" not in javascript
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
+    assert 'document.createElement("script")' in javascript
+    assert "dei_interactive_guide_v2.js" in javascript
+    assert "script.onerror" in javascript
+    assert "dashboard remains available" in javascript
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-next-guide-dialog" in stylesheet
     assert ".dei-next-guide-action" in stylesheet
