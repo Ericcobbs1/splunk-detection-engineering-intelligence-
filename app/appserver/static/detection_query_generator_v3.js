@@ -33,13 +33,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function observedSourcetypes(item, report) {
-    var canonical = (item.observed_sources || []).map(function (source) {
+    var direct = (item.sourcetypes || item.observed_sourcetypes || []).filter(Boolean);
+    var canonical = (item.observed_sources || []).concat([item.capability || ""]).map(function (source) {
       return String(source || "").toLowerCase();
-    });
-    return (report.source_mappings || []).filter(function (mapping) {
+    }).filter(Boolean);
+    var mapped = (report.source_mappings || []).filter(function (mapping) {
       return [mapping.canonical_source].concat(mapping.additional_canonical_sources || [])
         .some(function (source) { return canonical.indexOf(String(source || "").toLowerCase()) !== -1; });
     }).map(function (mapping) { return mapping.observed_source; });
+    return uniqueValues(direct.concat(mapped));
   }
 
   function sourceClause(sources) {
@@ -425,6 +427,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#builder-feedback").removeClass("ready working success error").addClass(state || "ready").text(message);
   }
 
+  function setStartFeedback(message, state) {
+    $("#builder-start-feedback").removeClass("ready working success error").addClass(state || "ready").text(message);
+  }
+
   function currentArtifact() {
     if (!selected) { return null; }
     var artifact = $.extend(true, {}, selected);
@@ -800,22 +806,24 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selectorGroup(items, "field_unverified", "Field verification required") +
       selectorGroup(items, "field_gap", "Confirmed field gaps"));
     if (!report || !report.recommendations) {
-      $("#generator-empty").html('No environment analysis is loaded. Return to <a href="command_center#dei-telemetry">Environment Discovery</a> and run an intelligence scan.');
-      $("#builder-generate").prop("disabled", false);
+      setStartFeedback("No environment analysis is loaded. Run Environment Discovery before generating a draft.", "error");
+      $("#builder-generate").prop("disabled", true);
       return;
     }
     if (!items.length) {
-      $("#generator-empty").text("No buildable recommendations are available. Unsupported and missing-telemetry detections remain blocked.");
-      $("#builder-generate").prop("disabled", false);
+      setStartFeedback("No buildable recommendations are available. Resolve telemetry blockers first.", "error");
+      $("#builder-generate").prop("disabled", true);
       return;
     }
     if (requested && items.some(function (item) { return item.detection_id === requested; })) {
       $("#builder-detection-select").val(requested);
       $("#builder-generate").prop("disabled", false);
+      setStartFeedback("Ready to generate a clean detection draft.", "ready");
       resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.");
     } else {
       resetDraftWorkspace("Select a detection, then choose Generate detection draft to start.");
-      $("#builder-generate").prop("disabled", false);
+      setStartFeedback("Select a detection to enable draft generation.", "ready");
+      $("#builder-generate").prop("disabled", true);
     }
   }
 
@@ -825,10 +833,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return candidate.detection_id === id;
     })[0];
     if (!item) {
-      $("#generator-empty").text("Select a detection first, then choose Generate detection draft.");
-      setFeedback("Select a qualified recommendation before generating SPL.", "ready");
+      setStartFeedback("Select a qualified recommendation before generating SPL.", "error");
       $("#builder-detection-select").focus();
       return;
+    }
+    var generateButton=$("#builder-generate");
+    generateButton.prop("disabled",true).attr("aria-busy","true").text("Generating draft…");
+    setStartFeedback("Generating telemetry-scoped SPL and lifecycle metadata…", "working");
+    function finishGeneration() {
+      generateButton.prop("disabled",false).removeAttr("aria-busy").text("Generate detection draft");
     }
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
       // Generation remains available when browser storage is unavailable.
@@ -837,8 +850,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var artifact;
     try { artifact=buildArtifact(item); }
     catch (error) {
-      setFeedback(error && error.message ? error.message : "DEI blocked an invalid generated query.","error");
+      setStartFeedback(error && error.message ? error.message : "DEI blocked an invalid generated query.","error");
       $("#generator-output").hide();
+      finishGeneration();
       return;
     }
     generatedBaseline = $.extend(true, {}, artifact);
@@ -851,19 +865,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     artifact.unresolved_fields = unresolvedFields(item);
     artifact.engineering_warnings = engineeringWarnings(item);
     if (!artifact.sourcetypes || !artifact.sourcetypes.length) {
-      setFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
+      setStartFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
+      finishGeneration();
       return;
     }
     $("#detection-generator").show();
     saveArtifact(artifact);
     renderArtifact(artifact);
     $(document).trigger("dei:detection-draft-generated", [item.detection_id, lifecycleRecord(artifact)]);
+    setStartFeedback("Detection draft generated. Review the SPL and validation workspace below.", "success");
+    finishGeneration();
     setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
   }
 
   $("#builder-detection-select").on("change", function () {
     var hasSelection = !!$(this).val();
-    $("#builder-generate").prop("disabled", false);
+    $("#builder-generate").prop("disabled", !hasSelection);
+    setStartFeedback(hasSelection ? "Ready to generate a clean detection draft." : "Select a detection to enable draft generation.", "ready");
     resetDraftWorkspace(hasSelection ? "Selection ready. Choose Generate detection draft to start." : "Select a detection, then choose Generate detection draft to start.");
     if (hasSelection && $("#workflow-detection-select").length && $("#workflow-detection-select").val() !== $(this).val()) {
       $("#workflow-detection-select").val($(this).val()).trigger("change");

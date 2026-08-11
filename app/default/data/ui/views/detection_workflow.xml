@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v2.js,detection_lifecycle_v2.js,detection_workflow_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css">
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,detection_query_generator_v3.js,detection_lifecycle_v2.js,detection_workflow_v2.js,dei_environment_scan_v1.js,dei_workspace_layout_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css">
   <label>Guided Detection Builder</label>
   <description>Build, validate, approve, enable, and monitor one detection through a single guided workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -48,7 +48,8 @@
           <section id="guided-builder-workspace" class="dei-guided-builder-workspace" hidden="hidden" aria-labelledby="guided-builder-title">
             <section class="dei-lifecycle-section dei-builder-selector-section">
               <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Build and validate</p><h2 id="guided-builder-title">Detection engineering workspace</h2><p>Generate or revise the selected detection, apply SPL standards, and preserve bounded validation evidence without leaving the guided lifecycle.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
-              <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button">Generate detection draft</button></div>
+              <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button" disabled="disabled">Generate detection draft</button></div>
+              <div id="builder-start-feedback" class="dei-builder-feedback ready" role="status" aria-live="polite">Select a detection to enable draft generation.</div>
             </section>
 
             <section id="detection-generator" class="dei-lifecycle-section dei-generator-section" style="display:none">

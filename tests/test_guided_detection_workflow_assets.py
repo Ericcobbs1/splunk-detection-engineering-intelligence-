@@ -14,7 +14,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
     assert root.attrib["theme"] == "dark"
     assert "detection_workflow_v2.js" in root.attrib["script"].split(",")
     assert "detection_lifecycle_v2.js" in root.attrib["script"].split(",")
-    assert "detection_query_generator_v2.js" in root.attrib["script"].split(",")
+    assert "detection_query_generator_v3.js" in root.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in root.attrib["script"].split(",")
     assert "detection_workflow_v1.css" in root.attrib["stylesheet"].split(",")
     for element_id in (
@@ -27,7 +27,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
-        "guided-builder-workspace", "builder-detection-select", "builder-generate",
+        "guided-builder-workspace", "builder-detection-select", "builder-generate", "builder-start-feedback",
         "detection-generator", "generator-spl", "builder-quality-workspace",
         "builder-run-validation", "builder-validation-resolution",
     ):
@@ -48,6 +48,7 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '"Current stage: "+label(stage)' in javascript
     assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
     assert '$(document).on("dei:detection-draft-generated"' in javascript
+    assert 'href:buildable?"#builder-generate"' in javascript
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
@@ -107,7 +108,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
 def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
-    generator = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
     operations = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
     guided = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     assert operations.find(".//*[@id='lifecycle-action-center']") is None
