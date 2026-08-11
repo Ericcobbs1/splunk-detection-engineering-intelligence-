@@ -271,7 +271,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function renderHomeHealthActions(issues, healthState) {
     if (issues.length) {
-      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s")+" â");
+      $("#dei-home-health-action").attr("href","detection_action_center").text("Review "+issues.length+" action item"+(issues.length===1?"":"s"));
       return;
     }
     var empty={
@@ -404,7 +404,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       flow.find('[data-home-flow-stage="'+stage+'"]').attr("data-pipeline-state",state)
         .attr("role","link").attr("tabindex","0")
         .attr("aria-label",stageLabel+": "+count+" item"+(count===1?"":"s")+", "+state+". Open stage details.")
-        .attr("title",stageLabel+" Â· "+count+" Â· "+state);
+        .attr("title",stageLabel+" | "+count+" | "+state);
     });
     var progress=current===-1 ? 100 : Math.round((current/(stages.length-1))*100);
     var currentNode=current===-1 ? $() : flow.find('[data-home-flow-stage="'+stages[current]+'"]');
@@ -412,11 +412,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     flow.css("--dei-flow-progress",progress+"%").attr("data-flow-state",state)
       .attr("data-pipeline-health",healthState).toggleClass("has-flow",progress>0);
     $("#dei-topology-core-health").text(healthDetail);
-    var stageStatus=current===-1 ? "All evidence stages complete" :
+    var stageStatus=current===-1 ? "Pipeline stages populated" :
       stages[current].replace(/^./,function (letter) { return letter.toUpperCase(); })+
       (state==="blocked" ? " blocked" : " active");
-    $("#dei-home-flow-status").text(healthLabel+" Â· "+stageStatus+
-      (blocked ? " Â· "+blocked+" action item"+(blocked===1?"":"s") : ""));
+    $("#dei-home-flow-status").text(healthLabel+" | "+stageStatus+
+      (blocked ? " | "+blocked+" action item"+(blocked===1?"":"s") : ""));
   }
 
   function workflowPage() {
@@ -605,7 +605,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $(".dei-onboarding-target").removeClass("dei-onboarding-target");
     if (workflowPage()!==step.page) { safeSessionSet(ONBOARDING_STEP_KEY,String(onboardingStep)); window.location.href=onboardingPage(step); return; }
     if (target.length) { target.addClass("dei-onboarding-target"); target[0].scrollIntoView({behavior:"smooth",block:"center"}); }
-    $("#dei-onboarding-step-label").text("Guided walkthrough Â· "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
+    $("#dei-onboarding-step-label").text("Guided walkthrough | "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
     $("#dei-onboarding-title").text(step.title); $("#dei-onboarding-description").text(step.detail);
     $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next â");
     $("#dei-onboarding-progress-bar").css("width",((onboardingStep+1)/ONBOARDING_STEPS.length*100)+"%"); $(".dei-onboarding-progress").attr("aria-valuenow",onboardingStep+1);
@@ -636,7 +636,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     $("#dei-active-scan-context").attr("data-state","active").html(
-      '<span><b>Active environment scan</b> Â· ' + sources + ' source types Â· completed ' +
+      '<span><b>Active environment scan</b> | ' + sources + ' source types | completed ' +
       new Date(timestamp).toLocaleString() + '</span><button class="dei-run-intelligence-scan" type="button">Run new scan</button>'
     );
   }
