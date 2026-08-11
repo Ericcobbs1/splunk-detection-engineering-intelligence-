@@ -559,11 +559,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var ONBOARDING_STEP_KEY = "dei.onboardingStep";
   var ONBOARDING_PREFERENCE_COLLECTION = "dei_user_preferences";
   var ONBOARDING_STEPS = [
-    {page:"home",target:"#dei-home-pipeline",title:"Read the live detection pipeline",detail:"Select a stage to open the exact workspace and evidence behind its count."},
-    {page:"environment",target:"#dei-telemetry",title:"Run telemetry discovery",detail:"Run a fresh scan to inventory sourcetypes, profile fields, and calculate detection readiness."},
-    {page:"mitre",target:".dei-mitre-advisor",title:"Review MITRE coverage",detail:"Filter recommendations by sourcetype and inspect coverage supported by current evidence."},
-    {page:"builder",target:"#workflow-selector-title",title:"Build and validate SPL",detail:"Choose a detection, generate a telemetry-supported draft, review MITRE context, and resolve validation findings in the Guided Detection Builder."},
-    {page:"lifecycle",target:"#lifecycle-work-queue",title:"Operate the lifecycle",detail:"Advance evidence through review, deployment, monitoring, tuning, and retirement."}
+    {page:"home",target:"#dei-home-pipeline",title:"Read the live detection pipeline",detail:"Use the pipeline as an operational summary of current telemetry and saved lifecycle evidence.",objective:"Identify the current stage, blockers, and the next owned action before opening a detailed workspace.",actions:["Confirm the assessment timestamp and pipeline-health state are current.","Review the action-item count and select the current or blocked stage.","Use Run new scan only for fresh telemetry discovery; use Refresh pipeline for saved lifecycle evidence."],evidence:["A current assessment or an explicit no-assessment state is visible.","The selected stage count and health label have a clear operational owner."],caution:"Pipeline counts are decision support, not proof that every detection is effective or production-ready."},
+    {page:"environment",target:"#dei-telemetry",title:"Run telemetry discovery",detail:"Establish whether the available data can support reliable detection engineering.",objective:"Create a current, permission-aware inventory of indexes, sourcetypes, extracted fields, and readiness gaps.",actions:["Confirm whether Enterprise Security is enabled before starting the scan.","Run discovery during an approved window and review unexpected indexes or sourcetypes.","Investigate field-profile failures and distinguish parser, alias, semantic, and telemetry gaps."],evidence:["The assessment records a completion time, initiating user, active indexes, and active sourcetypes.","Required fields are verified or each gap has a documented remediation path."],caution:"Discovery can create search load across accessible indexes. Respect RBAC, workload controls, and production search windows."},
+    {page:"mitre",target:".dei-mitre-advisor",title:"Review MITRE coverage",detail:"Prioritize detection opportunities that are supported by observed telemetry.",objective:"Select a defensible ATT&CK use case based on organizational risk, telemetry readiness, and coverage need.",actions:["Filter by the relevant sourcetype and inspect the mapped tactic, technique, and platform.","Prefer production-ready recommendations; review every field-unverified or field-gap condition.","Record why the use case matters and who will own engineering and review."],evidence:["The selected use case has a verified ATT&CK mapping and identified data source.","Readiness, field evidence, priority, and ownership are understood before building."],caution:"ATT&CK mapping shows behavioral coverage intent; it does not measure detection quality, alert fidelity, or adversary prevention."},
+    {page:"builder",target:"#workflow-selector-title",title:"Build and validate SPL",detail:"Convert an approved use case into reviewable, testable detection logic.",objective:"Produce bounded SPL with complete metadata, explainable logic, and evidence suitable for peer review.",actions:["Inspect and simplify generated SPL before testing it against production-scale data.","Confirm ATT&CK ID, description, schedule, time range, thresholds, and expected entities.","Run bounded historical validation and document false positives, limitations, and tuning decisions."],evidence:["Validation status and representative results are saved with the draft.","The detection has an owner, peer reviewer, deployment plan, and rollback approach."],caution:"Never enable generated SPL directly in production without human review, performance validation, and change-control approval."},
+    {page:"lifecycle",target:"#lifecycle-work-queue",title:"Operate the lifecycle",detail:"Move approved detection evidence through deployment, monitoring, tuning, and retirement.",objective:"Maintain an auditable production record from peer approval through catalog enablement and ongoing health review.",actions:["Complete the required evidence gate before advancing the lifecycle state.","Move approved detections into the catalog, enable them through the authorized deployment process, and remove them from the active queue.","Assign an owner, health baseline, review cadence, tuning triggers, and retirement criteria."],evidence:["Approval, deployment reference, catalog status, and monitoring evidence are recorded.","The detection has measurable health, response ownership, and a scheduled review date."],caution:"State changes must reflect real operational actions. Do not mark a detection production or healthy without deployment and monitoring evidence."}
   ];
   var onboardingStep=0;
 
@@ -619,6 +619,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">&times;</button>',
       '<div class="dei-onboarding-heading"><p id="dei-onboarding-step-label" class="dei-kicker"></p>',
       '<h2 id="dei-onboarding-title"></h2><p id="dei-onboarding-description"></p></div>',
+      '<div class="dei-onboarding-production">',
+      '<section><h3>Production objective</h3><p id="dei-onboarding-objective"></p></section>',
+      '<section><h3>What to do</h3><ul id="dei-onboarding-actions"></ul></section>',
+      '<section><h3>Evidence before continuing</h3><ul id="dei-onboarding-evidence"></ul></section>',
+      '<aside><strong>Operational caution</strong><p id="dei-onboarding-caution"></p></aside>',
+      '</div>',
       '<div class="dei-onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5"><span id="dei-onboarding-progress-bar"></span></div>',
       '<div class="dei-onboarding-foot">',
       '<label><input id="dei-onboarding-dismiss-permanently" type="checkbox"/> <span>Do not show this welcome guide again</span></label>',
@@ -658,6 +664,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (target.length) { target.addClass("dei-onboarding-target"); target[0].scrollIntoView({behavior:"smooth",block:"center"}); }
     $("#dei-onboarding-step-label").text("Guided walkthrough | "+(onboardingStep+1)+" of "+ONBOARDING_STEPS.length);
     $("#dei-onboarding-title").text(step.title); $("#dei-onboarding-description").text(step.detail);
+    $("#dei-onboarding-objective").text(step.objective);
+    $("#dei-onboarding-actions").empty(); (step.actions||[]).forEach(function (item) { $("#dei-onboarding-actions").append($("<li>").text(item)); });
+    $("#dei-onboarding-evidence").empty(); (step.evidence||[]).forEach(function (item) { $("#dei-onboarding-evidence").append($("<li>").text(item)); });
+    $("#dei-onboarding-caution").text(step.caution);
     $("#dei-onboarding-back").prop("disabled",onboardingStep===0); $("#dei-onboarding-next").text(onboardingStep===ONBOARDING_STEPS.length-1?"Finish tour":"Next →");
     $("#dei-onboarding-progress-bar").css("width",((onboardingStep+1)/ONBOARDING_STEPS.length*100)+"%"); $(".dei-onboarding-progress").attr("aria-valuenow",onboardingStep+1);
   }
