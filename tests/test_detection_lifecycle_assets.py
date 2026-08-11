@@ -298,7 +298,8 @@ def test_generate_draft_is_single_flight_and_confirms_persistence_before_complet
     assert "return deferred.promise()" in javascript
     assert "saveArtifact(artifact).done(function (savedRecord)" in javascript
     assert 'attr("data-dei-generated-detection", item.detection_id)' in javascript
-    assert 'trigger("dei:detection-draft-generated", [item.detection_id, savedRecord' in javascript
+    assert 'window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord)' in javascript
+    assert 'trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord' in javascript
     assert "Detection draft generated and saved" in javascript
 
 
