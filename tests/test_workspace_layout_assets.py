@@ -273,7 +273,8 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
         'role="dialog"', 'aria-modal="false"',
         "Guided walkthrough", "dei-onboarding-next", "dei-onboarding-back",
         "closeOnboarding", 'event.key==="Escape"',
-        "positionOnboardingDialog", "scrollIntoView",
+        "positionOnboardingDialog", "scrollIntoView", 'event.key==="F6"',
+        "onboardingReturnFocus.focus()",
     ):
         assert value in javascript
     assert "dei.onboardingDismissed.v1" not in javascript
