@@ -30,7 +30,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var SEEN_KEY="dei.nextGuide.seen";
   var OVERLAY_ID="dei-next-guide-overlay";
   var selectedDetection="";
-  var waitingForLifecycleWrite=false;
   var renderTimer=null;
   var targetObserver=null;
   var renderedStep=-1;
@@ -45,9 +44,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"builder",target:"#builder-detection-select",title:"Load the selected detection",instruction:"Confirm the recommendation you want to engineer through the guided workflow.",actionLabel:"Select the detection in Builder"},
     {page:"builder",target:"#builder-generate",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
-    {page:"builder",target:"#lifecycle-action-buttons [data-action]:not(:disabled)",title:"Complete the analyst-controlled gate",instruction:"Complete each evidence, review, and deployment gate shown for this detection. The guide stays with the record until it is catalog-ready.",actionLabel:"Complete the highlighted lifecycle action"},
+    {page:"builder",target:"#lifecycle-action-comment",title:"Document the validation handoff",instruction:"Summarize the validated analytic intent, expected analyst behavior, evidence, and known limitations for peer review.",actionLabel:"Enter the review submission note"},
+    {page:"builder",target:'[data-action="submit_review"]',title:"Submit for independent review",instruction:"Send the validated detection and its evidence to the peer-review gate.",actionLabel:"Select Submit for peer review"},
+    {page:"builder",target:"#lifecycle-action-comment",title:"Record the peer-review decision",instruction:"As the reviewer, document why the SPL is safe, scoped, supportable, and operationally actionable.",actionLabel:"Enter the approval rationale"},
+    {page:"builder",target:'[data-action="approve_review"]',title:"Approve the reviewed version",instruction:"Approve this exact validated version so it can enter the governed Detection Catalog.",actionLabel:"Select Approve version"},
     {page:"catalog",target:"#catalog-external-id",title:"Identify the production object",instruction:"Record the exact saved search, correlation search, or deployment object that will run this detection.",actionLabel:"Enter the deployment object ID"},
-    {page:"catalog",target:'[data-catalog-action="enable"],[data-catalog-action="disable"],[data-catalog-action="reenable"]',title:"Set the detection operating state",instruction:"Complete the final catalog action. Enable a ready detection, disable an active detection, or re-enable a disabled detection.",actionLabel:"Select the highlighted catalog action"}
+    {page:"catalog",target:'[data-catalog-action="enable"]',title:"Enable the approved detection",instruction:"Complete the final analyst-controlled action to enable this reviewed detection in the catalog.",actionLabel:"Select Enable detection"}
   ];
 
   function page() {
@@ -60,11 +62,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return "other";
   }
   function sessionKey(base) {
-    var seed="active-login";
-    try { seed=String(Splunk.util.getConfigValue("USERNAME")||"unknown"); } catch(error) {}
-    var hash=2166136261;
-    for(var index=0;index<seed.length;index+=1){ hash^=seed.charCodeAt(index); hash=Math.imul(hash,16777619); }
-    return base+"."+(hash>>>0).toString(36);
+    return base;
   }
   function route(name) {
     var base={home:"dei_home",environment:"command_center",environment_insights:"environment_insights",mitre:"mitre_coverage",builder:"detection_workflow",catalog:"detection_catalog"}[name];
@@ -116,7 +114,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (page()!==step.page) { close(false); return; }
     if(index===5 && $("#builder-detection-select").val()){ writeStep(6); scheduleRender(0); return; }
     if(index===6 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
-    if(index===9 && !$("#catalog-external-id").filter(":visible").length && $(steps[10].target).filter(":visible").length){ writeStep(10); scheduleRender(0); return; }
     var target=targetFor(step);
     if (!target.length) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
@@ -169,16 +166,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#builder-detection-select", function(){ if(readStep()===5 && $(this).val()) advance(); });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
   $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===7 && validation && validation.status==="passed") advance(); });
-  $(document).on("click", "#lifecycle-action-buttons [data-action]", function(){ if(readStep()===8) waitingForLifecycleWrite=true; });
-  $(document).on("dei:lifecycle-records-updated", function(_event,records){
-    if(readStep()!==8 || !waitingForLifecycleWrite) return;
-    waitingForLifecycleWrite=false;
-    var detection=selectedDetection||String(window.localStorage.getItem("dei.selectedDetectionDraft")||"");
-    var record=(records||[]).filter(function(item){ return String(item.id||item.detection_id||"")===detection; })[0];
-    if(record && record.catalog && record.catalog.status==="ready") advance(); else render();
+  $(document).on("input change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===8||step===10)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("dei:lifecycle-action-complete", function(_event,action){
+    if(readStep()===9&&action==="submit_review") goToStep(10);
+    if(readStep()===11&&action==="approve_review") goToStep(12);
   });
-  $(document).on("change", "#catalog-external-id", function(){ if(readStep()===9 && String($(this).val()||"").trim()){ writeStep(10); scheduleRender(0); } });
-  $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===10 && (status==="enabled"||status==="disabled")) close(true); });
+  $(document).on("input change", "#catalog-external-id", function(){ if(readStep()===12 && String($(this).val()||"").trim()) goToStep(13); });
+  $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===13 && status==="enabled") close(true); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(steps[readStep()]); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
