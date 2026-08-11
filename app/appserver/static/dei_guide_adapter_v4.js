@@ -106,6 +106,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var index=readStep(),step=steps[index];
     if (page()!==step.page) { window.location.href=route(step.page); return; }
     if(index===5 && $("#builder-detection-select").val()){ writeStep(6); scheduleRender(0); return; }
+    if(index===6 && $("#generator-output").filter(":visible").length && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
     if(index===9 && !$("#catalog-external-id").filter(":visible").length && $(steps[10].target).filter(":visible").length){ writeStep(10); scheduleRender(0); return; }
     var target=targetFor(step);
     if (!target.length) { scheduleRender(180); return; }
@@ -129,7 +130,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#mitre-sourcetype-filter", function(){ if(readStep()===3 && $(this).val()!=="all") window.setTimeout(advance,0); });
   $(document).on("dei:advisor-detection-selected", function(_event,id){ if(readStep()===4){ selectedDetection=String(id||""); if(selectedDetection) window.localStorage.setItem("dei.selectedDetectionDraft",selectedDetection); advance(); } });
   $(document).on("change", "#builder-detection-select", function(){ if(readStep()===5 && $(this).val()) advance(); });
-  $(document).on("dei:detection-draft-generated", function(){ if(readStep()===6) advance(); });
+  $(document).on("dei:detection-draft-generated", function(_event,id,record){ if(readStep()===6 && id && record){ advance(); } });
   $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===7 && validation && validation.status==="passed") advance(); });
   $(document).on("click", "#lifecycle-action-buttons [data-action]", function(){ if(readStep()===8) waitingForLifecycleWrite=true; });
   $(document).on("dei:lifecycle-records-updated", function(_event,records){

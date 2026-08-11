@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-GENERATOR = Path("app/appserver/static/detection_query_generator_v4.js")
+GENERATOR = Path("app/appserver/static/detection_query_generator_v5.js")
 
 
 def test_mitre_metadata_is_clean_and_idempotent() -> None:

@@ -17,7 +17,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v3.js,dei_workspace_layout_v13.js"
+    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css"
     )
@@ -110,7 +110,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
 def test_guided_detection_builder_owns_the_action_workspace() -> None:
     lifecycle = ElementTree.parse(VIEW_PATH).getroot()
     builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
-    assert "detection_query_generator_v4.js" in builder.attrib["script"].split(",")
+    assert "detection_query_generator_v5.js" in builder.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in builder.attrib["script"].split(",")
     for element_id in (
         "dei-guided-detection-page", "guided-builder-workspace", "lifecycle-workspace-menu",
@@ -193,7 +193,7 @@ def test_detection_standards_block_malformed_pipeline_syntax() -> None:
 
 
 def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
-    javascript = (STATIC_ROOT / "detection_query_generator_v4.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     assert "production_ready" in javascript
     assert "sourceClause" in javascript
     assert "analyticLogic" in javascript
@@ -288,3 +288,14 @@ def test_dashboard_clear_removes_detection_drafts() -> None:
     javascript = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
     assert 'ARTIFACT_KEY = "dei.detectionDraftArtifacts"' in javascript
     assert "DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY" in javascript
+
+
+def test_generate_draft_is_single_flight_and_confirms_persistence_before_completion() -> None:
+    javascript = (STATIC_ROOT / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    assert "var generationInFlight = false" in javascript
+    assert "if (generationInFlight) { return; }" in javascript
+    assert 'off("click.deiGenerate")' in javascript
+    assert "return deferred.promise()" in javascript
+    assert "saveArtifact(artifact).done(function (savedRecord)" in javascript
+    assert 'trigger("dei:detection-draft-generated", [item.detection_id, savedRecord' in javascript
+    assert "Detection draft generated and saved" in javascript

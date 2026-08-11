@@ -14,7 +14,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
     assert root.attrib["theme"] == "dark"
     assert "detection_workflow_v2.js" in root.attrib["script"].split(",")
     assert "detection_lifecycle_v2.js" in root.attrib["script"].split(",")
-    assert "detection_query_generator_v4.js" in root.attrib["script"].split(",")
+    assert "detection_query_generator_v5.js" in root.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in root.attrib["script"].split(",")
     assert "detection_workflow_v1.css" in root.attrib["stylesheet"].split(",")
     for element_id in (
@@ -106,7 +106,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
 def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
-    generator = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     operations = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
     guided = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     assert operations.find(".//*[@id='lifecycle-action-center']") is None

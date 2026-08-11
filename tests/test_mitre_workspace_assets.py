@@ -12,7 +12,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v3.js,dei_workspace_layout_v13.js"
+    assert root.attrib["script"] == "mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,"
         "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css"

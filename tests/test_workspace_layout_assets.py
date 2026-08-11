@@ -13,14 +13,14 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts
-        assert "dei_guide_adapter_v3.js" in scripts
+        assert "dei_guide_adapter_v4.js" in scripts
         assert "dei_workspace_layout_v13.js" in scripts
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
         assert "dei_responsive_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     home_scripts = home.attrib["script"].split(",")
     assert "dei_interactive_guide_v2.js" not in home_scripts
-    assert "dei_guide_adapter_v3.js" in home_scripts
+    assert "dei_guide_adapter_v4.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
@@ -272,7 +272,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_guide_adapter_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_guide_adapter_v4.js").read_text(encoding="utf-8")
     react_source = Path("ui/interactive-guide.jsx").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_guided_tour_v6.css").read_text(encoding="utf-8")
     for value in (
@@ -318,7 +318,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
-    builder = (STATIC / "detection_query_generator_v4.js").read_text(encoding="utf-8")
+    builder = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
 
     handlers = {
@@ -335,7 +335,9 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
         "lifecycle-reset-filters": lifecycle,
     }
     for control_id, javascript in handlers.items():
-        assert f'$("#{control_id}").on("click"' in javascript
+        direct = f'$("#{control_id}").on("click"'
+        namespaced = f'$("#{control_id}").off("click.deiGenerate").on("click.deiGenerate"'
+        assert direct in javascript or namespaced in javascript
 
     for view_name in (
         "dei_home", "command_center", "environment_insights",

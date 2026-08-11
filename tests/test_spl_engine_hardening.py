@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GENERATOR = ROOT / "app" / "appserver" / "static" / "detection_query_generator_v4.js"
+GENERATOR = ROOT / "app" / "appserver" / "static" / "detection_query_generator_v5.js"
 STANDARDS = ROOT / "app" / "appserver" / "static" / "dei_detection_standards_v1.js"
 CATALOG = ROOT / "app" / "detections" / "catalog.json"
 
