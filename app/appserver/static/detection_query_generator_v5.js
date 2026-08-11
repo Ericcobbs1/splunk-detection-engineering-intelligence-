@@ -780,6 +780,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     selected = null;
     generatedBaseline = null;
     pendingValidationFix = null;
+    $("#detection-generator").removeAttr("data-dei-generated-detection");
     $("#detection-generator,#generator-output").hide();
     $("#generator-empty").show().text(message || "Choose Generate detection draft to start a clean workspace.");
     $("#generator-title").text("Detection draft");
@@ -835,8 +836,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
-  function generateSelectedDetection() {
-    if (generationInFlight) { return; }
+  function generateSelectedDetection(event) {
+    if (event) { event.preventDefault(); event.stopImmediatePropagation(); }
+    if (generationInFlight || window.DEIDraftGenerationInFlight) { return; }
     var id = String($("#builder-detection-select").val() || "");
     var item = buildableRecommendations().filter(function (candidate) {
       return candidate.detection_id === id;
@@ -846,12 +848,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $("#builder-detection-select").focus();
       return;
     }
+    if ($("#detection-generator").attr("data-dei-generated-detection") === id && String($("#generator-spl").val() || "").trim()) {
+      $(document).trigger("dei:detection-draft-generated", [id, lifecycleRecord(storedArtifact("dei-" + id) || selected || {})]);
+      setStartFeedback("Detection draft is ready. Review the SPL and validation workspace below.", "success");
+      return;
+    }
     var generateButton=$("#builder-generate");
     generationInFlight=true;
+    window.DEIDraftGenerationInFlight=true;
     generateButton.prop("disabled",true).attr("aria-busy","true").text("Generating draft…");
     setStartFeedback("Generating telemetry-scoped SPL and lifecycle metadata…", "working");
     function finishGeneration() {
       generationInFlight=false;
+      window.DEIDraftGenerationInFlight=false;
       generateButton.prop("disabled",false).removeAttr("aria-busy").text("Generate detection draft");
     }
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
@@ -889,6 +898,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     saveArtifact(artifact).done(function (savedRecord) {
+      $("#detection-generator").attr("data-dei-generated-detection", item.detection_id);
       $(document).trigger("dei:detection-draft-generated", [item.detection_id, savedRecord||lifecycleRecord(artifact)]);
       setStartFeedback("Detection draft generated and saved. Review the SPL and validation workspace below.", "success");
       setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
@@ -908,7 +918,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $("#workflow-detection-select").val($(this).val()).trigger("change");
     }
   });
-  $("#builder-generate").off("click.deiGenerate").on("click.deiGenerate", generateSelectedDetection);
+  $(document).off("click.deiGenerate", "#builder-generate").on("click.deiGenerate", "#builder-generate", generateSelectedDetection);
   $("#builder-save-draft").on("click", saveCurrentDraft);
   $("#builder-run-validation").on("click", runValidation);
   $("#builder-reset-draft").on("click", function () {
