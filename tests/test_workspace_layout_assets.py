@@ -87,20 +87,19 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
     children = list(shell)
     ids = [child.attrib.get("id") for child in children]
     pipeline_index = ids.index("dei-home-pipeline")
-    workspaces_index = next(
-        index for index, child in enumerate(children)
-        if "dei-home-workspaces" in child.attrib.get("class", "").split()
-    )
-    assert pipeline_index < workspaces_index
+    assert pipeline_index == 1
     assert shell.find(".//*[@class='dei-hero dei-home-hero']") is None
     assert shell.find(".//*[@id='dei-home-detection-flow']") is not None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
+    assert shell.find(".//*[@id='dei-home-refresh']") is not None
+    assert shell.find(".//*[@id='dei-topology-core-health']") is not None
     assert ".dei-official-home>.dei-home-flow-section{order:1" in stylesheet
     assert "min-height:calc(100vh - 76px)" in stylesheet
     assert "border:0!important" in stylesheet
@@ -109,8 +108,8 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "Your detection pipeline, in motion." in ElementTree.tostring(home, encoding="unicode")
     assert "Animation-led home" in stylesheet
     assert "min-height:clamp(620px,calc(100vh - 150px),820px)" in stylesheet
-    assert ".dei-official-home .dei-flow-health-summary{position:absolute" in stylesheet
-    assert ".dei-official-home>.dei-home-workspaces{display:flex" in stylesheet
+    assert shell.find(".//*[@class='dei-flow-health-summary']") is None
+    assert shell.find(".//*[@class='dei-home-workspaces']") is None
     assert "min-height:max(780px,calc(100vh - 108px))" in stylesheet
     assert ".dei-official-home .dei-topology-core{width:340px;height:340px" in stylesheet
     assert ".dei-official-home{max-width:1880px" in stylesheet
@@ -121,6 +120,10 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-topology-signal" in stylesheet
     assert "@keyframes dei-topology-orbit" in stylesheet
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
+    assert '[data-pipeline-health="critical"]' in stylesheet
+    assert "refreshHomeLifecycleRecords(true)" in javascript
+    assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
+    assert "#dei-home-refresh" in stylesheet
     assert 'url("dei_realistic_earth_v1.webp")' in stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "rotateY(-5deg)" in stylesheet
@@ -129,18 +132,15 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert (STATIC / "dei_realistic_earth_v1.webp").stat().st_size < 200_000
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet
-    assert 'id="dei-home-health"' in ElementTree.tostring(home, encoding="unicode")
-    assert 'id="dei-home-use-case-count"' in ElementTree.tostring(home, encoding="unicode")
-    assert 'id="dei-home-blocked-count"' in ElementTree.tostring(home, encoding="unicode")
-    assert 'id="dei-home-health-action"' in ElementTree.tostring(home, encoding="unicode")
-    assert 'href="command_center#dei-telemetry"' in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-health"' not in ElementTree.tostring(home, encoding="unicode")
+    assert 'id="dei-home-health-action"' not in ElementTree.tostring(home, encoding="unicode")
     assert 'id="dei-home-health-actions"' not in ElementTree.tostring(home, encoding="unicode")
     assert home.attrib["script"].startswith("dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,")
     assert ElementTree.tostring(home, encoding="unicode").count("dei-flow-stage-count") == 7
     markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
         "Telemetry inventory", "Field evidence", "Readiness gates", "Use-case portfolio",
-        "Detection logic", "Reviewable SPL", "Test evidence", "DEI Intelligence Core",
+        "Detection logic", "Reviewable SPL", "Test evidence", "Pipeline health",
     ):
         assert description in markup
     topology = shell.find(".//*[@class='dei-topology-canvas']")
@@ -175,6 +175,24 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-topology-core-count']") is not None
     command_center = ElementTree.parse(VIEWS / "command_center.xml").getroot()
     assert command_center.find(".//*[@id='dei-home-pipeline']") is None
+
+
+def test_removed_home_widgets_remain_available_in_owned_workspaces() -> None:
+    home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    health = ElementTree.parse(VIEWS / "detection_health.xml").getroot()
+    lifecycle = ElementTree.parse(VIEWS / "detection_lifecycle.xml").getroot()
+    actions = ElementTree.parse(VIEWS / "detection_action_center.xml").getroot()
+    insights = ElementTree.parse(VIEWS / "environment_insights.xml").getroot()
+    assert home.find(".//*[@class='dei-flow-health-summary']") is None
+    assert home.find(".//*[@class='dei-home-workspaces']") is None
+    for element_id in ("health-managed", "health-healthy", "health-attention", "health-failed", "health-refresh"):
+        assert health.find(f".//*[@id='{element_id}']") is not None
+    for element_id in ("state-draft", "state-testing", "state-production", "state-monitoring"):
+        assert lifecycle.find(f".//*[@id='{element_id}']") is not None
+    for element_id in ("action-count-all", "action-count-critical", "action-count-telemetry", "action-refresh"):
+        assert actions.find(f".//*[@id='{element_id}']") is not None
+    for element_id in ("metric-ready", "portfolio-field-gaps", "dei-refresh-environment"):
+        assert insights.find(f".//*[@id='{element_id}']") is not None
 
 
 def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() -> None:

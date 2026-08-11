@@ -176,7 +176,7 @@ def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
     assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     for element_id in (
         "dei-home-page", "dei-home-pipeline", "dei-home-flow-title",
-        "dei-home-detection-flow", "dei-home-flow-status", "dei-home-workspaces-title",
+        "dei-home-detection-flow", "dei-home-flow-status",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     for destination in (
