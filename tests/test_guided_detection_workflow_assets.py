@@ -48,6 +48,7 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '"Current stage: "+label(stage)' in javascript
     assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
     assert '$(document).on("dei:detection-draft-generated"' in javascript
+    assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
