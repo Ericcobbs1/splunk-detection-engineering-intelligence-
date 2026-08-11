@@ -17,7 +17,7 @@ def test_every_workspace_loads_the_shared_scan_service():
 
 
 def test_home_scan_is_an_operation_not_a_redirect():
-    layout = _source("dei_workspace_layout_v10.js")
+    layout = _source("dei_workspace_layout_v12.js")
     service = _source("dei_environment_scan_v1.js")
     assert 'class="dei-run-intelligence-scan"' in layout
     assert 'window.DEIEnvironmentScan.run(' in layout
@@ -39,8 +39,8 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    layout = _source("dei_workspace_layout_v10.js")
-    home_layout = _source("dei_workspace_layout_v9.js")
+    layout = _source("dei_workspace_layout_v12.js")
+    home_layout = _source("dei_workspace_layout_v11.js")
     stylesheet = _source("dei_workspace_layout_v1.css")
     for control in (
         "dei-onboarding-next",
@@ -63,8 +63,10 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert 'safeSessionSet(onboardingSessionKey(), "true")' in home_layout
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in home_layout
     assert "Math.imul(hash,16777619)" in home_layout
-    assert '$(document).on("click", "#dei-onboarding-overlay"' in home_layout
-    assert "if (event.target===this) { closeOnboarding(); }" in home_layout
+    assert '.closest(".dei-onboarding-dialog,.dei-onboarding-target")' in home_layout
+    assert 'aria-modal="false"' in home_layout
+    assert "function positionOnboardingDialog(target)" in home_layout
+    assert 'placement=(bounds.left+bounds.width/2)<window.innerWidth/2 ? "right" : "left"' in home_layout
     assert 'event.key==="Escape"' in home_layout
     assert "Shown once per login session" in home_layout
     assert "dei-onboarding-dismiss-permanently" not in home_layout
@@ -73,9 +75,11 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
 
 
 def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
-    tour_styles = _source("dei_guided_tour_v3.css")
+    tour_styles = _source("dei_guided_tour_v4.css")
     assert ".dei-onboarding-overlay{z-index:10002" in tour_styles
-    assert ".dei-onboarding-target{z-index:10001!important}" in tour_styles
+    assert ".dei-onboarding-target{z-index:10003!important;pointer-events:auto}" in tour_styles
+    assert '.dei-onboarding-dialog[data-placement="right"]' in tour_styles
+    assert '.dei-onboarding-dialog[data-placement="left"]' in tour_styles
     assert "#dei-onboarding-back,#dei-onboarding-next" in tour_styles
     for view in (
         "dei_home.xml", "command_center.xml", "environment_insights.xml",
@@ -84,11 +88,11 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
         "detection_builder.xml", "detection_action_center.xml",
     ):
         root = ElementTree.parse(VIEWS / view).getroot()
-        assert "dei_guided_tour_v3.css" in root.attrib["stylesheet"].split(",")
+        assert "dei_guided_tour_v4.css" in root.attrib["stylesheet"].split(",")
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v9.js")
+    layout = _source("dei_workspace_layout_v11.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
@@ -134,7 +138,7 @@ def test_core_action_controls_have_implementation_bindings():
 
 
 def test_tour_teaches_production_actions_evidence_and_cautions():
-    for controller in ("dei_workspace_layout_v10.js", "dei_workspace_layout_v9.js"):
+    for controller in ("dei_workspace_layout_v12.js", "dei_workspace_layout_v11.js"):
         source = _source(controller)
         for field in ("objective:", "actions:", "evidence:", "caution:"):
             assert source.count(field) >= 5
@@ -145,5 +149,5 @@ def test_tour_teaches_production_actions_evidence_and_cautions():
             assert section_id in source
         assert "Never enable generated SPL directly in production" in source
         assert "State changes must reflect real operational actions" in source
-    styles = _source("dei_guided_tour_v3.css")
+    styles = _source("dei_guided_tour_v4.css")
     assert ".dei-onboarding-production" in styles
