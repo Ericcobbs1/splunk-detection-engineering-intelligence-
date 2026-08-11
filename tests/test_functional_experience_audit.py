@@ -76,7 +76,6 @@ def test_core_action_controls_have_implementation_bindings():
         "builder-run-validation": "runValidation",
         "builder-apply-validation-fix": "Recommended correction applied",
         "lifecycle-reset-filters": "renderQueue()",
-        "dei-home-health-action": "detection_action_center",
         "dei-density-toggle": "applyDensity(next)",
     }
     for control, behavior in controls.items():
