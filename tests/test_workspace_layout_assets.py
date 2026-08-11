@@ -140,7 +140,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     markup = ElementTree.tostring(home, encoding="unicode")
     for description in (
         "Telemetry inventory", "Field evidence", "Readiness gates", "Use-case portfolio",
-        "Detection logic", "Reviewable SPL", "Test evidence", "DEI Intelligence Core",
+        "Detection logic", "Reviewable SPL", "Test evidence", "Pipeline health",
     ):
         assert description in markup
     topology = shell.find(".//*[@class='dei-topology-canvas']")
@@ -251,7 +251,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v2.js").read_text(encoding="utf-8")
-    builder = (STATIC / "detection_query_generator_v2.js").read_text(encoding="utf-8")
+    builder = (STATIC / "detection_query_generator_v3.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
 
     handlers = {
