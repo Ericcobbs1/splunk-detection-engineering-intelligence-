@@ -18,6 +18,10 @@ export = none
 access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
 export = none
 
+[collections/dei_scan_history]
+access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
+export = none
+
 [collections/dei_user_preferences]
 access = read : [ * ], write : [ admin, dei_lifecycle_analyst ]
 export = none

@@ -1,0 +1,18 @@
+.dei-telemetry-change-section{margin-top:16px;border:1px solid var(--dei-border);border-radius:14px;background:linear-gradient(145deg,rgba(12,21,32,.99),rgba(7,14,23,.99));padding:20px}
+.dei-telemetry-change-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.dei-telemetry-change-head h2{margin:0;color:var(--dei-text);font-size:19px}
+.dei-telemetry-change-head p:last-child{max-width:760px;margin:6px 0 0;color:var(--dei-muted);font-size:10px;line-height:1.5}
+.dei-telemetry-change-metrics{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:8px;margin-top:16px}
+.dei-telemetry-change-metrics article{border:1px solid var(--dei-border);border-radius:9px;background:rgba(9,18,28,.75);padding:12px}
+.dei-telemetry-change-metrics span,.dei-telemetry-change-metrics strong{display:block}
+.dei-telemetry-change-metrics span{color:var(--dei-muted);font-size:9px}
+.dei-telemetry-change-metrics strong{margin-top:5px;color:var(--dei-accent);font-size:22px}
+.dei-telemetry-change-metrics .risk strong{color:var(--dei-danger)}
+.dei-telemetry-change-findings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.dei-telemetry-change-findings article{display:flex;gap:10px;border:1px solid var(--dei-border);border-radius:9px;background:rgba(7,14,23,.65);padding:11px}
+.dei-telemetry-change-findings article i{flex:0 0 8px;width:8px;height:8px;margin-top:4px;border-radius:50%;background:var(--dei-accent-2)}
+.dei-telemetry-change-findings article.risk i{background:var(--dei-danger);box-shadow:0 0 10px rgba(255,115,129,.35)}
+.dei-telemetry-change-findings article.new i{background:var(--dei-success)}
+.dei-telemetry-change-findings strong{color:var(--dei-text);font-size:10px}
+.dei-telemetry-change-findings p{margin:4px 0 0;color:var(--dei-muted);font-size:9px;line-height:1.45}
+@media(max-width:900px){.dei-telemetry-change-head{display:block}.dei-telemetry-change-head .dei-chip{margin-top:10px}.dei-telemetry-change-metrics{grid-template-columns:repeat(2,1fr)}.dei-telemetry-change-findings{grid-template-columns:1fr}}

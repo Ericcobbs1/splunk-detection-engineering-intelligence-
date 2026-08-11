@@ -4,6 +4,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var REPORT_KEY = "dei.latestRecommendationReport";
   var DISCOVERY_KEY = "dei.latestDiscoveryExport";
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
+  var CHANGE_KEY = "dei.latestScanChanges";
   var COLORS = ["#5ce1c2", "#6ea8ff", "#8bd5ca", "#a6da95", "#eed49f", "#91d7e3", "#c6a0f6", "#f5a97f"];
   var TACTICS = [
     ["Recon", "Reconnaissance"], ["Resource", "Resource Development"], ["Initial", "Initial Access"],
@@ -152,6 +153,26 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#env-es-state").text(window.sessionStorage.getItem(ES_KEY) === "true" ? "Enabled" : "Not enabled");
   }
 
+  function renderChanges() {
+    var changes=safeJson(window.sessionStorage.getItem(CHANGE_KEY))||{};
+    $("#dei-change-new-sources").text((changes.new_sources||[]).length);
+    $("#dei-change-removed-sources").text((changes.removed_sources||[]).length);
+    $("#dei-change-schema").text((changes.field_changes||[]).length);
+    $("#dei-change-buildable").text((changes.newly_buildable||[]).length);
+    $("#dei-change-regressions").text((changes.readiness_regressions||[]).length);
+    if(!changes.baseline_available){ $("#dei-change-baseline-state").text(changes.initial_baseline?"Initial baseline established":"No baseline comparison"); $("#dei-telemetry-change-findings").html('<p class="dei-empty">The next successful scan will compare against this baseline.</p>'); return; }
+    $("#dei-change-baseline-state").text(changes.action_required?"Engineering review required":changes.change_count+" change(s) detected");
+    var findings=[];
+    (changes.new_sources||[]).forEach(function(source){findings.push({state:"new",title:"New sourcetype discovered",detail:source+" requires telemetry-family mapping and field review before production use."});});
+    (changes.removed_sources||[]).forEach(function(source){findings.push({state:"risk",title:"Sourcetype no longer observed",detail:source+" may indicate a pipeline, permission, retention, or ingestion change."});});
+    (changes.new_routes||[]).filter(function(route){return (changes.new_sources||[]).indexOf(route.source)===-1;}).forEach(function(route){findings.push({state:"new",title:"New telemetry route",detail:route.source+" is now observed in index "+route.index+" and requires route-specific field validation."});});
+    (changes.removed_routes||[]).filter(function(route){return (changes.removed_sources||[]).indexOf(route.source)===-1;}).forEach(function(route){findings.push({state:"risk",title:"Telemetry route disappeared",detail:route.source+" is no longer observed in index "+route.index+". Investigate pipeline and ingestion health."});});
+    (changes.field_changes||[]).forEach(function(change){var detail=[]; if(change.added_fields.length) detail.push(change.added_fields.length+" field(s) added"); if(change.removed_fields.length) detail.push(change.removed_fields.length+" field(s) removed"); findings.push({state:change.removed_fields.length?"risk":"changed",title:"Schema changed: "+change.source,detail:(change.index?"Index "+change.index+": ":"")+detail.join("; ")+". Revalidate dependent detections."});});
+    (changes.newly_buildable||[]).forEach(function(change){findings.push({state:"new",title:"Detection newly buildable",detail:change.name+" changed from "+change.previous_readiness.replace(/_/g," ")+" to production ready."});});
+    (changes.readiness_regressions||[]).forEach(function(change){findings.push({state:"risk",title:"Detection readiness regressed",detail:change.name+" changed from production ready to "+change.current_readiness.replace(/_/g," ")+" and requires revalidation."});});
+    $("#dei-telemetry-change-findings").html(findings.slice(0,12).map(function(item){return '<article class="'+item.state+'"><i></i><div><strong>'+esc(item.title)+'</strong><p>'+esc(item.detail)+'</p></div></article>';}).join("")||'<p class="dei-empty">No material telemetry or detection-readiness changes were detected.</p>');
+  }
+
   function resetPremiumDashboard() {
     $("#coverage-value").text("0%");
     $("#coverage-ring").css("--dei-coverage", "0%");
@@ -180,6 +201,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderDomains(report);
     renderTactics(report);
     renderSnapshot(report);
+    renderChanges();
   }
 
   $(document).ajaxSuccess(function (_event, _xhr, settings) {
@@ -213,7 +235,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $(window).on("storage", function (event) {
-    if (!event.originalEvent || [REPORT_KEY, DISCOVERY_KEY, ES_KEY].indexOf(event.originalEvent.key) !== -1) {
+    if (!event.originalEvent || [REPORT_KEY, DISCOVERY_KEY, ES_KEY, CHANGE_KEY].indexOf(event.originalEvent.key) !== -1) {
       render();
     }
   });

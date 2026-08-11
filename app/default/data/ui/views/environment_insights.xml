@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
+<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
   <label>DEI Environment Intelligence</label>
   <description>Review the persisted detection readiness and ATT&amp;CK coverage analysis.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -23,6 +23,12 @@
             <article class="dei-metric metric-success"><span>Production ready</span><strong id="metric-ready">0</strong><small>deployable opportunities</small></article>
             <article class="dei-metric metric-warning"><span>Partial coverage</span><strong id="metric-partial">0</strong><small>needs remediation</small></article>
             <article class="dei-metric metric-accent"><span>Detection potential</span><strong id="metric-potential">0%</strong><small>portfolio readiness</small></article>
+          </section>
+
+          <section id="dei-telemetry-change-section" class="dei-telemetry-change-section" aria-labelledby="dei-telemetry-change-title">
+            <div class="dei-telemetry-change-head"><div><p class="dei-eyebrow">Telemetry Change Intelligence</p><h2 id="dei-telemetry-change-title">Changes affecting detection engineering</h2><p>Compare the current scan with the previous successful baseline to identify new telemetry, schema drift, and detection-readiness impact.</p></div><span id="dei-change-baseline-state" class="dei-chip">No baseline comparison</span></div>
+            <div class="dei-telemetry-change-metrics"><article><span>New sources</span><strong id="dei-change-new-sources">0</strong></article><article><span>Removed sources</span><strong id="dei-change-removed-sources">0</strong></article><article><span>Schema changes</span><strong id="dei-change-schema">0</strong></article><article><span>Newly buildable</span><strong id="dei-change-buildable">0</strong></article><article class="risk"><span>Readiness regressions</span><strong id="dei-change-regressions">0</strong></article></div>
+            <div id="dei-telemetry-change-findings" class="dei-telemetry-change-findings"><p class="dei-empty">Run two successful scans to establish and compare telemetry baselines.</p></div>
           </section>
 
           <section id="dei-portfolio-section" class="dei-portfolio" aria-label="Detection portfolio">
