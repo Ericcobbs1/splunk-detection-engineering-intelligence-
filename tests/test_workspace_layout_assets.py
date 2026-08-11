@@ -337,7 +337,8 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     for control_id, javascript in handlers.items():
         direct = f'$("#{control_id}").on("click"'
         namespaced = f'$("#{control_id}").off("click.deiGenerate").on("click.deiGenerate"'
-        assert direct in javascript or namespaced in javascript
+        delegated = f'$(document).off("click.deiGenerate", "#{control_id}").on("click.deiGenerate", "#{control_id}"'
+        assert direct in javascript or namespaced in javascript or delegated in javascript
 
     for view_name in (
         "dei_home", "command_center", "environment_insights",

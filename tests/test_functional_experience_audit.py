@@ -175,5 +175,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
     assert 'status==="enabled"||status==="disabled"' in adapter
     assert "readStep()===10" in adapter
-    assert 'index===6 && $("#generator-output").filter(":visible").length' in adapter
+    assert 'index===6 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "if(readStep()===6 && id && record)" in adapter
+    assert "candidate[0]!==activeTarget" in adapter
+    assert "if(stepChanged) focusTarget()" in adapter
