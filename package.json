@@ -1,0 +1,19 @@
+{
+  "name": "splunk-detection-engineering-intelligence-ui",
+  "private": true,
+  "scripts": {
+    "build:guide": "node ui/build-guide.mjs"
+  },
+  "dependencies": {
+    "@splunk/react-ui": "5.13.0",
+    "@splunk/themes": "1.8.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "styled-components": "5.3.11"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.24",
+    "@types/react-dom": "18.3.7",
+    "esbuild": "0.25.9"
+  }
+}
