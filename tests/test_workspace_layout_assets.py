@@ -13,6 +13,11 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
+    home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
+    home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
+    assert "grid-template-columns:repeat(3,max-content)!important" in home_actions
+    assert "height:40px!important" in home_actions
 
 
 def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
