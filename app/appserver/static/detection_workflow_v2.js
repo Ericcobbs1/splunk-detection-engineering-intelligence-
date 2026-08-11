@@ -50,7 +50,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver,#guided-builder-workspace").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
     var stage=stageFor(item); var builderStage=["recommendation","draft","testing","tuning"].indexOf(stage)!==-1;
     $("#guided-builder-workspace").prop("hidden",!builderStage);
-    if (builderStage) { $("#builder-detection-select").val(key(item)).trigger("change"); }
+    if (builderStage && String($("#builder-detection-select").val()||"")!==key(item)) {
+      $("#builder-detection-select").val(key(item)).trigger("change");
+    }
     if (item.record) {
       $("#workflow-empty,#workflow-driver").prop("hidden",true);
       $(document).trigger("dei:workflow-detection-selected",[key(item)]);
