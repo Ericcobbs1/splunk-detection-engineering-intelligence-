@@ -17,7 +17,7 @@ def test_every_workspace_loads_the_shared_scan_service():
 
 
 def test_home_scan_is_an_operation_not_a_redirect():
-    layout = _source("dei_workspace_layout_v8.js")
+    layout = _source("dei_workspace_layout_v10.js")
     service = _source("dei_environment_scan_v1.js")
     assert 'class="dei-run-intelligence-scan"' in layout
     assert 'window.DEIEnvironmentScan.run(' in layout
@@ -39,8 +39,8 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    layout = _source("dei_workspace_layout_v8.js")
-    home_layout = _source("dei_workspace_layout_v7.js")
+    layout = _source("dei_workspace_layout_v10.js")
+    home_layout = _source("dei_workspace_layout_v9.js")
     stylesheet = _source("dei_workspace_layout_v1.css")
     for control in (
         "dei-onboarding-next",
@@ -59,8 +59,10 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert "Ã" not in home_layout
     assert "#dei-topology-core-action" in home_layout
     assert "showOnboarding();" in home_layout
-    assert 'safeSessionGet(ONBOARDING_SESSION_KEY)==="true"' in home_layout
-    assert 'safeSessionSet(ONBOARDING_SESSION_KEY, "true")' in home_layout
+    assert 'safeSessionGet(onboardingSessionKey())==="true"' in home_layout
+    assert 'safeSessionSet(onboardingSessionKey(), "true")' in home_layout
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' in home_layout
+    assert "Math.imul(hash,16777619)" in home_layout
     assert '$(document).on("click", "#dei-onboarding-overlay"' in home_layout
     assert "if (event.target===this) { closeOnboarding(); }" in home_layout
     assert 'event.key==="Escape"' in home_layout
@@ -86,7 +88,7 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v7.js")
+    layout = _source("dei_workspace_layout_v9.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
@@ -132,7 +134,7 @@ def test_core_action_controls_have_implementation_bindings():
 
 
 def test_tour_teaches_production_actions_evidence_and_cautions():
-    for controller in ("dei_workspace_layout_v8.js", "dei_workspace_layout_v7.js"):
+    for controller in ("dei_workspace_layout_v10.js", "dei_workspace_layout_v9.js"):
         source = _source(controller)
         for field in ("objective:", "actions:", "evidence:", "caution:"):
             assert source.count(field) >= 5
