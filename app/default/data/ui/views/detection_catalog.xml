@@ -37,7 +37,7 @@
             <div id="catalog-enable-fields" class="dei-catalog-enable-fields">
               <label><span>Deployment target *</span><select id="catalog-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label>
               <label><span>Environment *</span><select id="catalog-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label>
-              <label><span>Saved-search or object ID *</span><input id="catalog-external-id" type="text" placeholder="Exact deployed object reference"/></label>
+              <label class="wide"><span>Saved-search or detection object ID *</span><input id="catalog-external-id" type="text" placeholder="DEI - Detection Name - Production" aria-describedby="catalog-external-id-help"/><small id="catalog-external-id-help">Enter the exact deployed Splunk object name, not the DEI detection ID. Recommended: DEI - &lt;Detection Name&gt; - &lt;Environment&gt;. Example: DEI - AWS CloudTrail Logging Disabled - Production. The value must match the name in Settings → Searches, reports, and alerts or Enterprise Security → Content Management.</small></label>
               <label class="wide"><span>Enablement note</span><textarea id="catalog-enable-note" placeholder="Change ticket, deployment evidence, or operational note"></textarea></label>
             </div>
             <div id="catalog-action-feedback" class="dei-action-feedback" role="status" aria-live="polite">Catalog changes preserve peer-review and lifecycle history.</div>
