@@ -39,42 +39,26 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    layout = _source("dei_workspace_layout_v12.js")
-    home_layout = _source("dei_workspace_layout_v11.js")
-    stylesheet = _source("dei_workspace_layout_v1.css")
-    for control in (
-        "dei-onboarding-next",
-        "dei-onboarding-back",
-        "dei-onboarding-not-now",
+    adapter = _source("dei_guide_adapter_v1.js")
+    react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
+    bundle = _source("dei_interactive_guide_v1.js")
+    for page in ("home", "environment", "environment_insights", "mitre", "builder", "catalog"):
+        assert f'page:"{page}"' in adapter
+    for event in (
+        "dei:scan-progress", "dei:advisor-detection-selected",
+        "dei:detection-draft-generated", "dei:detection-validation-complete",
+        "dei:lifecycle-records-updated", "dei:catalog-action-complete",
     ):
-        assert control in layout
-    for page in ("home", "environment", "mitre", "builder", "lifecycle"):
-        assert f'page:"{page}"' in layout
-    assert "window.location.href=onboardingPage(step)" in layout
-    assert "detection_workflow#guided-builder-workspace" in layout
-    assert "restartOnboarding" in home_layout
-    assert "#dei-home-tour" in home_layout
-    assert '$(document).on("click", "#dei-home-tour", restartOnboarding)' in home_layout
-    assert "&times;" in home_layout
-    assert "Ã" not in home_layout
-    assert "#dei-topology-core-action" in home_layout
-    assert "showOnboarding();" in home_layout
-    assert 'safeSessionGet(onboardingSessionKey())==="true"' in home_layout
-    assert 'safeSessionSet(onboardingSessionKey(), "true")' in home_layout
-    assert 'Splunk.util.getConfigValue("FORM_KEY")' in home_layout
-    assert "Math.imul(hash,16777619)" in home_layout
-    assert '.closest(".dei-onboarding-dialog,.dei-onboarding-target")' in home_layout
-    assert 'aria-modal="false"' in home_layout
-    assert "function positionOnboardingDialog(target)" in home_layout
-    assert 'placement=(bounds.left+bounds.width/2)<window.innerWidth/2 ? "right" : "left"' in home_layout
-    assert 'event.key==="F6"' in home_layout
-    assert "onboardingReturnFocus.focus()" in home_layout
-    assert '.attr("aria-describedby","dei-onboarding-description")' in home_layout
-    assert 'event.key==="Escape"' in home_layout
-    assert "Shown once per login session" in home_layout
-    assert "dei-onboarding-dismiss-permanently" not in home_layout
-    assert "loadOnboardingPreference" not in home_layout
-    assert ".dei-onboarding-target" in stylesheet
+        assert event in adapter
+    assert 'event.key==="Escape"' in adapter
+    assert 'event.key==="F6"' in adapter
+    assert 'Splunk.util.getConfigValue("FORM_KEY")' in adapter
+    assert "Math.imul(hash,16777619)" in adapter
+    assert "window.DEINextGuide" in adapter
+    assert "Waiting for this action to complete" in react_source
+    assert "The guide advances automatically" in react_source
+    assert "Next" not in react_source
+    assert "window.DEIInteractiveGuide" in bundle
 
 
 def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
@@ -85,7 +69,8 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
     assert '.dei-onboarding-dialog[data-placement="right"]' in tour_styles
     assert '.dei-onboarding-dialog[data-placement="left"]' in tour_styles
     assert '.dei-onboarding-dialog::before{content:""' in tour_styles
-    assert "#dei-onboarding-back,#dei-onboarding-next" in tour_styles
+    assert ".dei-next-guide{padding:18px" in tour_styles
+    assert ".dei-next-guide-action" in tour_styles
     for view in (
         "dei_home.xml", "command_center.xml", "environment_insights.xml",
         "mitre_coverage.xml", "detection_workflow.xml", "detection_operations.xml",
@@ -142,17 +127,21 @@ def test_core_action_controls_have_implementation_bindings():
         assert behavior in sources, f"{control} does not expose {behavior}"
 
 
-def test_tour_teaches_production_actions_evidence_and_cautions():
-    for controller in ("dei_workspace_layout_v12.js", "dei_workspace_layout_v11.js"):
-        source = _source(controller)
-        for field in ("objective:", "actions:", "evidence:", "caution:"):
-            assert source.count(field) >= 5
-        for section_id in (
-            "dei-onboarding-objective", "dei-onboarding-actions",
-            "dei-onboarding-evidence", "dei-onboarding-caution",
-        ):
-            assert section_id in source
-        assert "Never enable generated SPL directly in production" in source
-        assert "State changes must reflect real operational actions" in source
+def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
+    adapter = _source("dei_guide_adapter_v1.js")
+    react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
+    assert adapter.count("actionLabel:") == 10
+    for target in (
+        ".dei-run-intelligence-scan", "#dei-open-environment-insights",
+        ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
+        ".dei-advisor-item", "#builder-detection-select", "#builder-generate",
+        "#builder-run-validation", "#lifecycle-action-center",
+        '[data-catalog-action="enable"]',
+    ):
+        assert target in adapter
+    assert "Waiting for this action to complete" in react_source
+    assert "The guide advances automatically" in react_source
+    assert "Production objective" not in react_source
+    assert "Evidence before continuing" not in react_source
     styles = _source("dei_guided_tour_v5.css")
-    assert ".dei-onboarding-production" in styles
+    assert ".dei-next-guide-action" in styles
