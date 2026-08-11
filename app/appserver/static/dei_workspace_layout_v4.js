@@ -616,7 +616,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return [
       '<div id="dei-onboarding-overlay" class="dei-onboarding-overlay" role="presentation">',
       '<section class="dei-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="dei-onboarding-title" aria-describedby="dei-onboarding-description">',
-      '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">Ã</button>',
+      '<button id="dei-onboarding-close" class="dei-onboarding-close" type="button" aria-label="Close welcome guide">&times;</button>',
       '<div class="dei-onboarding-heading"><p id="dei-onboarding-step-label" class="dei-kicker"></p>',
       '<h2 id="dei-onboarding-title"></h2><p id="dei-onboarding-description"></p></div>',
       '<div class="dei-onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5"><span id="dei-onboarding-progress-bar"></span></div>',

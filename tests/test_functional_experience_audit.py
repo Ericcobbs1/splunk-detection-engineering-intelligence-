@@ -40,7 +40,7 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
     layout = _source("dei_workspace_layout_v1.js")
-    home_layout = _source("dei_workspace_layout_v3.js")
+    home_layout = _source("dei_workspace_layout_v4.js")
     stylesheet = _source("dei_workspace_layout_v1.css")
     for control in (
         "dei-onboarding-next",
@@ -56,6 +56,9 @@ def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
     assert "detection_workflow#guided-builder-workspace" in layout
     assert "restartOnboarding" in home_layout
     assert "#dei-home-tour" in home_layout
+    assert '$(document).on("click", "#dei-home-tour", restartOnboarding)' in home_layout
+    assert "&times;" in home_layout
+    assert "Ã" not in home_layout
     assert "#dei-topology-core-action" in home_layout
     assert 'ONBOARDING_PREFERENCE_COLLECTION = "dei_user_preferences"' in home_layout
     assert "onboardingPreferenceKey" in home_layout
@@ -66,7 +69,7 @@ def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v3.js")
+    layout = _source("dei_workspace_layout_v4.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
