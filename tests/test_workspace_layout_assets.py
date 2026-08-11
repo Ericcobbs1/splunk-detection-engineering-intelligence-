@@ -9,11 +9,12 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("dei_home", "command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
+    for view in ("command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         assert "dei_workspace_layout_v1.js" in root.attrib["script"]
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
+    assert "dei_workspace_layout_v2.js" in home.attrib["script"].split(",")
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(3,max-content)!important" in home_actions
@@ -92,7 +93,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v1.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v2.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
@@ -129,6 +130,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
     assert '[data-pipeline-health="critical"]' in stylesheet
     assert "refreshHomeLifecycleRecords(true)" in javascript
+    assert "bindHomePrimaryActions" in javascript
+    assert 'window.location.assign(String($(this).attr("href") || "detection_lifecycle"))' in javascript
+    assert 'off("click.deiHomeRefresh").on("click.deiHomeRefresh"' in javascript
     assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
     assert 'if (!root.length) { return; }' in javascript
     assert 'if (bar.length && !bar.find(".dei-workspace-controls").length)' in javascript
