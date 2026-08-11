@@ -17,7 +17,7 @@ def test_every_workspace_loads_the_shared_scan_service():
 
 
 def test_home_scan_is_an_operation_not_a_redirect():
-    layout = _source("dei_workspace_layout_v1.js")
+    layout = _source("dei_workspace_layout_v6.js")
     service = _source("dei_environment_scan_v1.js")
     assert 'class="dei-run-intelligence-scan"' in layout
     assert 'window.DEIEnvironmentScan.run(' in layout
@@ -39,8 +39,8 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
-    layout = _source("dei_workspace_layout_v1.js")
-    home_layout = _source("dei_workspace_layout_v4.js")
+    layout = _source("dei_workspace_layout_v6.js")
+    home_layout = _source("dei_workspace_layout_v5.js")
     stylesheet = _source("dei_workspace_layout_v1.css")
     for control in (
         "dei-onboarding-next",
@@ -69,7 +69,7 @@ def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
 
 
 def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
-    tour_styles = _source("dei_guided_tour_v1.css")
+    tour_styles = _source("dei_guided_tour_v2.css")
     assert ".dei-onboarding-overlay{z-index:10002" in tour_styles
     assert ".dei-onboarding-target{z-index:10001!important}" in tour_styles
     assert "#dei-onboarding-back,#dei-onboarding-next" in tour_styles
@@ -80,11 +80,11 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
         "detection_builder.xml", "detection_action_center.xml",
     ):
         root = ElementTree.parse(VIEWS / view).getroot()
-        assert "dei_guided_tour_v1.css" in root.attrib["stylesheet"].split(",")
+        assert "dei_guided_tour_v2.css" in root.attrib["stylesheet"].split(",")
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v4.js")
+    layout = _source("dei_workspace_layout_v5.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
@@ -127,3 +127,19 @@ def test_core_action_controls_have_implementation_bindings():
     for control, behavior in controls.items():
         assert control in sources, control
         assert behavior in sources, f"{control} does not expose {behavior}"
+
+
+def test_tour_teaches_production_actions_evidence_and_cautions():
+    for controller in ("dei_workspace_layout_v6.js", "dei_workspace_layout_v5.js"):
+        source = _source(controller)
+        for field in ("objective:", "actions:", "evidence:", "caution:"):
+            assert source.count(field) >= 5
+        for section_id in (
+            "dei-onboarding-objective", "dei-onboarding-actions",
+            "dei-onboarding-evidence", "dei-onboarding-caution",
+        ):
+            assert section_id in source
+        assert "Never enable generated SPL directly in production" in source
+        assert "State changes must reflect real operational actions" in source
+    styles = _source("dei_guided_tour_v2.css")
+    assert ".dei-onboarding-production" in styles
