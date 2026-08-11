@@ -47,7 +47,9 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '"Stage "+(current+1)+" of "+STAGES.length' in javascript
     assert '"Current stage: "+label(stage)' in javascript
     assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
-    assert '$(document).on("dei:detection-draft-generated"' in javascript
+    assert '$(document).on("dei:detection-draft-generated dei:detection-artifact-saved"' in javascript
+    assert "dei:detection-artifact-saved" in javascript
+    assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
 
 

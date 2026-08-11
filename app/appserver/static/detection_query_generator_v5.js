@@ -408,6 +408,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return record;
   }
 
+  function announceSavedArtifact(artifact,savedRecord) {
+    var id=String(artifact.id||artifact.detection_id||"").replace(/^dei-/,"");
+    $(document).trigger("dei:detection-artifact-saved",[id,savedRecord||lifecycleRecord(artifact)]);
+  }
+
   function saveArtifact(artifact) {
     var deferred = $.Deferred();
     var artifacts = storedArtifacts();
@@ -710,10 +715,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       artifact.state = "testing";
       artifact.updated_at = artifact.validation.validated_at;
       selected = artifact;
-      saveArtifact(artifact);
       renderArtifact(artifact);
-      $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
-      setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
+      saveArtifact(artifact).done(function(savedRecord){
+        announceSavedArtifact(artifact,savedRecord);
+        $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
+        setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
+      }).fail(function(error){ setFeedback("Validation passed but its lifecycle evidence could not be saved: "+String(error||"unknown persistence error"),"error"); });
     }).fail(function (xhr, status) {
       var error=validationError(xhr,status);
       var resolution=validationResolution(error,artifact.spl);
@@ -727,10 +734,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }
       artifact.updated_at = artifact.validation.validated_at;
       selected = artifact;
-      saveArtifact(artifact);
       renderArtifact(artifact);
-      $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
-      setFeedback(resolution.applied ? resolution.appliedSummary+" Review the update and run validation again." : artifact.validation.error, resolution.applied ? "working" : "error");
+      saveArtifact(artifact).done(function(savedRecord){
+        announceSavedArtifact(artifact,savedRecord);
+        $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
+        setFeedback(resolution.applied ? resolution.appliedSummary+" Review the update and run validation again." : artifact.validation.error, resolution.applied ? "working" : "error");
+      }).fail(function(error){ setFeedback("Validation evidence could not be saved: "+String(error||"unknown persistence error"),"error"); });
     }).always(function () {
       $("#builder-run-validation").prop("disabled", false).text("Run validation");
     });

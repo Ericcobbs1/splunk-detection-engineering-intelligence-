@@ -47,14 +47,14 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     for event in (
         "dei:scan-progress", "dei:advisor-detection-selected",
         "dei:detection-draft-generated", "dei:detection-validation-complete",
-        "dei:lifecycle-records-updated", "dei:catalog-action-complete",
+        "dei:lifecycle-action-complete", "dei:catalog-action-complete",
     ):
         assert event in adapter
     assert 'event.key==="Escape"' in adapter
     assert 'event.key==="F6"' in adapter
-    assert 'Splunk.util.getConfigValue("USERNAME")' in adapter
+    assert 'function sessionKey(base) {' in adapter
+    assert "return base;" in adapter
     assert 'Splunk.util.getConfigValue("FORM_KEY")' not in adapter
-    assert "Math.imul(hash,16777619)" in adapter
     assert "window.DEINextGuide" in adapter
     assert 'document.createElement("script")' in adapter
     assert "script.async=true" in adapter
@@ -144,14 +144,14 @@ def test_core_action_controls_have_implementation_bindings():
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     adapter = _source("dei_guide_adapter_v4.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    assert adapter.count("actionLabel:") == 11
+    assert adapter.count("actionLabel:") == 14
     for target in (
         ".dei-run-intelligence-scan", "#dei-open-environment-insights",
         ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
         ".dei-advisor-item", "#builder-detection-select", "#builder-generate",
-        "#builder-run-validation", '#lifecycle-action-buttons [data-action]:not(:disabled)',
+        "#builder-run-validation", "#lifecycle-action-comment",
+        '[data-action="submit_review"]', '[data-action="approve_review"]',
         "#catalog-external-id", '[data-catalog-action="enable"]',
-        '[data-catalog-action="disable"]', '[data-catalog-action="reenable"]',
     ):
         assert target in adapter
     assert "Waiting for this action to complete" in react_source
@@ -174,8 +174,9 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'status==="enabled"||status==="disabled"' in adapter
-    assert "readStep()===10" in adapter
+    assert 'readStep()===13 && status==="enabled"' in adapter
+    assert 'action==="submit_review"' in adapter
+    assert 'action==="approve_review"' in adapter
     assert 'index===6 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter

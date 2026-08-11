@@ -287,7 +287,8 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "onFocusTarget" in react_source
     assert "Next" not in react_source
     assert "Ã" not in javascript
-    assert 'Splunk.util.getConfigValue("USERNAME")' in javascript
+    assert 'function sessionKey(base) {' in javascript
+    assert "return base;" in javascript
     assert 'Splunk.util.getConfigValue("FORM_KEY")' not in javascript
     assert 'document.createElement("script")' in javascript
     assert "dei_interactive_guide_v2.js" in javascript
@@ -296,7 +297,7 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert 'OVERLAY_ID="dei-next-guide-overlay"' in javascript
     assert "window.MutationObserver" in javascript
     assert "#catalog-external-id" in javascript
-    assert '[data-catalog-action="disable"]' in javascript
+    assert '[data-catalog-action="enable"]' in javascript
     assert "#dei-guide-action-marker" in stylesheet
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-next-guide-dialog" in stylesheet
