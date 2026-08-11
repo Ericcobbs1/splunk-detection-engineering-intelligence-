@@ -8,6 +8,12 @@ body.dei-onboarding-open .dei-onboarding-dialog::before{content:"";position:abso
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="right"]::before{left:-9px;border-top:0;border-right:0}
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="left"]::before{right:-9px;border-bottom:0;border-left:0}
 body.dei-onboarding-open .dei-onboarding-target{z-index:10001!important;pointer-events:auto}
+body.dei-onboarding-open .dei-onboarding-target{outline:3px solid #70ffe0!important;outline-offset:6px;box-shadow:0 0 0 4px rgba(92,225,194,.2),0 0 30px rgba(92,225,194,.95),0 0 58px rgba(110,168,255,.58)!important;animation:deiGuideTargetPulse 1.25s ease-in-out infinite}
+#dei-guide-action-marker{position:fixed;z-index:10003;display:grid;place-items:center;min-width:98px;height:26px;border:1px solid rgba(112,255,224,.92);border-radius:999px;background:#0b2b28;color:#baffef;padding:0 10px;font-size:9px;font-weight:900;letter-spacing:.11em;line-height:1;pointer-events:none;transform:translateY(-50%);box-shadow:0 0 0 0 rgba(92,225,194,.64),0 0 24px rgba(92,225,194,.82);animation:deiGuideMarkerPulse 1.1s ease-out infinite}
+#dei-guide-action-marker::after{content:"";position:absolute;right:16px;bottom:-7px;width:12px;height:12px;border-right:1px solid rgba(112,255,224,.92);border-bottom:1px solid rgba(112,255,224,.92);background:#0b2b28;transform:rotate(45deg)}
+@keyframes deiGuideTargetPulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 3px rgba(92,225,194,.16),0 0 20px rgba(92,225,194,.66),0 0 38px rgba(110,168,255,.34)!important}50%{filter:brightness(1.16);box-shadow:0 0 0 7px rgba(92,225,194,.08),0 0 36px rgba(92,225,194,1),0 0 68px rgba(110,168,255,.68)!important}}
+@keyframes deiGuideMarkerPulse{0%{box-shadow:0 0 0 0 rgba(92,225,194,.62),0 0 20px rgba(92,225,194,.72)}70%{box-shadow:0 0 0 10px rgba(92,225,194,0),0 0 34px rgba(92,225,194,.96)}100%{box-shadow:0 0 0 0 rgba(92,225,194,0),0 0 20px rgba(92,225,194,.72)}}
+@media(prefers-reduced-motion:reduce){body.dei-onboarding-open .dei-onboarding-target,#dei-guide-action-marker{animation:none}}
 #dei-onboarding-back,#dei-onboarding-next{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
 #dei-onboarding-back{border:1px solid rgba(168,190,214,.28);background:#0a1622;color:#b8cad8}
 #dei-onboarding-next{border:1px solid rgba(92,225,194,.54);background:rgba(92,225,194,.14);color:#9af4de}

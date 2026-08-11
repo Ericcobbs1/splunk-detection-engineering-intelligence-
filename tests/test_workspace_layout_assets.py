@@ -13,14 +13,14 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts
-        assert "dei_guide_adapter_v2.js" in scripts
-        assert "dei_workspace_layout_v12.js" in scripts
+        assert "dei_guide_adapter_v3.js" in scripts
+        assert "dei_workspace_layout_v13.js" in scripts
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
         assert "dei_responsive_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     home_scripts = home.attrib["script"].split(",")
     assert "dei_interactive_guide_v2.js" not in home_scripts
-    assert "dei_guide_adapter_v2.js" in home_scripts
+    assert "dei_guide_adapter_v3.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
@@ -39,7 +39,7 @@ def test_shared_responsive_layer_supports_browser_resizing() -> None:
 
 
 def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
     for value in (
         "dei.workspaceMode", "dei.workspaceDensity", "analyst", "coverage",
         "engineering", "aria-pressed", "ArrowLeft", "ArrowRight",
@@ -249,7 +249,7 @@ def test_removed_home_widgets_remain_available_in_owned_workspaces() -> None:
 
 def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
     for stage in ("discover", "review", "build", "validate", "operate"):
         assert f'key:"{stage}"' in javascript
     for selector in (
@@ -272,9 +272,9 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_guide_adapter_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_guide_adapter_v3.js").read_text(encoding="utf-8")
     react_source = Path("ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    stylesheet = (STATIC / "dei_guided_tour_v5.css").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_guided_tour_v6.css").read_text(encoding="utf-8")
     for value in (
         "dei.nextGuide.seen", "dei.nextGuide.step", "scrollIntoView",
         'event.key==="Escape"', 'event.key==="F6"', "sessionKey",
@@ -292,6 +292,11 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "dei_interactive_guide_v2.js" in javascript
     assert "script.onerror" in javascript
     assert "dashboard remains available" in javascript
+    assert 'OVERLAY_ID="dei-next-guide-overlay"' in javascript
+    assert "window.MutationObserver" in javascript
+    assert "#catalog-external-id" in javascript
+    assert '[data-catalog-action="disable"]' in javascript
+    assert "#dei-guide-action-marker" in stylesheet
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-next-guide-dialog" in stylesheet
     assert ".dei-next-guide-action" in stylesheet
@@ -309,7 +314,7 @@ def test_environment_workflow_is_split_between_discovery_and_results() -> None:
 
 
 def test_visible_controls_have_handlers_or_real_destinations() -> None:
-    shared = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    shared = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
@@ -356,7 +361,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
 
 
 def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for contract in (

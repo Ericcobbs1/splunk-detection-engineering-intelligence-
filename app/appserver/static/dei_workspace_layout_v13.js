@@ -591,6 +591,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function showOnboarding() {
+    if (window.DEIReactGuideConfigured || window.DEINextGuide) { return; }
     if (window.DEINextGuide) { return; }
     return; // React is the supported guide surface; do not fall back to the retired long-form modal.
     var active=safeSessionGet(ONBOARDING_STEP_KEY,"");
@@ -606,6 +607,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_operations#lifecycle-work-queue"}[step.page]; }
 
   function restartOnboarding() {
+    if (window.DEIReactGuideConfigured || window.DEINextGuide) { return; }
     if (window.DEINextGuide) { window.DEINextGuide.start(); return; }
     return;
     safeSessionSet(onboardingSessionKey(), "false");
