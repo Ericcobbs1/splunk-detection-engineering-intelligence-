@@ -61,7 +61,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function sessionKey(base) {
     var seed="active-login";
-    try { seed=String(Splunk.util.getConfigValue("USERNAME")||"unknown")+"|"+String(Splunk.util.getConfigValue("FORM_KEY")||"active-login"); } catch(error) {}
+    try { seed=String(Splunk.util.getConfigValue("USERNAME")||"unknown"); } catch(error) {}
     var hash=2166136261;
     for(var index=0;index<seed.length;index+=1){ hash^=seed.charCodeAt(index); hash=Math.imul(hash,16777619); }
     return base+"."+(hash>>>0).toString(36);
@@ -113,7 +113,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function render() {
     if(!window.DEIInteractiveGuide){ loadGuide(function(ready){ if(ready) render(); }); return; }
     var index=readStep(),step=steps[index];
-    if (page()!==step.page) { window.location.href=route(step.page); return; }
+    if (page()!==step.page) { close(false); return; }
     if(index===5 && $("#builder-detection-select").val()){ writeStep(6); scheduleRender(0); return; }
     if(index===6 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
     if(index===9 && !$("#catalog-external-id").filter(":visible").length && $(steps[10].target).filter(":visible").length){ writeStep(10); scheduleRender(0); return; }
@@ -132,13 +132,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ if(index>0){writeStep(index-1);render();}},onClose:function(){close(true);},onFocusTarget:focusTarget});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ if(index>0) goToStep(index-1);},onClose:function(){close(true);},onFocusTarget:focusTarget});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
     if(stepChanged) focusTarget();
   }
-  function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } writeStep(index+1); render(); }
+  function goToStep(index) {
+    writeStep(index);
+    renderedStep=-1;
+    var step=steps[readStep()];
+    if(page()!==step.page){ window.location.href=route(step.page); return; }
+    render();
+  }
+  function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } goToStep(index+1); }
   function completeDraft(id,record) {
     if(!id||!record||page()!=="builder") return false;
     selectedDetection=String(id);
