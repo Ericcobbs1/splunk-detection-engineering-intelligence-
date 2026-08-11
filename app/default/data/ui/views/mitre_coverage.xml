@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v2.js,dei_workspace_layout_v12.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v5.css,dei_responsive_v1.css">
+<form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v3.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
   <label>MITRE ATT&amp;CK Coverage</label>
   <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
