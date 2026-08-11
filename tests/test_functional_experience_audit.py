@@ -68,6 +68,21 @@ def test_assisted_tour_has_real_cross_page_targets_and_opt_out():
     assert ".dei-onboarding-target" in stylesheet
 
 
+def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
+    tour_styles = _source("dei_guided_tour_v1.css")
+    assert ".dei-onboarding-overlay{z-index:10002" in tour_styles
+    assert ".dei-onboarding-target{z-index:10001!important}" in tour_styles
+    assert "#dei-onboarding-back,#dei-onboarding-next" in tour_styles
+    for view in (
+        "dei_home.xml", "command_center.xml", "environment_insights.xml",
+        "mitre_coverage.xml", "detection_workflow.xml", "detection_operations.xml",
+        "detection_lifecycle.xml", "detection_health.xml", "detection_catalog.xml",
+        "detection_builder.xml", "detection_action_center.xml",
+    ):
+        root = ElementTree.parse(VIEWS / view).getroot()
+        assert "dei_guided_tour_v1.css" in root.attrib["stylesheet"].split(",")
+
+
 def test_home_pipeline_drilldowns_open_owned_workspaces():
     layout = _source("dei_workspace_layout_v4.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
