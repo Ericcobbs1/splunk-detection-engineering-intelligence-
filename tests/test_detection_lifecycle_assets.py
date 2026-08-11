@@ -301,6 +301,8 @@ def test_generate_draft_is_single_flight_and_confirms_persistence_before_complet
     assert 'window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord)' in javascript
     assert 'trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord' in javascript
     assert "Detection draft generated and saved" in javascript
+    assert 'trigger("dei:detection-artifact-saved"' in javascript
+    assert 'saveArtifact(artifact).done(function(savedRecord)' in javascript
 
 
 def test_generate_draft_is_idempotent_for_the_confirmed_selection() -> None:
