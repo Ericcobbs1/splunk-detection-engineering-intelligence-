@@ -1,0 +1,18 @@
+/* Keep the instructional dialog above the spotlighted workspace target. */
+body.dei-onboarding-open .dei-onboarding-overlay{z-index:10002;background:transparent;backdrop-filter:none}
+body.dei-onboarding-open .dei-onboarding-dialog{z-index:1;border-color:rgba(92,225,194,.62);box-shadow:0 34px 90px rgba(0,0,0,.72),0 0 0 1px rgba(110,168,255,.18),inset 0 1px rgba(255,255,255,.06)}
+body.dei-onboarding-open .dei-onboarding-target{z-index:10001!important}
+#dei-onboarding-back,#dei-onboarding-next{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
+#dei-onboarding-back{border:1px solid rgba(168,190,214,.28);background:#0a1622;color:#b8cad8}
+#dei-onboarding-next{border:1px solid rgba(92,225,194,.54);background:rgba(92,225,194,.14);color:#9af4de}
+#dei-onboarding-back:disabled{cursor:not-allowed;opacity:.42}
+#dei-onboarding-back:not(:disabled):hover,#dei-onboarding-next:hover,#dei-onboarding-back:not(:disabled):focus-visible,#dei-onboarding-next:focus-visible{outline:2px solid #6ea8ff;outline-offset:2px;filter:brightness(1.16)}
+.dei-onboarding-production{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;text-align:left}
+.dei-onboarding-production section,.dei-onboarding-production aside{padding:15px 16px;border:1px solid rgba(110,168,255,.2);border-radius:10px;background:rgba(4,14,23,.72)}
+.dei-onboarding-production h3,.dei-onboarding-production aside>strong{display:block;margin:0 0 7px;color:#8fc5ff;font-size:11px;font-weight:850;letter-spacing:.05em;text-transform:uppercase}
+.dei-onboarding-production p,.dei-onboarding-production ul{margin:0;color:#b7c8d5;font-size:12px;line-height:1.55}
+.dei-onboarding-production ul{padding-left:18px}.dei-onboarding-production li+li{margin-top:6px}
+.dei-onboarding-production aside{grid-column:1/-1;border-color:rgba(245,191,106,.34);background:rgba(71,46,12,.22)}
+.dei-onboarding-production aside>strong{color:#f5bf6a}
+@media(max-width:760px){.dei-onboarding-production{grid-template-columns:1fr}.dei-onboarding-production aside{grid-column:auto}}
+.dei-onboarding-session-note{color:#8fa5b5;font-size:11px;line-height:1.4}
