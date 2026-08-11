@@ -12,14 +12,7 @@
           </section>
 
           <section id="dei-home-pipeline" class="dei-home-flow-section" aria-labelledby="dei-home-flow-title">
-            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle →</a></div>
-            <div class="dei-flow-health-summary" aria-label="Detection pipeline health summary">
-              <article class="dei-flow-health-card"><span>Pipeline health</span><strong id="dei-home-health" data-health="awaiting">Awaiting data</strong><small id="dei-home-health-detail">Run environment analysis to establish a baseline</small><a id="dei-home-health-action" href="command_center#dei-telemetry">Run intelligence scan →</a></article>
-              <article><span>Detection use cases</span><strong id="dei-home-use-case-count">0</strong><small>Known recommendations and artifacts</small></article>
-              <article><span>Active engineering</span><strong id="dei-home-active-count">0</strong><small>Draft, testing, review, or tuning</small></article>
-              <article><span>Blocked / failing</span><strong id="dei-home-blocked-count">0</strong><small>Evidence, validation, or health issues</small></article>
-              <article><span>Production</span><strong id="dei-home-production-count">0</strong><small>Deployed or monitored detections</small></article>
-            </div>
+            <div class="dei-home-flow-heading"><div><p class="dei-kicker">Live Detection Intelligence</p><h1 id="dei-home-flow-title">Your detection pipeline, in motion.</h1><p>Follow environmental evidence from telemetry discovery through validated detection logic.</p></div><div class="dei-home-flow-actions"><button id="dei-home-refresh" type="button"><span aria-hidden="true">â»</span> Refresh pipeline</button><a class="dei-home-flow-link" href="detection_lifecycle">Open lifecycle â</a></div></div>
             <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
@@ -112,7 +105,7 @@
                 <div class="dei-topology-core" aria-label="DEI intelligence core">
                   <div class="dei-topology-orbit orbit-a"></div><div class="dei-topology-orbit orbit-b"></div><div class="dei-topology-orbit orbit-c"></div>
                   <div class="dei-topology-core-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                  <div class="dei-topology-core-label"><small>DEI Intelligence Core</small><strong id="dei-topology-core-count">0</strong><span>Detection use cases</span><em>Evidence correlation · MITRE context · lifecycle state</em></div>
+                  <div class="dei-topology-core-label"><small>Pipeline health</small><strong id="dei-topology-core-count">0</strong><span>Detection use cases</span><em id="dei-topology-core-health">Awaiting pipeline evidence</em></div>
                 </div>
 
                 <div class="dei-topology-lane dei-topology-egress" aria-label="Detection engineering stages">
@@ -122,19 +115,11 @@
                   <article class="dei-topology-node" data-home-flow-stage="validate"><span>07</span><div><small>Validate</small><strong>Test evidence</strong><em>Passed validation</em></div><i class="dei-flow-stage-count">0</i></article>
                 </div>
               </div>
-              <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence →</a></div>
+              <div class="dei-topology-legend"><span><i class="complete"></i>Evidence complete</span><span><i class="active"></i>Active stage</span><span><i class="blocked"></i>Attention required</span><a href="detection_lifecycle">Inspect lifecycle evidence â</a></div>
             </div>
           </section>
 
 
-          <section class="dei-home-workspaces" aria-labelledby="dei-home-workspaces-title">
-            <div class="dei-home-workspaces-heading"><p class="dei-eyebrow">Quick access</p><h2 id="dei-home-workspaces-title">Continue your work</h2></div>
-            <div class="dei-home-workspace-grid">
-              <a href="command_center"><span>01</span><div><strong>Environment Intelligence</strong><p>Inspect live telemetry readiness.</p></div><b>Open →</b></a>
-              <a href="mitre_coverage"><span>02</span><div><strong>MITRE ATT&amp;CK Coverage</strong><p>Review mapped coverage and gaps.</p></div><b>Open →</b></a>
-              <a href="detection_workflow"><span>03</span><div><strong>Guided Detection Builder</strong><p>Build and validate detection logic.</p></div><b>Open →</b></a>
-            </div>
-          </section>
         </main>
       </html>
     </panel>
