@@ -898,8 +898,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     saveArtifact(artifact).done(function (savedRecord) {
+      var confirmedRecord=savedRecord||lifecycleRecord(artifact);
       $("#detection-generator").attr("data-dei-generated-detection", item.detection_id);
-      $(document).trigger("dei:detection-draft-generated", [item.detection_id, savedRecord||lifecycleRecord(artifact)]);
+      if(window.DEINextGuide&&typeof window.DEINextGuide.completeDraft==="function"){
+        window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord);
+      }
+      $(document).trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord]);
       setStartFeedback("Detection draft generated and saved. Review the SPL and validation workspace below.", "success");
       setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
       finishGeneration();
