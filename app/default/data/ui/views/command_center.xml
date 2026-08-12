@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
+<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css">
   <label>DEI Environment Discovery</label>
   <description>Run a fresh telemetry intelligence scan and generate the active environment analysis for this session.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -8,7 +8,7 @@
         <div id="dei-command-center" class="dei-shell dei-environment-discovery">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Environment Discovery</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_operations">Operate</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 
