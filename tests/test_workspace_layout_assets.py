@@ -24,7 +24,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_home_globe_react_v1.js" in home_scripts
-    assert home.attrib["stylesheet"].split(",")[-4:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v5.css"]
+    assert home.attrib["stylesheet"].split(",")[-4:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v6.css"]
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -194,7 +194,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "left:50%!important" in position_stylesheet
     assert "transform:translate(-50%,-50%)!important" in position_stylesheet
     react_source = Path("ui/home-globe.jsx").read_text(encoding="utf-8")
-    react_stylesheet = (STATIC / "dei_home_globe_v5.css").read_text(encoding="utf-8")
+    react_stylesheet = (STATIC / "dei_home_globe_v6.css").read_text(encoding="utf-8")
     assert "createRoot(host).render(<HomeGlobe />)" in react_source
     assert "dei_earth_360_v3.png?v=107" in react_source
     assert "dei_realistic_earth_v1.webp?v=107" in react_source
