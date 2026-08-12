@@ -1,0 +1,31 @@
+/* Detection usability guidance and consistent operational controls. */
+#generator-spl{box-sizing:border-box;min-height:240px;overflow-y:hidden;resize:vertical;line-height:1.55}
+.dei-context-guide{margin:0 0 16px;padding:15px 17px;border:1px solid rgba(110,168,255,.28);border-radius:11px;background:rgba(9,25,39,.84);color:#c7d6e5}
+.dei-context-guide>strong{display:block;margin-bottom:10px;color:#edf7ff;font-size:14px}
+.dei-context-guide dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.dei-context-guide dl div{padding:10px;border:1px solid rgba(145,170,195,.16);border-radius:8px;background:rgba(4,14,23,.5)}
+.dei-context-guide dt{color:#83e2cd;font-weight:700}.dei-context-guide dd{margin:4px 0 0;color:#b7c7d7}
+#lifecycle-external-id-help{display:block;margin-top:7px;color:#afc0d0}#lifecycle-external-id-help code{color:#84e1cc}
+.dei-es-deployment-guide{margin-top:18px}.dei-es-deployment-guide ol{display:grid;gap:9px;margin:14px 0;padding-left:22px}
+.dei-es-deployment-guide li{padding-left:5px}.dei-es-deployment-guide .dei-es-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.dei-es-deployment-guide .dei-es-paths article{padding:13px;border:1px solid rgba(145,170,195,.18);border-radius:9px;background:#07131f}
+.dei-catalog-troubleshooting{margin:16px 0}.dei-catalog-troubleshooting .dei-troubleshooting-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dei-catalog-troubleshooting article{padding:13px;border:1px solid rgba(145,170,195,.18);border-radius:9px;background:#07131f}
+#health-refresh.dei-secondary-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:0 14px;border:1px solid rgba(110,168,255,.36);border-radius:9px;background:#0a1724;color:#c4dcff;font:600 14px/1.4 inherit}
+#health-refresh.dei-secondary-action:hover{border-color:#6ea8ff;background:rgba(110,168,255,.1)}#health-refresh[aria-busy="true"]{opacity:.72}
+.dei-mitre-view-toggle{display:inline-flex;gap:6px;padding:4px;border:1px solid rgba(145,170,195,.2);border-radius:10px;background:#06111d}
+.dei-mitre-view-toggle button{min-height:36px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:#9eb1c4}.dei-mitre-view-toggle button.active{background:#173652;color:#eef7ff}
+.dei-mitre-heatmap[hidden],.dei-mitre-matrix[hidden]{display:none!important}.dei-mitre-heatmap{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:10px}
+.dei-heat-tactic{padding:11px;border:1px solid rgba(145,170,195,.18);border-radius:10px;background:#071522}.dei-heat-tactic>strong{display:block;margin-bottom:8px}
+.dei-heat-techniques{display:grid;gap:5px}.dei-heat-technique{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 8px;border:1px solid transparent;border-radius:6px;color:#dce8f2;text-align:left}
+.dei-heat-technique[data-level="strong"]{background:rgba(77,214,168,.27);border-color:rgba(77,214,168,.48)}.dei-heat-technique[data-level="partial"]{background:rgba(245,191,106,.22);border-color:rgba(245,191,106,.4)}.dei-heat-technique[data-level="gap"]{background:rgba(255,115,129,.19);border-color:rgba(255,115,129,.38)}.dei-heat-technique[data-level="none"]{background:rgba(80,102,125,.13);color:#8497aa}
+.dei-heat-legend{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 12px}.dei-heat-legend span{font-size:12px}
+@media(max-width:1050px){.dei-mitre-heatmap{grid-template-columns:repeat(3,minmax(150px,1fr))}.dei-context-guide dl{grid-template-columns:1fr}.dei-es-deployment-guide .dei-es-paths,.dei-catalog-troubleshooting .dei-troubleshooting-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.dei-mitre-heatmap{grid-template-columns:1fr}}
+
+/* Dedicated portfolio heat-map page. */
+.dei-mitre-heatmap-page>.dei-lifecycle-section{margin-top:16px;padding:20px;border:1px solid rgba(110,168,255,.2);border-radius:14px;background:#07131f}
+.dei-mitre-heatmap-page>.dei-lifecycle-section .dei-filter-stack{display:grid;grid-template-columns:minmax(240px,1fr) 220px 240px;gap:10px;margin:15px 0}
+.dei-mitre-heatmap-page>.dei-mitre-inspector{position:relative;max-height:none;margin-top:16px;padding:20px;border:1px solid rgba(110,168,255,.2);border-radius:14px;background:#07131f}
+.dei-mitre-heatmap-page .dei-heat-legend{padding:11px 13px;border:1px solid rgba(145,170,195,.16);border-radius:9px;background:#050e18}
+@media(max-width:900px){.dei-mitre-heatmap-page>.dei-lifecycle-section .dei-filter-stack{grid-template-columns:1fr}}
