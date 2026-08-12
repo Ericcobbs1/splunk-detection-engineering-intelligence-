@@ -12,6 +12,7 @@
             <div id="dei-home-detection-flow" class="dei-detection-flow dei-topology-flow" data-flow-state="idle" style="--dei-flow-progress:0%">
               <div class="dei-flow-header"><div><span class="dei-flow-live-dot"></span><strong>Live detection intelligence topology</strong></div><span id="dei-home-flow-status" aria-live="polite">Awaiting environment evidence</span></div>
               <div class="dei-topology-canvas" aria-label="Detection engineering evidence topology">
+                <div class="dei-earth-globe" aria-hidden="true"><div class="dei-earth-track"><img src="/static/app/splunk_detection_engineering_intelligence/dei_earth_360_v2.png" alt=""/><img src="/static/app/splunk_detection_engineering_intelligence/dei_earth_360_v2.png" alt=""/></div></div>
                 <svg id="dei-global-secops-map" class="dei-geo-map" viewBox="0 0 1200 440" preserveAspectRatio="none" aria-hidden="true">
                   <g class="dei-geo-grid">
                     <ellipse cx="600" cy="220" rx="520" ry="184"/><ellipse cx="600" cy="220" rx="520" ry="120"/><ellipse cx="600" cy="220" rx="520" ry="58"/>
