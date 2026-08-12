@@ -3,6 +3,7 @@
   <collection label="Detection Engineering">
     <view name="command_center" />
     <view name="mitre_coverage" />
+    <view name="mitre_heatmap" />
     <view name="detection_workflow" />
   </collection>
   <collection label="Operate">
