@@ -20,7 +20,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     )
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
-        "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css"
+        "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
     )
     for element_id in (
         "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
@@ -50,7 +50,7 @@ def test_environment_insights_contains_saved_results_without_discovery_form() ->
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,"
         "dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,"
-        "dei_guided_tour_v6.css,dei_responsive_v1.css"
+        "dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
     )
     for element_id in (
         "dei-environment-insights", "metric-sources",
