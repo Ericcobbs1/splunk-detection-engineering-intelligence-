@@ -1,0 +1,26 @@
+<form version="1.1" theme="dark" script="mitre_workspace_v4.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_detection_usability_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+  <label>MITRE ATT&amp;CK Heat Map</label>
+  <description>Portfolio-level ATT&amp;CK technique coverage across loaded DEI detections.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row><panel><html>
+    <div id="dei-mitre-page" class="dei-shell dei-mitre-page dei-mitre-heatmap-page">
+      <section class="dei-product-bar" aria-label="DEI workspace navigation">
+        <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>MITRE ATT&amp;CK Heat Map</span></div></div>
+        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a class="active" href="mitre_heatmap">Heat Map</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a></nav>
+        <div id="mitre-data-status" class="dei-status">Analysis: checking</div>
+      </section>
+      <section class="dei-mitre-page-head">
+        <div class="dei-mitre-head-copy"><p class="dei-eyebrow">Portfolio Coverage Intelligence</p><h1>Enterprise ATT&amp;CK portfolio heat map</h1><p>Measure aggregate technique coverage across loaded detections. Use the original Coverage page for individual detection mapping and detailed guidance.</p><div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="mitre_coverage">Open Detection Matrix</a><a class="dei-link-button" href="command_center#dei-telemetry">Open Environment Discovery</a></div></div>
+        <div class="dei-coverage-summary"><div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div><div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Across loaded detection findings</small></div></div>
+      </section>
+      <section class="dei-lifecycle-section">
+        <div class="dei-pane-head"><div><p class="dei-eyebrow">Heat Map Filters</p><h2>Aggregate technique coverage</h2><p>Filter the portfolio by detection name, readiness, or observed sourcetype.</p></div><span id="mitre-detection-count" class="dei-chip">0</span></div>
+        <div class="dei-filter-stack"><input id="mitre-filter" type="search" placeholder="Filter detections..."/><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select><select id="mitre-sourcetype-filter"><option value="all">All sourcetypes</option></select></div>
+        <div class="dei-heat-legend"><span>Green: production-ready coverage</span><span>Amber: partial coverage</span><span>Red: field or verification gap</span><span>Gray: uncovered</span></div>
+        <div id="mitre-heatmap" class="dei-mitre-heatmap" aria-label="MITRE ATT&amp;CK portfolio heat map"></div>
+      </section>
+      <section class="dei-mitre-inspector" aria-label="Heat-map technique details"><div class="dei-pane-head"><div><p class="dei-eyebrow">Technique Inspector</p><h2 id="mitre-inspector-title">Select a technique</h2><p>Select a heat-map cell to inspect the selected technique and mapped detection context.</p></div></div><div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Technique details will appear here.</p></div></section>
+      <div id="mitre-detection-list" hidden="hidden"></div><p id="mitre-matrix-context" hidden="hidden"></p><span id="mitre-covered-tactics" hidden="hidden"></span><div id="mitre-matrix" hidden="hidden"></div><section id="mitre-heatmap-panel"></section>
+    </div>
+  </html></panel></row>
+</form>
