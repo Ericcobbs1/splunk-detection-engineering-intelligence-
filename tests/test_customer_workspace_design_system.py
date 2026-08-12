@@ -27,8 +27,8 @@ def test_customer_pages_load_shared_readable_design_system() -> None:
         "detection_action_center", "detection_health", "detection_builder",
     ):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
-        assert "dei_design_system_v1.css" in root.attrib["stylesheet"].split(",")
-    css = (STATIC / "dei_design_system_v1.css").read_text(encoding="utf-8")
+        assert "dei_design_system_v2.css" in root.attrib["stylesheet"].split(",")
+    css = (STATIC / "dei_design_system_v2.css").read_text(encoding="utf-8")
     for contract in (
         "--dei-border-interactive:#536b82", "--dei-focus:#75e5cf",
         "font-size:14px", "outline:3px solid var(--dei-focus)",
