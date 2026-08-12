@@ -15,7 +15,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     assert root.attrib["script"] == "mitre_workspace_v4.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,"
-        "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css"
+        "dei_detection_usability_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css"
     )
     for element_id in (
         "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
