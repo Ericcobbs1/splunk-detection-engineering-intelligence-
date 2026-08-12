@@ -970,8 +970,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   $("#builder-edit-validation-query").on("click", function () {
-    $("#generator-spl")[0].scrollIntoView({behavior:"smooth",block:"center"});
-    window.setTimeout(function () { $("#generator-spl").focus(); },300);
+    var editor=$("#generator-spl");
+    if (!editor.length || editor.prop("readonly")) {
+      setFeedback("This validated version is governed and read-only. Return it to Draft before changing the SPL.", "error");
+      return;
+    }
+    $(document).trigger("dei:edit-spl-requested");
+    var pane=editor.closest("#guided-builder-workspace");
+    if (pane.length) { pane.scrollTop(Math.max(0,editor.position().top-80)); }
+    if (editor[0]&&editor[0].focus) { editor[0].focus({preventScroll:true}); }
     setFeedback("Edit the SPL using the resolution steps, save the draft, and run validation again.", "ready");
   });
   $("#builder-retry-validation").on("click", runValidation);
