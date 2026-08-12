@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="mitre_workspace_v4.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_detection_usability_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+<form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
   <label>MITRE ATT&amp;CK Coverage</label>
   <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -34,8 +34,8 @@
 
             <div class="dei-mitre-content">
               <main class="dei-mitre-matrix-pane">
-                <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK coverage views</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage, or open the portfolio heat map.</p></div><div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span><div class="dei-mitre-view-toggle" role="tablist" aria-label="MITRE coverage view"><button class="active" type="button" data-view="matrix" aria-selected="true">Detection Matrix</button><button type="button" data-view="heatmap" aria-selected="false">Portfolio Heat Map</button></div></div></div>
-                <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div><section id="mitre-heatmap-panel" hidden="hidden" aria-label="MITRE ATT&amp;CK portfolio heat map"><div class="dei-heat-legend"><span>Green: production-ready coverage</span><span>Amber: partial coverage</span><span>Red: field or verification gap</span><span>Gray: uncovered</span></div><div id="mitre-heatmap" class="dei-mitre-heatmap"></div></section>
+                <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK tactics</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage.</p></div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span></div>
+                <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div>
               </main>
 
               <section class="dei-mitre-inspector" aria-label="Coverage details">
