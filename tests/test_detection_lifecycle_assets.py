@@ -15,9 +15,10 @@ FRAMEWORK_PATH = Path("docs") / "DETECTION_ENGINEERING_FRAMEWORK.md"
 
 def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
+    catalog = ElementTree.parse(CATALOG_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js"
+    assert root.attrib["script"] == "detection_lifecycle_redirect_v1.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
     )
@@ -28,28 +29,29 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
         "life-spl-generated", "stage-discover", "stage-profile", "stage-qualify",
         "stage-recommend", "stage-design", "stage-generate", "stage-validate",
         "state-draft", "state-testing", "state-review", "state-catalog", "state-production",
-        "state-monitoring", "state-tuning", "state-retired", "lifecycle-workspace-menu",
+        "state-monitoring", "state-tuning", "state-retired",
         "dei-detection-flow", "dei-flow-status",
     ):
-        assert root.find(f".//*[@id='{element_id}']") is not None
-    assert root.find(".//*[@id='lifecycle-work-queue']") is None
+        if element_id.startswith("stage-") or element_id in ("dei-detection-flow", "dei-flow-status"):
+            assert catalog.find(f".//*[@id='{element_id}']") is not None
+    assert catalog.find(".//*[@id='lifecycle-map']") is not None
 
 
-def test_engineering_operations_owns_only_the_work_queue() -> None:
-    root = ElementTree.parse(OPERATIONS_PATH).getroot()
+def test_detection_catalog_owns_the_engineering_work_queue() -> None:
+    root = ElementTree.parse(CATALOG_PATH).getroot()
     for element_id in (
         "lifecycle-search", "lifecycle-readiness", "lifecycle-stage",
         "lifecycle-visible-rows",
-        "lifecycle-queue-count", "lifecycle-queue-total", "lifecycle-work-queue",
+        "lifecycle-queue-count", "lifecycle-work-queue",
         "lifecycle-reset-filters",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
-    assert root.find(".//*[@id='dei-detection-flow']") is None
+    assert root.find(".//*[@id='dei-detection-flow']") is not None
     assert root.find(".//*[@id='lifecycle-action-center']") is None
 
 
 def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> None:
-    root = ElementTree.parse(OPERATIONS_PATH).getroot()
+    root = ElementTree.parse(CATALOG_PATH).getroot()
     queue_section = root.find(".//*[@class='dei-lifecycle-section dei-lifecycle-queue-section']")
     row_filter = root.find(".//*[@id='lifecycle-visible-rows']")
     stylesheet = (STATIC_ROOT / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
@@ -67,6 +69,9 @@ def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> N
     assert '#lifecycle-work-queue tr{height:72px}' in stylesheet
     assert '#lifecycle-visible-rows' in javascript
     assert '.attr("data-visible-rows",rows==="25"?"25":"10")' in javascript
+    assert "var visibleItems=items.slice(0,visibleRows);" in javascript
+    assert '$("#lifecycle-visible-rows").on("change"' in javascript
+    assert "renderQueue();" in javascript
 
 
 def test_detection_lifecycle_is_registered_in_navigation() -> None:
@@ -75,14 +80,12 @@ def test_detection_lifecycle_is_registered_in_navigation() -> None:
     assert root.find(".//view[@name='detection_workflow']") is not None
     assert root.find(".//view[@name='detection_action_center']") is None
     assert root.find(".//view[@name='detection_builder']") is None
-    assert root.find(".//collection[@label='Operate']/view[@name='detection_operations']") is not None
-    assert root.find(".//view[@name='detection_operations']") is not None
-    assert root.find(".//view[@name='detection_catalog']") is not None
+    assert root.find(".//collection[@label='Operate']/view[@name='detection_catalog']") is not None
+    assert root.find(".//view[@name='detection_operations']") is None
 
 
 def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     catalog = ElementTree.parse(CATALOG_PATH).getroot()
-    operations = ElementTree.parse(OPERATIONS_PATH).getroot()
     javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     catalog_javascript = (STATIC_ROOT / "detection_catalog_v2.js").read_text(encoding="utf-8")
     assert "detection_catalog_v2.js" in catalog.attrib["script"].split(",")
@@ -97,7 +100,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     external_id_help = catalog.find(".//*[@id='catalog-external-id-help']")
     assert external_id.attrib["aria-describedby"] == "catalog-external-id-help"
     assert "exact deployed object name" in "".join(external_id_help.itertext())
-    assert operations.find(".//option[@value='detection_catalog']") is not None
+    assert catalog.find(".//a[@href='detection_catalog']") is not None
     assert "isEngineeringWork" in javascript
     assert "mergedQueue().filter(isEngineeringWork)" in javascript
     assert 'status:"ready"' in javascript

@@ -122,6 +122,5 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#catalog-search,#catalog-status-filter").on("input change",render); $("#catalog-refresh").on("click",load);
   $("#catalog-reset-filters").on("click",function () { $("#catalog-search").val(""); $("#catalog-status-filter").val("all"); $("[data-catalog-filter]").removeClass("active").filter('[data-catalog-filter="all"]').addClass("active"); render(); });
   $("[data-catalog-filter]").on("click",function () { var status=String($(this).data("catalog-filter")||"all"); $("[data-catalog-filter]").removeClass("active"); $(this).addClass("active"); $("#catalog-status-filter").val(status); render(); });
-  $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if (destination) { window.location.href=destination; } });
   initialize(0);
 });

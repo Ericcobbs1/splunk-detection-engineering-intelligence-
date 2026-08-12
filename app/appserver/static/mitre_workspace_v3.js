@@ -133,6 +133,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var focus = focusTechnique || techniques[0];
     var meta = focus ? techniqueMap[focus] : null;
     $("#mitre-inspector-title").text(item.name);
+    if ($("#dei-mitre-page").length) {
+      var summaryTactics = Object.keys(active).map(function (id) {
+        return '<span class="dei-mitre-summary-chip"><small>'+escapeHtml(id)+'</small><strong>'+escapeHtml(tacticName(id))+'</strong></span>';
+      }).join("");
+      var summaryTechniques = techniques.map(function (id) {
+        var technique=techniqueMap[id]||{name:"Mapped technique"};
+        return '<span class="dei-mitre-summary-chip technique"><small>'+escapeHtml(technique.currentId||id)+'</small><strong>'+escapeHtml(technique.name)+'</strong></span>';
+      }).join("");
+      $("#mitre-inspector-body").html('<section class="dei-mitre-summary-block"><span>ATT&amp;CK tactics</span><div>'+(summaryTactics||'<p class="dei-empty">No tactic mapping</p>')+'</div></section><section class="dei-mitre-summary-block"><span>Techniques</span><div>'+(summaryTechniques||'<p class="dei-empty">No technique mapping</p>')+'</div></section><a class="dei-link-button dei-mitre-explorer-link" href="mitre_framework_explorer?detection='+encodeURIComponent(item.detection_id)+'">View this detection in the full framework →</a>');
+      return;
+    }
     var tacticCards = Object.keys(active).map(function (id) {
       return '<div class="dei-inspector-outcome"><strong>' + escapeHtml(tacticName(id)) + '</strong><p>' + escapeHtml(protectionText[id] || "Provides defensive visibility at this ATT&CK stage.") + '</p></div>';
     }).join("");
@@ -268,6 +279,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   populateSourcetypeFilter();
   renderPortfolioCoverage();
   renderDetectionList();
-  if (report && report.recommendations && report.recommendations.length) { selected = report.recommendations[0]; }
+  if (report && report.recommendations && report.recommendations.length) {
+    var requested=String(window.location.search||"").match(/[?&]detection=([^&]+)/); var requestedId="";
+    if (requested) { try { requestedId=decodeURIComponent(requested[1]); } catch (error) { requestedId=requested[1]; } }
+    selected=report.recommendations.filter(function (item) { return item.detection_id===requestedId; })[0]||report.recommendations[0];
+  }
   renderDetectionList(); renderMatrix(); renderInspector(selected);
 });
