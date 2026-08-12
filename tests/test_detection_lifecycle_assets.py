@@ -55,7 +55,7 @@ def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> N
     queue_section = root.find(".//*[@class='dei-lifecycle-section dei-lifecycle-queue-section']")
     row_filter = root.find(".//*[@id='lifecycle-visible-rows']")
     stylesheet = (STATIC_ROOT / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert queue_section is not None and queue_section.attrib["data-visible-rows"] == "10"
     assert row_filter is not None
     assert [(option.attrib["value"], option.text) for option in row_filter.findall("option")] == [
@@ -86,7 +86,7 @@ def test_detection_lifecycle_compatibility_route_is_not_duplicated_in_navigation
 
 def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     catalog = ElementTree.parse(CATALOG_PATH).getroot()
-    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     catalog_javascript = (STATIC_ROOT / "detection_catalog_v2.js").read_text(encoding="utf-8")
     assert "detection_catalog_v2.js" in catalog.attrib["script"].split(",")
     assert "detection_catalog_v1.css" in catalog.attrib["stylesheet"].split(",")
@@ -146,7 +146,7 @@ def test_guided_detection_builder_owns_the_action_workspace() -> None:
 
 
 def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
-    javascript = (STATIC_ROOT / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
     framework = FRAMEWORK_PATH.read_text(encoding="utf-8")
     assert "dei.latestRecommendationReport" in javascript
