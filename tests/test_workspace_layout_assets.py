@@ -174,7 +174,12 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'shell().is("#dei-home-page")' in javascript
     assert shell.find(".//*[@class='dei-earth-globe']") is not None
     assert len(shell.findall(".//img[@src='/static/app/splunk_detection_engineering_intelligence/dei_earth_360_v2.png']")) == 2
-    assert ".dei-official-home .dei-earth-track{display:flex;width:200%" in stylesheet
+    assert ".dei-official-home .dei-earth-track{position:relative;z-index:0;display:flex;width:200%" in stylesheet
+    assert "width:min(72vw,760px)" in stylesheet
+    assert "aspect-ratio:1" in stylesheet
+    assert "border:2px solid rgba(112,214,255,.58)" in stylesheet
+    assert ".dei-official-home .dei-earth-globe:before" in stylesheet
+    assert "brightness(.92)" in stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "animation:dei-realistic-earth-rotation 52s linear infinite" in stylesheet
     assert "transform:translateX(-50%)" in stylesheet
