@@ -27,7 +27,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
-        "workflow-unified-workspace", "workflow-tab-artifact", "workflow-tab-change-control",
+        "workflow-unified-workspace", "workflow-tab-all", "workflow-tab-artifact", "workflow-tab-change-control",
         "workflow-artifact-mode", "lifecycle-action-close",
         "guided-builder-workspace", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-spl", "builder-quality-workspace",
@@ -161,3 +161,17 @@ def test_selected_detection_uses_one_in_place_governed_workspace() -> None:
     assert '["testing","peer_review","catalog","production","monitoring","retired"]' in workflow
     assert ".dei-unified-workspace" in stylesheet
     assert ".dei-workspace-tabs" in stylesheet
+    assert 'activateWorkspacePanel("all")' in lifecycle
+    assert 'data-active-panel="all"' in stylesheet
+
+
+def test_tuning_opens_an_editable_version_with_visible_guidance() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    view = (VIEWS / "detection_workflow.xml").read_text(encoding="utf-8")
+    assert 'action==="start_tuning"' in lifecycle
+    assert 'actionError("Document the tuning objective before opening a new editable version."' in lifecycle
+    assert 'pendingWorkspaceAction==="start_tuning"' in lifecycle
+    assert 'activateWorkspacePanel("all")' in lifecycle
+    assert 'Tuning version opened. Revise the editable artifact, then run fresh validation.' in lifecycle
+    assert 'id="lifecycle-inline-error"' in lifecycle
+    assert "Full workflow" in view
