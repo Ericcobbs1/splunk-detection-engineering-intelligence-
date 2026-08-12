@@ -39,9 +39,9 @@ def test_store_uses_kv_with_explicit_browser_fallback() -> None:
 
 def test_lifecycle_state_transitions_require_evidence() -> None:
     javascript = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
-    assert 'draft:["testing"]' in javascript
-    assert 'testing:["peer_review","draft"]' in javascript
-    assert 'peer_review:["production","draft"]' in javascript
+    assert 'draft:["testing","recommendation"]' in javascript
+    assert 'testing:["peer_review","draft","recommendation"]' in javascript
+    assert 'peer_review:["production","draft","recommendation"]' in javascript
     assert 'action:"return_draft",label:"Previous · Return to Draft"' in javascript
     assert 'production:["monitoring","retired"]' in javascript
     assert 'monitoring:["monitoring","tuning","retired"]' in javascript
@@ -114,6 +114,27 @@ def test_return_to_draft_has_explicit_validation_and_storage_transition() -> Non
     assert 'id="lifecycle-inline-error"' in lifecycle
     assert '.dei-inline-action-error' in stylesheet
     assert 'textarea[aria-invalid="true"]' in stylesheet
+
+
+def test_detection_can_restart_at_recommendation_without_losing_audit_history() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    view = (APP / "default/data/ui/views/detection_workflow.xml").read_text(encoding="utf-8")
+    assert 'draft:["testing","recommendation"]' in lifecycle
+    assert 'testing:["peer_review","draft","recommendation"]' in lifecycle
+    assert 'peer_review:["production","draft","recommendation"]' in lifecycle
+    assert "function restartFromRecommendation(record,reason)" in lifecycle
+    assert 'closure:"restarted_from_recommendation"' in lifecycle
+    assert 'previous_versions:(record.previous_versions||[]).concat([archived])' in lifecycle
+    assert 'version:Number(record.version||1)+1' in lifecycle
+    assert 'spl:"",schedule:null,validation:null,review:null,deployment:null,monitoring:null,catalog:null' in lifecycle
+    assert 'action==="restart_recommendation"' in lifecycle
+    assert "function syncBrowserArtifact(record)" in lifecycle
+    assert 'action==="return_draft"||action==="restart_recommendation"' in lifecycle
+    assert "function updateRestartControl(record)" in lifecycle
+    assert 'stage!=="recommendation"' in workflow
+    for element_id in ("builder-restart-workflow", "builder-restart-panel", "builder-restart-reason", "builder-confirm-restart", "builder-cancel-restart"):
+        assert f'id="{element_id}"' in view
 
 
 def test_work_queue_joins_recommendations_and_records() -> None:
