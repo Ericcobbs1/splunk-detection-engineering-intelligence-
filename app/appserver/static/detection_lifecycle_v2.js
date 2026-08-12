@@ -315,14 +315,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function buttonMarkup(record) {
     var controls=stageControls(record); var markup='<div class="dei-stage-controller" aria-label="Lifecycle stage controls">';
-    markup+=controls.previous?'<button class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
-    if (controls.edit) { markup+='<button data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
-    if (controls.next) { markup+='<button class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
-    if (["testing","peer_review"].indexOf(record.state)!==-1) { markup+='<button class="restart" data-action="restart_recommendation">↶ Restart from recommendation</button>'; }
+    markup+=controls.previous?'<button type="button" class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
+    if (controls.edit) { markup+='<button type="button" data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
+    if (controls.next) { markup+='<button type="button" class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
+    if (["testing","peer_review"].indexOf(record.state)!==-1) { markup+='<button type="button" class="restart" data-action="restart_recommendation">↶ Restart from recommendation</button>'; }
     markup+='</div>';
-    if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open guided builder</button>'; }
-    if (["testing","peer_review","production","monitoring"].indexOf(record.state)!==-1) { return markup+(record.state==="production"||record.state==="monitoring"?'<button class="danger" data-action="retire">Retire</button>':""); }
-    if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open guided builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
+    if (record.state==="draft") { return '<button type="button" class="primary" data-action="open_builder">Open guided builder</button>'; }
+    if (["testing","peer_review","production","monitoring"].indexOf(record.state)!==-1) { return markup+(record.state==="production"||record.state==="monitoring"?'<button type="button" class="danger" data-action="retire">Retire</button>':""); }
+    if (record.state==="tuning") { return '<button type="button" class="primary" data-action="open_builder">Open guided builder for tuning</button><button type="button" class="danger" data-action="retire">Retire</button>'; }
     return "";
   }
 
@@ -414,12 +414,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     if (action==="submit_review") {
-      if (!record.validation || record.validation.status!=="passed") { return; }
-      if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A review submission note is required."); return; }
+      if (!record.validation || record.validation.status!=="passed") { actionError("Passed validation evidence is required before submitting this version for peer review."); return; }
+      if (!comment) { actionError("Summarize the validation evidence, analytic intent, expected analyst behavior, and known limitations before submitting for peer review.","Peer-review submission note *"); return; }
       saveAndReload(transition(record,"peer_review","submitted_for_review",comment,{review:{decision:"pending",submitted_at:new Date().toISOString(),submitted_by:Store.username(),submission_note:comment}}),"Submitted for peer review.",action); return;
     }
     if (action==="approve_review") {
-      if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Approval rationale is required."); return; }
+      if (!comment) { actionError("Document why this version is safe, scoped, and operationally actionable before approving it.","Peer-review approval rationale *"); return; }
       var catalogedAt=new Date().toISOString();
       var approved=$.extend(true,{},record,{review:$.extend({},record.review,{decision:"approved",reviewed_at:catalogedAt,reviewer:Store.username(),comments:comment}),catalog:{status:"ready",cataloged_at:catalogedAt,cataloged_by:Store.username()}});
       approved=Store.appendHistory(approved,"peer_review_approved",comment);
@@ -573,8 +573,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     selectRecord(value);
   });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });
-  $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
-  $("#lifecycle-action-progress").on("click","[data-stage-action]",function () { handleAction(String($(this).data("stage-action")||"")); });
+  $("#lifecycle-action-buttons").on("click","button[data-action]",function (event) { event.preventDefault(); event.stopPropagation(); if ($(this).prop("disabled")) { return; } handleAction(String($(this).data("action")||"")); });
+  $("#lifecycle-action-progress").on("click","[data-stage-action]",function (event) { event.preventDefault(); event.stopPropagation(); if ($(this).prop("disabled")) { return; } handleAction(String($(this).data("stage-action")||"")); });
   $("#workflow-primary-action").on("click",function (event) {
     if (String($(this).attr("href")||"")!=="#lifecycle-action-center") { return; }
     var key=String($("#workflow-detection-select").val()||""); if (key) { selectRecord(key); event.preventDefault(); }
