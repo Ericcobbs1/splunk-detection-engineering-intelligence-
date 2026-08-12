@@ -27,6 +27,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
+        "lifecycle-action-backdrop", "lifecycle-action-close",
         "guided-builder-workspace", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-spl", "builder-quality-workspace",
         "builder-run-validation", "builder-validation-resolution",
@@ -114,6 +115,9 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     guided = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     assert operations.find(".//*[@id='lifecycle-action-center']") is None
     assert guided.find(".//*[@id='lifecycle-action-center']") is not None
+    action_center = guided.find(".//*[@id='lifecycle-action-center']")
+    assert action_center.attrib["role"] == "dialog"
+    assert action_center.attrib["aria-modal"] == "true"
     assert 'href="detection_workflow?detection=' in lifecycle
     assert "dei:workflow-detection-selected" in lifecycle
     assert "dei:workflow-detection-selected" in workflow
@@ -121,6 +125,12 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert "dei:lifecycle-records-updated" in workflow
     assert "generatedDrafts" in lifecycle
     assert "draftStarted" in lifecycle
+    assert "opensActionWindow" in lifecycle
+    assert "openActionWindow" in lifecycle
+    assert "closeActionWindow" in lifecycle
+    assert '$("#workflow-primary-action").on("click"' in lifecycle
+    assert 'event.key==="Escape"' in lifecycle
+    assert 'event.key!=="Tab"' in lifecycle
     assert "dei:detection-draft-reset" in lifecycle
     assert "dei:detection-draft-generated" in lifecycle
     assert "dei:detection-draft-reset" in generator
