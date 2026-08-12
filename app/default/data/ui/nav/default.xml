@@ -8,7 +8,6 @@
   <collection label="Operate">
     <view name="detection_catalog" />
     <view name="detection_health" />
-    <view name="detection_lifecycle" />
   </collection>
   <collection label="Splunk">
     <view name="search" />
