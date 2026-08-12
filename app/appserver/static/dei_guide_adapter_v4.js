@@ -35,6 +35,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var renderedStep=-1;
   var activeTarget=null;
   var renderingGuide=false;
+  var reviewReturnMode=false;
   var steps=[
     {page:"home",target:".dei-run-intelligence-scan",title:"Discover active telemetry",instruction:"Start a current, permission-aware scan of the Splunk data available to DEI.",actionLabel:"Select Run new scan"},
     {page:"environment",target:"#dei-open-environment-insights",title:"Open the readiness results",instruction:"Continue to the intelligence generated from the completed telemetry scan.",actionLabel:"Select View intelligence results"},
@@ -72,13 +73,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function readStep() { var value=Number(window.sessionStorage.getItem(sessionKey(STEP_KEY))||0); return Math.max(0,Math.min(steps.length-1,value)); }
   function writeStep(value) { window.sessionStorage.setItem(sessionKey(STEP_KEY),String(value)); }
+  function activeStep(index) {
+    if(reviewReturnMode&&index===10) return {page:"builder",target:'[data-action="return_draft"]',title:"Return the version for required changes",instruction:"Change control must be explicit. Use Return for changes to reopen engineering work, or continue the review without changing lifecycle state.",actionText:"Select Return for changes",reviewReturn:true};
+    return steps[index];
+  }
   function targetFor(step) { return $(step.target).filter(":visible").first(); }
   function scheduleRender(delay) { window.clearTimeout(renderTimer); renderTimer=window.setTimeout(render,delay||80); }
   function observeTargets() {
     if(targetObserver||!window.MutationObserver) return;
     targetObserver=new window.MutationObserver(function(){
       if(renderingGuide||!$("#"+OVERLAY_ID).length) return;
-      var candidate=targetFor(steps[readStep()]);
+      var candidate=targetFor(activeStep(readStep()));
       if(!candidate.length||candidate[0]!==activeTarget) scheduleRender(60);
     });
     targetObserver.observe(document.body,{childList:true,subtree:true});
@@ -90,7 +95,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var rect=target[0].getBoundingClientRect();
     marker.css({top:Math.max(8,rect.top-13),left:Math.min(window.innerWidth-112,Math.max(8,rect.right-98))});
   }
-  function focusTarget() { var target=targetFor(steps[readStep()]); if (!target.length) return; target[0].scrollIntoView({behavior:"smooth",block:"center"}); window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").focus(); },320); }
+  function focusTarget() { var target=targetFor(activeStep(readStep())); if (!target.length) return; target[0].scrollIntoView({behavior:"smooth",block:"center"}); window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").focus(); },320); }
   function position(target) {
     var dialog=$(".dei-onboarding-dialog"); if (!dialog.length) return;
     var placement="right";
@@ -111,7 +116,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function render() {
     if(!window.DEIInteractiveGuide){ loadGuide(function(ready){ if(ready) render(); }); return; }
-    var index=readStep(),step=steps[index];
+    var index=readStep(),step=activeStep(index);
     if (page()!==step.page) { close(false); return; }
     if(index===5 && $("#builder-detection-select").val()){ writeStep(6); scheduleRender(0); return; }
     if(index===6 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(7); scheduleRender(0); return; }
@@ -130,18 +135,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ if(index>0) goToStep(index-1);},onClose:function(){close(true);},onFocusTarget:focusTarget});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onContinueReview:function(){ reviewReturnMode=false; renderedStep=-1; render();},onClose:function(){close(true);},onFocusTarget:focusTarget});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
     if(stepChanged) focusTarget();
   }
   function goToStep(index) {
+    reviewReturnMode=false;
     writeStep(index);
     renderedStep=-1;
     var step=steps[readStep()];
     if(page()!==step.page){ window.location.href=route(step.page); return; }
     render();
+  }
+  function guideBack(index) {
+    if(index===10&&$('[data-action="return_draft"]:visible').length){ reviewReturnMode=true; renderedStep=-1; activeTarget=null; render(); return; }
+    if(index>0) goToStep(index-1);
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } goToStep(index+1); }
   function completeDraft(id,record) {
@@ -171,10 +181,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("dei:lifecycle-action-complete", function(_event,action){
     if(readStep()===9&&action==="submit_review") goToStep(10);
     if(readStep()===11&&action==="approve_review") goToStep(12);
+    if(action==="return_draft"&&readStep()>=8&&readStep()<=11) goToStep(7);
   });
   $(document).on("input change", "#catalog-external-id", function(){ if(readStep()===12 && String($(this).val()||"").trim()) goToStep(13); });
   $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===13 && status==="enabled") goToStep(14); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
-  $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(steps[readStep()]); position(target); updateMarker(target); } });
+  $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
 });

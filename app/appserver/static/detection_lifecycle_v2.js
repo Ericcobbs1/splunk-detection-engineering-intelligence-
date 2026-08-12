@@ -272,7 +272,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function buttonMarkup(record) {
     if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open guided builder</button>'; }
     if (record.state==="testing") {
-      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open guided builder</button>';
+      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open guided builder</button><button data-action="return_draft">Return to Draft</button>';
     }
     if (record.state==="peer_review") {
       return record.review && record.review.decision==="approved" ?
