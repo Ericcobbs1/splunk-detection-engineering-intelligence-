@@ -19,12 +19,13 @@ def test_every_workspace_loads_the_shared_scan_service():
         assert "dei_environment_scan_v1.js" in root.attrib["script"].split(","), view.name
 
 
-def test_home_scan_is_an_operation_not_a_redirect():
+def test_home_scan_is_consolidated_into_environment_discovery():
     layout = _source("dei_workspace_layout_v14.js")
     service = _source("dei_environment_scan_v1.js")
     assert 'href="command_center#dei-telemetry"' in layout
-    assert 'window.DEIEnvironmentScan.run(' in layout
-    assert '<a href="command_center#dei-telemetry">Run intelligence scan' not in layout
+    assert 'window.DEIEnvironmentScan.run(' not in layout
+    assert 'dei-run-intelligence-scan' not in layout
+    assert 'command_center#dei-telemetry' in layout
     assert "dei:scan-progress" in service
     assert "dei:environment-refreshed" in service
     assert "latestRecommendationReport" in service
