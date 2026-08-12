@@ -100,6 +100,22 @@ def test_lifecycle_modal_has_fluid_evidence_gated_stage_controls() -> None:
     assert '.dei-progress-step.available' in stylesheet
 
 
+def test_return_to_draft_has_explicit_validation_and_storage_transition() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
+    assert "function returnToDraft(record,comment)" in lifecycle
+    assert '["testing","peer_review"].indexOf(record.state)===-1' in lifecycle
+    assert 'transition(record,"draft","returned_for_changes"' in lifecycle
+    assert "returned_at:new Date().toISOString()" in lifecycle
+    assert 'validation:null,deployment:null,catalog:null' in lifecycle
+    assert 'actionError("Enter the required change before returning this detection to Draft' in lifecycle
+    assert 'setActionBusy(true,action==="return_draft"' in lifecycle
+    assert 'Returned to Draft and reopened in Guided Builder.' in lifecycle
+    assert 'id="lifecycle-inline-error"' in lifecycle
+    assert '.dei-inline-action-error' in stylesheet
+    assert 'textarea[aria-invalid="true"]' in stylesheet
+
+
 def test_work_queue_joins_recommendations_and_records() -> None:
     javascript = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     assert "function mergedQueue()" in javascript
