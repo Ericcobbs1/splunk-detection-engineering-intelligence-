@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,detection_action_center_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,detection_action_center_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
+<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,detection_action_center_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,detection_action_center_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css">
   <label>Detection Action Center</label>
   <description>Prioritized detection findings, evidence gaps, and remediation actions.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -8,7 +8,7 @@
         <main id="dei-action-center-page" class="dei-shell dei-action-center">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Action Center</span></div></div>
-            <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a href="dei_home">Home</a><a href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a class="active" href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav" aria-label="Primary workspaces"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a class="active" href="detection_operations">Operate</a></nav>
           </section>
 
           <header class="dei-action-center-hero">

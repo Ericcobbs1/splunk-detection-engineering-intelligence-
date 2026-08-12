@@ -19,7 +19,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == "dei_lifecycle_store_v1.js,detection_lifecycle_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js"
     assert root.attrib["stylesheet"] == (
-        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css"
+        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
     )
     for element_id in (
         "dei-lifecycle-page", "lifecycle-data-status", "lifecycle-analysis-age",
@@ -73,10 +73,11 @@ def test_detection_lifecycle_is_registered_in_navigation() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
     assert root.find(".//view[@name='detection_lifecycle']") is not None
     assert root.find(".//view[@name='detection_workflow']") is not None
-    assert root.find(".//view[@name='detection_action_center']") is not None
+    assert root.find(".//view[@name='detection_action_center']") is None
+    assert root.find(".//view[@name='detection_builder']") is None
+    assert root.find(".//collection[@label='Operate']/view[@name='detection_operations']") is not None
     assert root.find(".//view[@name='detection_operations']") is not None
     assert root.find(".//view[@name='detection_catalog']") is not None
-    assert root.find(".//view[@name='detection_builder']") is not None
 
 
 def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
@@ -118,7 +119,7 @@ def test_guided_detection_builder_owns_the_action_workspace() -> None:
     assert "detection_query_generator_v5.js" in builder.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in builder.attrib["script"].split(",")
     for element_id in (
-        "dei-guided-detection-page", "guided-builder-workspace", "lifecycle-workspace-menu",
+            "dei-guided-detection-page", "guided-builder-workspace",
         "builder-ready-count", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-es-state", "generator-empty",
         "generator-output", "generator-title", "generator-badges",

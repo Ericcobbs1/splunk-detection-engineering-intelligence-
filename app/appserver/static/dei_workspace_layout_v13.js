@@ -705,7 +705,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!root.length) { return; }
     if (bar.length && !bar.find(".dei-workspace-controls").length) {
       var nav=bar.find(".dei-workspace-nav").first();
-      if (nav.length && !nav.find('a[href="detection_health"]').length) { nav.append('<a href="detection_health">Health</a>'); }
       var status = bar.find(".dei-status").first();
       var simplifiedBuilder = root.is("#dei-guided-detection-page");
       if (!simplifiedBuilder) {

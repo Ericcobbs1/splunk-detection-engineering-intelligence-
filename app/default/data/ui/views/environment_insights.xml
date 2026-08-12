@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css">
+<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css">
   <label>DEI Environment Intelligence</label>
   <description>Review the persisted detection readiness and ATT&amp;CK coverage analysis.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -8,7 +8,7 @@
         <div id="dei-environment-insights" class="dei-shell dei-environment-insights">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Environment Intelligence</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Environment</a><a href="mitre_coverage">MITRE ATT&amp;CK</a><a href="detection_workflow">Guided Builder</a><a href="detection_lifecycle">Lifecycle</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_operations">Operate</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 
@@ -25,16 +25,18 @@
             <article class="dei-metric metric-accent"><span>Detection potential</span><strong id="metric-potential">0%</strong><small>portfolio readiness</small></article>
           </section>
 
-          <section id="dei-telemetry-change-section" class="dei-telemetry-change-section" aria-labelledby="dei-telemetry-change-title">
+          <details id="dei-telemetry-change-section" class="dei-telemetry-change-section dei-workspace-disclosure" aria-labelledby="dei-telemetry-change-title">
+            <summary>What changed since the previous successful scan</summary><div class="dei-disclosure-body">
             <div class="dei-telemetry-change-head"><div><p class="dei-eyebrow">Telemetry Change Intelligence</p><h2 id="dei-telemetry-change-title">Changes affecting detection engineering</h2><p>Compare the current scan with the previous successful baseline to identify new telemetry, schema drift, and detection-readiness impact.</p></div><span id="dei-change-baseline-state" class="dei-chip">No baseline comparison</span></div>
             <div class="dei-telemetry-change-metrics"><article><span>New sources</span><strong id="dei-change-new-sources">0</strong></article><article><span>Removed sources</span><strong id="dei-change-removed-sources">0</strong></article><article><span>Schema changes</span><strong id="dei-change-schema">0</strong></article><article><span>Newly buildable</span><strong id="dei-change-buildable">0</strong></article><article class="risk"><span>Readiness regressions</span><strong id="dei-change-regressions">0</strong></article></div>
             <div id="dei-telemetry-change-findings" class="dei-telemetry-change-findings"><p class="dei-empty">Run two successful scans to establish and compare telemetry baselines.</p></div>
-          </section>
+            </div></details>
 
-          <section id="dei-portfolio-section" class="dei-portfolio" aria-label="Detection portfolio">
+          <details id="dei-portfolio-section" class="dei-portfolio dei-workspace-disclosure" aria-label="Detection portfolio">
+            <summary>Detection readiness breakdown</summary><div class="dei-disclosure-body">
             <div class="dei-portfolio-heading"><div><p class="dei-eyebrow">Detection Portfolio</p><h2>Readiness at a glance</h2><p>Operational view of deployable detections, remediation work, and evidence gaps.</p></div><span id="portfolio-total" class="dei-chip">0 opportunities</span></div>
             <div class="dei-portfolio-grid"><article class="portfolio-ready"><span class="dei-dot ready"></span><div><strong id="portfolio-ready">0</strong><small>Production ready</small></div></article><article class="portfolio-partial"><span class="dei-dot partial"></span><div><strong id="portfolio-partial">0</strong><small>Partial / field gaps</small></div></article><article class="portfolio-gap"><span class="dei-dot gap"></span><div><strong id="portfolio-field-gaps">0</strong><small>Confirmed field gaps</small></div></article><article class="portfolio-unverified"><span class="dei-dot unverified"></span><div><strong id="portfolio-unverified">0</strong><small>Field unverified</small></div></article></div>
-          </section>
+            </div></details>
 
           <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&amp;CK coverage intelligence">
             <div class="dei-env-titlebar">
@@ -60,7 +62,7 @@
               </article>
             </div>
 
-            <div class="dei-env-detail-grid">
+            <details class="dei-workspace-disclosure"><summary>Detailed telemetry and ATT&amp;CK evidence</summary><div class="dei-disclosure-body"><div class="dei-env-detail-grid">
               <article class="dei-env-detail-card dei-domain-distribution-card">
                 <div class="dei-env-card-head"><div><h3>Telemetry Domain Distribution</h3><p>Detection opportunities grouped by telemetry domain.</p></div></div>
                 <div class="dei-domain-distribution-body"><div id="env-domain-donut" class="dei-domain-donut"><strong id="env-domain-count">0</strong><span>domains</span></div><div id="env-domain-legend" class="dei-domain-legend"></div></div>
@@ -81,6 +83,7 @@
             </div>
 
             <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Select <strong>Refresh environment</strong> to replace it with fresh analysis, or <strong>Clear dashboard</strong> to remove it before another query.</div>
+            </div></details>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>

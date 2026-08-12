@@ -1,16 +1,15 @@
 <nav search_view="search">
   <view name="dei_home" default="true" />
-  <collection label="Intelligence">
-    <view name="dei_home" />
+  <collection label="Detection Engineering">
     <view name="command_center" />
     <view name="mitre_coverage" />
-    <view name="detection_lifecycle" />
     <view name="detection_workflow" />
-    <view name="detection_action_center" />
+  </collection>
+  <collection label="Operate">
     <view name="detection_operations" />
     <view name="detection_catalog" />
-    <view name="detection_builder" />
     <view name="detection_health" />
+    <view name="detection_lifecycle" />
   </collection>
   <collection label="Splunk">
     <view name="search" />
