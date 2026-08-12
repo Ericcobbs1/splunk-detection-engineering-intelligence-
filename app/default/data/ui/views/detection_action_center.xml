@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,detection_action_center_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,detection_action_center_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,detection_action_center_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,detection_action_center_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
   <label>Detection Action Center</label>
   <description>Prioritized detection findings, evidence gaps, and remediation actions.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -34,7 +34,7 @@
               <button id="action-reset-filters" type="button">Reset filters</button>
             </div>
             <div id="action-loading" class="dei-action-empty">Loading recommendation and lifecycle evidence…</div>
-            <div id="action-empty" class="dei-action-empty" hidden="hidden"><strong>No findings match these filters.</strong><p>Reset the filters or run a fresh environment intelligence scan.</p><button class="dei-run-intelligence-scan" type="button">Run intelligence scan →</button></div>
+            <div id="action-empty" class="dei-action-empty" hidden="hidden"><strong>No findings match these filters.</strong><p>Reset the filters or run a fresh environment intelligence scan.</p><a class="dei-link-button dei-scan-discovery-link" href="command_center#dei-telemetry">Open Environment Discovery →</a></div>
             <div id="action-findings" class="dei-action-findings" aria-live="polite"></div>
           </section>
         </main>
