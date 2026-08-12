@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+<form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
   <label>MITRE ATT&amp;CK Coverage</label>
   <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -17,7 +17,7 @@
               <p class="dei-eyebrow">Detection Coverage Intelligence</p>
               <h1>Enterprise ATT&amp;CK coverage workspace</h1>
               <p>Choose a detection opportunity, inspect where it is effective in ATT&amp;CK, and use the bundled offline reference when this search head cannot reach the Internet.</p>
-              <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Refresh analysis</a></div>
+              <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Open Environment Discovery</a></div>
             </div>
             <div class="dei-coverage-summary" aria-label="Portfolio ATT&amp;CK coverage summary">
               <div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div>
