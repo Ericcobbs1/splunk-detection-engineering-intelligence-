@@ -73,8 +73,9 @@
             </section>
           </section>
 
-          <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center dei-guided-action-center" style="display:none">
-            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Guided Lifecycle Action</p><h2 id="lifecycle-action-title">Select a lifecycle record</h2><p id="lifecycle-action-summary">Next required action: review evidence and complete the analyst-controlled gate.</p></div><div class="dei-lifecycle-position"><span id="lifecycle-action-position">Lifecycle position</span><strong id="lifecycle-action-state">No record selected</strong></div></div>
+          <div id="lifecycle-action-backdrop" class="dei-action-modal-backdrop" hidden="hidden"></div>
+          <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center dei-guided-action-center" style="display:none" role="dialog" aria-modal="true" aria-labelledby="lifecycle-action-title" aria-describedby="lifecycle-action-summary" tabindex="-1">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Change Control</p><h2 id="lifecycle-action-title">Select a lifecycle record</h2><p id="lifecycle-action-summary">Move this detection backward for required changes or forward after its evidence gate is satisfied.</p></div><div class="dei-lifecycle-modal-controls"><div class="dei-lifecycle-position"><span id="lifecycle-action-position">Lifecycle position</span><strong id="lifecycle-action-state">No record selected</strong></div><button id="lifecycle-action-close" type="button" aria-label="Close detection change-control window">×</button></div></div>
             <div id="lifecycle-action-feedback" class="dei-builder-feedback ready" role="status" aria-live="polite">Select a detection above to continue.</div>
             <div id="lifecycle-action-progress" class="dei-action-progress"></div>
             <div class="dei-action-grid"><article><span class="dei-generator-label">Required evidence and action</span><div id="lifecycle-action-evidence"></div><div id="lifecycle-action-fields"></div><div id="lifecycle-action-buttons" class="dei-generator-actions"></div></article><article><span class="dei-generator-label">Audit history</span><div id="lifecycle-action-history" class="dei-audit-history"></div></article></div>
