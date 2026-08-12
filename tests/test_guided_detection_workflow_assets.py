@@ -221,3 +221,21 @@ def test_all_lifecycle_controls_are_non_submitting_and_peer_review_is_guarded() 
     assert 'actionError("Document why this version is safe, scoped, and operationally actionable' in lifecycle
     assert 'transition(record,"peer_review","submitted_for_review"' in lifecycle
     assert 'Store.appendHistory(approved,"peer_review_approved"' in lifecycle
+
+
+def test_detection_usability_guidance_and_es_handoff_are_packaged() -> None:
+    root = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
+    scripts = root.attrib["script"].split(",")
+    styles = root.attrib["stylesheet"].split(",")
+    xml = (VIEWS / "detection_workflow.xml").read_text(encoding="utf-8")
+    usability = (STATIC / "dei_detection_usability_v1.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
+    assert "dei_detection_usability_v1.js" in scripts
+    assert "dei_detection_usability_v1.css" in styles
+    assert "Deploy to Enterprise Security" in xml
+    assert "Configure → Content → Content Management" in xml
+    assert 'field.style.height=Math.max(240,field.scrollHeight+4)+"px"' in usability
+    assert 'resize:vertical' in (STATIC / "dei_detection_usability_v1.css").read_text(encoding="utf-8")
+    assert "lifecycle-review-period" in lifecycle
+    assert "review_period:reviewPeriod" in lifecycle
+    assert "Settings → Searches, Reports, and Alerts" in usability
