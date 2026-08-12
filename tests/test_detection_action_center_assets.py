@@ -28,7 +28,7 @@ def test_home_keeps_operational_findings_off_the_landing_page() -> None:
     action = home.find(".//*[@id='dei-home-health-action']")
     assert action is None
     assert home.find(".//*[@id='dei-home-health-actions']") is None
-    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     assert '.attr("href","detection_action_center")' in javascript
     assert '#dei-home-health-actions-close' not in javascript
 
