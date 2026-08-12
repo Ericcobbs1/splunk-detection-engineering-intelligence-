@@ -59,7 +59,7 @@ def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None
         assert destination in javascript
     for action in (
         "Start detection draft", "Review telemetry actions", "Review SPL and validate", "Open validation handoff",
-        "Open peer review", "Open catalog enablement", "Record monitoring baseline",
+        "Open peer review", "Open catalog change control", "Record monitoring baseline",
         "Manage monitoring", "Open tuning workspace", "Review retired detection",
     ):
         assert action in javascript

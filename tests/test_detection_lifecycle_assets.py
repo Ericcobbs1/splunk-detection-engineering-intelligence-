@@ -95,8 +95,7 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     external_id = catalog.find(".//*[@id='catalog-external-id']")
     external_id_help = catalog.find(".//*[@id='catalog-external-id-help']")
     assert external_id.attrib["aria-describedby"] == "catalog-external-id-help"
-    assert "DEI - <Detection Name> - <Environment>" in "".join(external_id_help.itertext())
-    assert "Settings → Searches, reports, and alerts" in "".join(external_id_help.itertext())
+    assert "exact deployed object name" in "".join(external_id_help.itertext())
     assert operations.find(".//option[@value='detection_catalog']") is not None
     assert "isEngineeringWork" in javascript
     assert "mergedQueue().filter(isEngineeringWork)" in javascript
@@ -105,8 +104,8 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     assert "saveAndOpenCatalog" in javascript
     assert 'window.location.href="detection_catalog?detection="' in javascript
     for contract in (
-        "cataloged(record)", 'status==="ready"', 'data-catalog-action="enable"',
-        'copy.state="production"', 'status:"enabled"', "catalog_detection_disabled",
+        "cataloged(record)", '["ready","development","staging"]', 'data-catalog-action="deploy"',
+        'production?"production":"peer_review"', 'production?"enabled":environment', "catalog_detection_disabled",
         "detection_workflow?detection=", "Record health, tune, or retire",
     ):
         assert contract in catalog_javascript
@@ -175,7 +174,7 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "renderPipelineState" in javascript
     assert "activatePipelineStage" in javascript
     assert "data-pipeline-state" in javascript
-    assert "Record deployment and enter Production" in javascript
+    assert "Record deployment" in javascript
     assert "Record baseline and start Monitoring" in javascript
     assert ".dei-pipeline-grid" in stylesheet
     assert ".dei-state-grid" in stylesheet

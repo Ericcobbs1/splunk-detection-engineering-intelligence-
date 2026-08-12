@@ -63,6 +63,27 @@ def test_lifecycle_state_transitions_require_evidence() -> None:
     assert "deployment:null,monitoring:null" in javascript
 
 
+def test_catalog_manage_preserves_peer_review_and_routes_deployment_buckets() -> None:
+    catalog = (STATIC / "detection_catalog_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    view = (APP / "default" / "data" / "ui" / "views" / "detection_catalog.xml").read_text(encoding="utf-8")
+    for bucket in ("development", "staging", "production"):
+        assert f'<option value="{bucket}">' in view
+    for target in ("splunk_platform", "enterprise_security", "external"):
+        assert target in catalog
+    assert 'detection_workflow?detection=' in catalog
+    assert 'Open peer review and lifecycle' in catalog
+    assert 'data-catalog-action="return_draft"' in catalog
+    assert 'production=environment==="production"' in catalog
+    assert 'copy.state=production?"production":"peer_review"' in catalog
+    assert 'production?"enabled":environment' in catalog
+    assert 'nonproduction_deployment_recorded' in catalog
+    assert 'record.state!=="draft"' in catalog
+    assert 'copy.catalog=null' in catalog
+    assert 'deployment:null,catalog:null' in lifecycle
+    assert 'environment==="production"' in lifecycle
+
+
 def test_work_queue_joins_recommendations_and_records() -> None:
     javascript = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     assert "function mergedQueue()" in javascript
