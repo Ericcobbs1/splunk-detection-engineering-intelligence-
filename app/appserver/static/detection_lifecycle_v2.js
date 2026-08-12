@@ -282,13 +282,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function fieldMarkup(record) {
     if (record.state==="testing") {
-      return '<label class="dei-action-field"><span>Review submission note *</span><textarea id="lifecycle-action-comment" placeholder="Summarize validation evidence, analytic intent, expected analyst behavior, and known limitations."></textarea></label>';
+      return '<label class="dei-action-field"><span id="lifecycle-action-comment-label">Transition rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="For Continue, summarize validation evidence. For Return to Draft, document the required change."></textarea><small id="lifecycle-action-comment-help">This note is required for both forward submission and governed rollback.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="peer_review") {
       if (record.review && record.review.decision==="approved") {
         return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" placeholder="Exact deployed object reference"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional change request, deployment evidence, or required rationale when reopening Draft."></textarea></label>';
       }
-      return '<label class="dei-action-field"><span>Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" placeholder="Document why this version is approved or list the exact changes required."></textarea></label>';
+      return '<label class="dei-action-field"><span id="lifecycle-action-comment-label">Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-inline-error" placeholder="Document why this version is approved or list the exact changes required."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="production" || record.state==="monitoring") {
       var prior=record.monitoring||{};
@@ -337,6 +337,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function note() { return String($("#lifecycle-action-comment").val()||"").trim(); }
+  function actionError(message,label) {
+    var field=$("#lifecycle-action-comment"); var inline=$("#lifecycle-inline-error");
+    if (label) { $("#lifecycle-action-comment-label").text(label); }
+    inline.prop("hidden",false).text(message); field.attr("aria-invalid","true").trigger("focus");
+    if (field.length) { field[0].scrollIntoView({behavior:"smooth",block:"center"}); }
+    $("#lifecycle-action-feedback").removeClass("ready success").addClass("error").text(message);
+  }
+  function clearActionError() { $("#lifecycle-inline-error").prop("hidden",true).text(""); $("#lifecycle-action-comment").removeAttr("aria-invalid"); }
+  function setActionBusy(busy,labelText) {
+    $("#lifecycle-action-buttons button,#lifecycle-action-progress [data-stage-action]").prop("disabled",busy);
+    if (busy) { $("#lifecycle-action-feedback").removeClass("error success").addClass("working").text(labelText||"Saving lifecycle transition…"); }
+  }
   function transition(record,to,event,detail,changes) {
     var allowed={draft:["testing"],testing:["peer_review","draft"],peer_review:["production","draft"],
       production:["monitoring","retired"],monitoring:["monitoring","tuning","retired"],tuning:["testing","retired"],retired:[]};
@@ -351,13 +363,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function saveAndReload(promise,message,action) {
+    clearActionError(); setActionBusy(true,action==="return_draft"?"Returning this detection to Draft…":"Saving lifecycle transition…");
     promise.done(function (saved) {
       $("#lifecycle-action-feedback").removeClass("error ready").addClass("success").text(message);
       $(document).trigger("dei:lifecycle-action-complete",[action,saved]);
       pendingWorkspaceAction=action; reloadRecords();
     }).fail(function (error) {
+      setActionBusy(false);
       $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to save lifecycle record."));
     });
+  }
+
+  function returnToDraft(record,comment) {
+    if (["testing","peer_review"].indexOf(record.state)===-1) { return $.Deferred().reject("Only Testing or Peer Review can return directly to Draft.").promise(); }
+    return transition(record,"draft","returned_for_changes",comment,{review:$.extend({},record.review,{decision:"changes_requested",reviewer:Store.username(),comments:comment,returned_at:new Date().toISOString()}),validation:null,deployment:null,catalog:null});
   }
 
   function saveAndOpenCatalog(record,action) {
@@ -390,8 +409,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       saveAndOpenCatalog(approved,action); return;
     }
     if (action==="return_draft") {
-      if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Change rationale is required."); return; }
-      saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null,deployment:null,catalog:null}),"Returned to Draft and removed from active catalog buckets.",action); return;
+      if (!comment) { actionError("Enter the required change before returning this detection to Draft, then select Return to Draft again.","Required change to return to Draft *"); return; }
+      saveAndReload(returnToDraft(record,comment),"Returned to Draft and reopened in Guided Builder.",action); return;
     }
     if (action==="record_deployment") {
       var target=String($("#lifecycle-deployment-target").val()||""); var environment=String($("#lifecycle-deployment-environment").val()||"production"); var external=String($("#lifecycle-external-id").val()||"").trim();
@@ -538,6 +557,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     else if (!event.shiftKey&&document.activeElement===last) { first.focus(); event.preventDefault(); }
   });
   $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
+  $("#lifecycle-action-fields").on("input","#lifecycle-action-comment",clearActionError);
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
   $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); });
