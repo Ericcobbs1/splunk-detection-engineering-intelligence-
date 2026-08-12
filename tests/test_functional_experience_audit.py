@@ -182,6 +182,10 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert "step.completion ? 'Finish' : 'Show me'" in react_source
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
+    assert 'action==="return_draft"&&readStep()>=8&&readStep()<=11' in adapter
+    assert 'target:\'[data-action="return_draft"]\'' in adapter
+    assert "reviewReturnMode=true" in adapter
+    assert "onClick={onContinueReview}>Continue review" in react_source
     assert 'index===6 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
