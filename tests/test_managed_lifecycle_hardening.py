@@ -42,7 +42,7 @@ def test_lifecycle_state_transitions_require_evidence() -> None:
     assert 'draft:["testing"]' in javascript
     assert 'testing:["peer_review","draft"]' in javascript
     assert 'peer_review:["production","draft"]' in javascript
-    assert '<button data-action="return_draft">Return to Draft</button>' in javascript
+    assert 'action:"return_draft",label:"Previous · Return to Draft"' in javascript
     assert 'production:["monitoring","retired"]' in javascript
     assert 'monitoring:["monitoring","tuning","retired"]' in javascript
     assert 'tuning:["testing","retired"]' in javascript
@@ -82,6 +82,22 @@ def test_catalog_manage_preserves_peer_review_and_routes_deployment_buckets() ->
     assert 'copy.catalog=null' in catalog
     assert 'deployment:null,catalog:null' in lifecycle
     assert 'environment==="production"' in lifecycle
+
+
+def test_lifecycle_modal_has_fluid_evidence_gated_stage_controls() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
+    assert "function stageControls(record)" in lifecycle
+    assert 'label:"Previous · Return to Draft"' in lifecycle
+    assert 'label:"Continue · Submit for peer review"' in lifecycle
+    assert 'label:"Continue · Approve version"' in lifecycle
+    assert 'label:"Continue · Record deployment"' in lifecycle
+    assert 'data-stage-action=' in lifecycle
+    assert 'pendingWorkspaceAction=action' in lifecycle
+    assert 'pendingWorkspaceAction!=="return_draft"' in lifecycle
+    assert 'builder.scrollIntoView' in lifecycle
+    assert '.dei-stage-controller' in stylesheet
+    assert '.dei-progress-step.available' in stylesheet
 
 
 def test_work_queue_joins_recommendations_and_records() -> None:
