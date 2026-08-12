@@ -189,3 +189,20 @@ def test_failed_validation_can_edit_spl_without_page_scroll_lock() -> None:
     assert '$("#generator-spl")[0].scrollIntoView' not in generator
     assert '$(document).on("dei:edit-spl-requested"' in lifecycle
     assert 'activateWorkspacePanel("artifact")' in lifecycle
+
+
+def test_all_lifecycle_controls_are_non_submitting_and_peer_review_is_guarded() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    assert lifecycle.count('<button type="button"') >= 7
+    assert 'type="button" class="primary next" data-action="' in lifecycle
+    assert 'type="button" class="previous" data-action="' in lifecycle
+    assert 'type="button" class="restart" data-action="restart_recommendation"' in lifecycle
+    assert 'type="button" class="primary" data-action="open_builder"' in lifecycle
+    assert 'type="button" class="danger" data-action="retire"' in lifecycle
+    assert 'button[data-action]' in lifecycle
+    assert "event.preventDefault(); event.stopPropagation();" in lifecycle
+    assert 'if ($(this).prop("disabled")) { return; }' in lifecycle
+    assert 'actionError("Summarize the validation evidence' in lifecycle
+    assert 'actionError("Document why this version is safe, scoped, and operationally actionable' in lifecycle
+    assert 'transition(record,"peer_review","submitted_for_review"' in lifecycle
+    assert 'Store.appendHistory(approved,"peer_review_approved"' in lifecycle
