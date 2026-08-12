@@ -53,7 +53,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (builderStage && String($("#builder-detection-select").val()||"")!==key(item)) {
       $("#builder-detection-select").val(key(item)).trigger("change");
     }
-    if (item.record) {
+    if (item.record && stage!=="recommendation") {
       $("#workflow-empty,#workflow-driver").prop("hidden",true);
       $(document).trigger("dei:workflow-detection-selected",[key(item)]);
       try { window.history.replaceState({},"",window.location.pathname+"?detection="+encodeURIComponent(key(item))); } catch (error) { /* URL state is optional. */ }
@@ -69,6 +69,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#workflow-requirements").html(config.requirements.map(function (requirement) { return '<div data-state="'+(requirement[1]?"complete":"required")+'"><span>'+(requirement[1]?"✓":"!")+'</span><strong>'+esc(requirement[0])+'</strong><small>'+(requirement[1]?"Complete":"Required now")+'</small></div>'; }).join(""));
     $("#workflow-primary-action").attr("href",config.href).text(config.action+" →"); $("#workflow-action-note").text(config.note); $("#workflow-why-title").text("Why "+label(stage)+" matters");
     var history=(record.history||[]).slice(-3).reverse(); $("#workflow-advanced-evidence").html('<dl><dt>Lifecycle state</dt><dd>'+esc(label(stage))+'</dd><dt>Record version</dt><dd>'+esc(record.version||"Not created")+'</dd><dt>Storage</dt><dd>'+esc(Store?Store.mode():"Unavailable")+'</dd></dl>'+(history.length?'<h4>Recent history</h4>'+history.map(function (entry) { return '<p><strong>'+esc(label(entry.event))+'</strong><br/><small>'+esc(entry.detail||"No detail")+'</small></p>'; }).join(""):""));
+    $(document).trigger("dei:workflow-detection-selected",[key(item)]);
     try { window.history.replaceState({},"",window.location.pathname+"?detection="+encodeURIComponent(id)); } catch (error) { /* URL state is optional. */ }
   }
 

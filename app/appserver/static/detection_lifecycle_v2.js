@@ -4,6 +4,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var REPORT_KEY = "dei.latestRecommendationReport";
   var REPORT_TIME_KEY = "dei.latestRecommendationTime";
   var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
+  var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
   var report = null;
   var records = [];
   var selectedRecord = null;
@@ -20,6 +21,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function recordFor(item) { var key=recordKey(item); return records.filter(function (record) { return recordKey(record)===key; })[0] || null; }
   function guidedBuilderPage() { return $("#dei-guided-detection-page").length>0; }
   function draftStarted(key) { return generatedDrafts[String(key||"")]===true; }
+  function syncBrowserArtifact(record) {
+    if (!record) { return; } var key=recordKey(record); var artifacts=safeJson(window.localStorage.getItem(ARTIFACT_KEY))||[];
+    artifacts=(Array.isArray(artifacts)?artifacts:[]).filter(function(item){return recordKey(item)!==key;}); artifacts.push(record);
+    window.localStorage.setItem(ARTIFACT_KEY,JSON.stringify(artifacts));
+  }
+  function updateRestartControl(record) { $("#builder-restart-workflow").toggle(!!record&&record.state==="draft"); if (!record||record.state!=="draft") { $("#builder-restart-panel").prop("hidden",true); } }
   function opensActionWindow(record) { return !!(record && ["testing","peer_review","production","monitoring","retired"].indexOf(record.state)!==-1); }
   function closeActionWindow() {
     $("#lifecycle-action-center").hide().removeClass("is-open");
@@ -304,6 +311,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     markup+=controls.previous?'<button class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
     if (controls.edit) { markup+='<button data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
     if (controls.next) { markup+='<button class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
+    if (["testing","peer_review"].indexOf(record.state)!==-1) { markup+='<button class="restart" data-action="restart_recommendation">↶ Restart from recommendation</button>'; }
     markup+='</div>';
     if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open guided builder</button>'; }
     if (["testing","peer_review","production","monitoring"].indexOf(record.state)!==-1) { return markup+(record.state==="production"||record.state==="monitoring"?'<button class="danger" data-action="retire">Retire</button>':""); }
@@ -350,7 +358,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (busy) { $("#lifecycle-action-feedback").removeClass("error success").addClass("working").text(labelText||"Saving lifecycle transition…"); }
   }
   function transition(record,to,event,detail,changes) {
-    var allowed={draft:["testing"],testing:["peer_review","draft"],peer_review:["production","draft"],
+    var allowed={recommendation:["draft"],draft:["testing","recommendation"],testing:["peer_review","draft","recommendation"],peer_review:["production","draft","recommendation"],
       production:["monitoring","retired"],monitoring:["monitoring","tuning","retired"],tuning:["testing","retired"],retired:[]};
     if ((allowed[record.state]||[]).indexOf(to)===-1) { return $.Deferred().reject("Invalid lifecycle transition").promise(); }
     if (to==="peer_review" && (!record.validation || record.validation.status!=="passed")) { return $.Deferred().reject("Passed validation evidence is required before peer review.").promise(); }
@@ -365,6 +373,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function saveAndReload(promise,message,action) {
     clearActionError(); setActionBusy(true,action==="return_draft"?"Returning this detection to Draft…":"Saving lifecycle transition…");
     promise.done(function (saved) {
+      if (action==="return_draft"||action==="restart_recommendation") { syncBrowserArtifact(saved); }
       $("#lifecycle-action-feedback").removeClass("error ready").addClass("success").text(message);
       $(document).trigger("dei:lifecycle-action-complete",[action,saved]);
       pendingWorkspaceAction=action; reloadRecords();
@@ -377,6 +386,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function returnToDraft(record,comment) {
     if (["testing","peer_review"].indexOf(record.state)===-1) { return $.Deferred().reject("Only Testing or Peer Review can return directly to Draft.").promise(); }
     return transition(record,"draft","returned_for_changes",comment,{review:$.extend({},record.review,{decision:"changes_requested",reviewer:Store.username(),comments:comment,returned_at:new Date().toISOString()}),validation:null,deployment:null,catalog:null});
+  }
+
+  function restartFromRecommendation(record,reason) {
+    if (["draft","testing","peer_review"].indexOf(record.state)===-1) { return $.Deferred().reject("Only Draft, Testing, or Peer Review can restart from Recommendation.").promise(); }
+    var archived={version:Number(record.version||1),state:record.state,spl:record.spl,schedule:record.schedule,validation:record.validation,review:record.review,deployment:record.deployment,catalog:record.catalog,closed_at:new Date().toISOString(),closure:"restarted_from_recommendation",reason:reason};
+    return transition(record,"recommendation","restarted_from_recommendation",reason,{version:Number(record.version||1)+1,spl:"",schedule:null,validation:null,review:null,deployment:null,monitoring:null,catalog:null,enterprise_security:null,previous_versions:(record.previous_versions||[]).concat([archived]),restart:{reason:reason,restarted_at:new Date().toISOString(),restarted_by:Store.username()}});
   }
 
   function saveAndOpenCatalog(record,action) {
@@ -412,6 +427,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (!comment) { actionError("Enter the required change before returning this detection to Draft, then select Return to Draft again.","Required change to return to Draft *"); return; }
       saveAndReload(returnToDraft(record,comment),"Returned to Draft and reopened in Guided Builder.",action); return;
     }
+    if (action==="restart_recommendation") {
+      if (!comment) { actionError("Enter a restart reason before archiving this version and returning to Recommendation.","Reason to restart from recommendation *"); return; }
+      saveAndReload(restartFromRecommendation(record,comment),"Current version archived. Detection returned to Recommendation.",action); return;
+    }
     if (action==="record_deployment") {
       var target=String($("#lifecycle-deployment-target").val()||""); var environment=String($("#lifecycle-deployment-environment").val()||"production"); var external=String($("#lifecycle-external-id").val()||"").trim();
       if (!external) { $("#lifecycle-action-feedback").addClass("error").text("A deployment object ID or saved-search name is required."); return; }
@@ -438,6 +457,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function completePendingWorkspaceAction() {
+    if (pendingWorkspaceAction==="restart_recommendation") {
+      pendingWorkspaceAction=""; hideActionWindow();
+      var start=document.getElementById("builder-generate"); if (start) { start.scrollIntoView({behavior:"smooth",block:"center"}); window.setTimeout(function(){start.focus();},300); }
+      return;
+    }
     if (pendingWorkspaceAction!=="return_draft") { pendingWorkspaceAction=""; return; }
     pendingWorkspaceAction=""; hideActionWindow();
     var builder=document.getElementById("guided-builder-workspace"); if (builder) { builder.scrollIntoView({behavior:"smooth",block:"start"}); }
@@ -523,6 +547,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("dei:workflow-detection-selected",function (event,key) {
     var record=records.filter(function (item) { return recordKey(item)===String(key||""); })[0]||null;
+    updateRestartControl(record);
     if (key && (!guidedBuilderPage() || draftStarted(key) || opensActionWindow(record))) { selectRecord(String(key)); }
     else { closeActionWindow(); }
   });
@@ -558,6 +583,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
   $("#lifecycle-action-fields").on("input","#lifecycle-action-comment",clearActionError);
+  $("#builder-restart-workflow").on("click",function () { $("#builder-restart-panel").prop("hidden",false); $("#builder-restart-reason").trigger("focus"); });
+  $("#builder-cancel-restart").on("click",function () { $("#builder-restart-panel").prop("hidden",true); $("#builder-restart-reason").val(""); });
+  $("#builder-confirm-restart").on("click",function () {
+    var key=String($("#workflow-detection-select").val()||$("#builder-detection-select").val()||""); var record=records.filter(function(item){return recordKey(item)===key;})[0]||null; var reason=String($("#builder-restart-reason").val()||"").trim();
+    if (!record) { $("#builder-start-feedback").removeClass("ready success").addClass("error").text("Select a persisted detection before restarting its lifecycle."); return; }
+    if (!reason) { $("#builder-start-feedback").removeClass("ready success").addClass("error").text("A restart reason is required."); $("#builder-restart-reason").trigger("focus"); return; }
+    selectedRecord=record; saveAndReload(restartFromRecommendation(record,reason),"Current version archived. Detection returned to Recommendation.","restart_recommendation");
+  });
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
   $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); });
