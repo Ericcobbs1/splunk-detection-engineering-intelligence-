@@ -172,12 +172,12 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert ".dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>#dei-home-tour,.dei-home-flow-actions>.dei-home-flow-link" in stylesheet
     assert "width:auto!important" in stylesheet
     assert 'shell().is("#dei-home-page")' in javascript
-    assert 'url("dei_earth_360_v2.png")' in stylesheet
-    assert "background-repeat:no-repeat,no-repeat,repeat-x" in stylesheet
-    assert "-200% center" in stylesheet
+    assert shell.find(".//*[@class='dei-earth-globe']") is not None
+    assert len(shell.findall(".//img[@src='/static/app/splunk_detection_engineering_intelligence/dei_earth_360_v2.png']")) == 2
+    assert ".dei-official-home .dei-earth-track{display:flex;width:200%" in stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "animation:dei-realistic-earth-rotation 52s linear infinite" in stylesheet
-    assert "background-position:center,center,-200% center" in stylesheet
+    assert "transform:translateX(-50%)" in stylesheet
     assert (STATIC / "dei_realistic_earth_v1.webp").stat().st_size < 200_000
     assert ".dei-flow-health-summary" in stylesheet
     assert ".dei-flow-stage-count" in stylesheet
