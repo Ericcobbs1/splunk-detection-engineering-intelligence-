@@ -27,7 +27,8 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
         "lifecycle-action-buttons", "lifecycle-action-history",
-        "lifecycle-action-backdrop", "lifecycle-action-close",
+        "workflow-unified-workspace", "workflow-tab-artifact", "workflow-tab-change-control",
+        "workflow-artifact-mode", "lifecycle-action-close",
         "guided-builder-workspace", "builder-detection-select", "builder-generate",
         "detection-generator", "generator-spl", "builder-quality-workspace",
         "builder-run-validation", "builder-validation-resolution",
@@ -56,7 +57,7 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
     javascript = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
-    for destination in ("#detection-generator", "#lifecycle-action-center", "detection_catalog?detection=", "detection_action_center?category=telemetry"):
+    for destination in ("#detection-generator", "#lifecycle-action-center", "detection_action_center?category=telemetry"):
         assert destination in javascript
     for action in (
         "Start detection draft", "Review telemetry actions", "Review SPL and validate", "Open validation handoff",
@@ -116,9 +117,10 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert operations.find(".//*[@id='lifecycle-action-center']") is None
     assert guided.find(".//*[@id='lifecycle-action-center']") is not None
     action_center = guided.find(".//*[@id='lifecycle-action-center']")
-    assert action_center.attrib["role"] == "dialog"
-    assert action_center.attrib["aria-modal"] == "true"
-    assert 'href="detection_workflow?detection=' in lifecycle
+    assert action_center.attrib["role"] == "tabpanel"
+    assert "aria-modal" not in action_center.attrib
+    assert guided.find(".//*[@id='workflow-unified-workspace']") is not None
+    assert "function activateWorkspacePanel(panel)" in lifecycle
     assert "dei:workflow-detection-selected" in lifecycle
     assert "dei:workflow-detection-selected" in workflow
     assert "dei:lifecycle-records-updated" in lifecycle
@@ -129,14 +131,33 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert "openActionWindow" in lifecycle
     assert "closeActionWindow" in lifecycle
     assert '$("#workflow-primary-action").on("click"' in lifecycle
-    assert 'event.key==="Escape"' in lifecycle
-    assert 'event.key!=="Tab"' in lifecycle
+    assert 'activateWorkspacePanel("artifact")' in lifecycle
+    assert 'activateWorkspacePanel("change-control")' in lifecycle
     assert "dei:detection-draft-reset" in lifecycle
     assert "dei:detection-draft-generated" in lifecycle
     assert "dei:detection-draft-reset" in generator
     assert "dei:detection-draft-generated" in generator
+    assert '$(document).on("dei:artifact-inspection-requested"' in generator
+    assert 'artifact = record ? $.extend(true, {}, record)' in generator
+    assert 'window.location.href="detection_catalog?detection="' not in lifecycle
     for action in (
         "submit_review", "approve_review", "return_draft", "record_health",
         "start_tuning", "retire",
     ):
         assert f'action==="{action}"' in lifecycle
+
+
+def test_selected_detection_uses_one_in_place_governed_workspace() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_workflow_v1.css").read_text(encoding="utf-8")
+    assert 'activateWorkspacePanel("artifact")' in lifecycle
+    assert 'activateWorkspacePanel("change-control")' in lifecycle
+    assert "dei-lifecycle-modal-open" not in lifecycle
+    assert "lifecycle-action-backdrop" not in lifecycle
+    assert 'window.location.href="detection_workflow?detection="+encodeURIComponent(recordKey(record))' not in lifecycle
+    assert 'href:"#lifecycle-action-center"' in workflow
+    assert "function applyArtifactMode(stage)" in workflow
+    assert '["testing","peer_review","catalog","production","monitoring","retired"]' in workflow
+    assert ".dei-unified-workspace" in stylesheet
+    assert ".dei-workspace-tabs" in stylesheet
