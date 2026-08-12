@@ -102,5 +102,5 @@ def test_mitre_portfolio_heat_map_is_available_as_a_second_view() -> None:
     assert "Portfolio Heat Map" in xml
     assert 'id="mitre-heatmap"' in xml
     assert "function renderPortfolioHeatmap()" in javascript
-    assert 'data-level="'+level+'"' in javascript
+    assert "data-level=\\"'+level+'\\"" in javascript
     assert ".dei-mitre-heatmap" in stylesheet
