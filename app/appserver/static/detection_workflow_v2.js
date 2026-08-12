@@ -45,8 +45,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#workflow-stage-rail").html(STAGES.map(function (item,index) { var status=index<current?"complete":(index===current?"current":"upcoming"); return '<li data-state="'+status+'"'+(status==="current"?' aria-current="step"':"")+'><span>'+(status==="complete"?"✓":String(index+1))+'</span><div><strong>'+esc(item.label)+'</strong><small>'+(status==="complete"?"Complete":status==="current"?"You are here":"Upcoming")+'</small></div></li>'; }).join(""));
   }
 
-  function applyArtifactMode(stage) {
-    var locked=["testing","peer_review","catalog","production","monitoring","retired"].indexOf(stage)!==-1;
+  function applyArtifactMode(stage,record) {
+    var validation=record&&record.validation||{};
+    var locked=["peer_review","catalog","production","monitoring","retired"].indexOf(stage)!==-1 || (stage==="testing"&&validation.status==="passed");
     $("#workflow-artifact-mode").text(locked?"Read-only governed version":"Editable artifact").toggleClass("locked",locked);
     $("#generator-spl,#builder-cron,#builder-earliest,#builder-latest").prop("readonly",locked).attr("aria-readonly",locked?"true":"false");
     $("#builder-save-draft,#builder-reset-draft,#builder-clear-spl,#builder-run-validation,#builder-apply-validation-fix,#builder-edit-validation-query,#builder-retry-validation").prop("disabled",locked);
@@ -60,8 +61,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (String($("#builder-detection-select").val()||"")!==key(item)) {
       $("#builder-detection-select").val(key(item)).trigger("change");
     }
-    applyArtifactMode(stage);
-    window.setTimeout(function () { applyArtifactMode(stage); },0);
+    applyArtifactMode(stage,item.record);
+    window.setTimeout(function () { applyArtifactMode(stage,item.record); },0);
     if (item.record) { $(document).trigger("dei:artifact-inspection-requested",[key(item),stage,item.record]); }
     var current=Math.max(0,STAGES.map(function (value) { return value.id; }).indexOf(stage)); var config=guide(item); var record=item.record||{};
     $("#workflow-empty").prop("hidden",true); $("#workflow-driver").prop("hidden",false);
@@ -82,7 +83,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#workflow-detection-select").on("change",renderSelected); $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if (destination) { window.location.href=destination; } }); initialize(0);
   $(document).on("dei:lifecycle-records-updated",function (event,loaded) { records=Array.isArray(loaded)?loaded:records; populate(); });
-  $(document).on("dei:artifact-inspection-requested",function (event,id,stage) { if (id) { $("#workflow-detection-select").val(String(id)); } applyArtifactMode(String(stage||"draft")); });
+  $(document).on("dei:artifact-inspection-requested",function (event,id,stage,record) { if (id) { $("#workflow-detection-select").val(String(id)); } applyArtifactMode(String(stage||"draft"),record); });
   $(document).on("dei:detection-draft-generated dei:detection-artifact-saved",function (event,id,record) {
     var value=String(id||"");
     if (!value || !record) { return; }
