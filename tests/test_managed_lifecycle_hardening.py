@@ -38,7 +38,7 @@ def test_store_uses_kv_with_explicit_browser_fallback() -> None:
 
 
 def test_lifecycle_state_transitions_require_evidence() -> None:
-    javascript = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert 'draft:["testing","recommendation"]' in javascript
     assert 'testing:["peer_review","draft","recommendation"]' in javascript
     assert 'peer_review:["production","draft","recommendation"]' in javascript
@@ -65,7 +65,7 @@ def test_lifecycle_state_transitions_require_evidence() -> None:
 
 def test_catalog_manage_preserves_peer_review_and_routes_deployment_buckets() -> None:
     catalog = (STATIC / "detection_catalog_v2.js").read_text(encoding="utf-8")
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     view = (APP / "default" / "data" / "ui" / "views" / "detection_catalog.xml").read_text(encoding="utf-8")
     for bucket in ("development", "staging", "production"):
         assert f'<option value="{bucket}">' in view
@@ -85,7 +85,7 @@ def test_catalog_manage_preserves_peer_review_and_routes_deployment_buckets() ->
 
 
 def test_unified_lifecycle_workspace_has_fluid_evidence_gated_stage_controls() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
     assert "function stageControls(record)" in lifecycle
     assert 'label:"Previous · Return to Draft"' in lifecycle
@@ -102,7 +102,7 @@ def test_unified_lifecycle_workspace_has_fluid_evidence_gated_stage_controls() -
 
 
 def test_return_to_draft_has_explicit_validation_and_storage_transition() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
     assert "function returnToDraft(record,comment)" in lifecycle
     assert '["testing","peer_review"].indexOf(record.state)===-1' in lifecycle
@@ -118,7 +118,7 @@ def test_return_to_draft_has_explicit_validation_and_storage_transition() -> Non
 
 
 def test_detection_can_restart_at_recommendation_without_losing_audit_history() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     view = (APP / "default/data/ui/views/detection_workflow.xml").read_text(encoding="utf-8")
     assert 'draft:["testing","recommendation"]' in lifecycle
@@ -139,7 +139,7 @@ def test_detection_can_restart_at_recommendation_without_losing_audit_history() 
 
 
 def test_work_queue_joins_recommendations_and_records() -> None:
-    javascript = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert "function mergedQueue()" in javascript
     assert "records.forEach" in javascript
     assert "No lifecycle work is available." in javascript

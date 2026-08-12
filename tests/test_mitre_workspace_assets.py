@@ -12,10 +12,10 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     root = ElementTree.parse(VIEW_PATH).getroot()
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
-    assert root.attrib["script"] == "mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js"
+    assert root.attrib["script"] == "mitre_workspace_v4.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js"
     assert root.attrib["stylesheet"] == (
         "command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,"
-        "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css"
+        "dei_detection_usability_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css"
     )
     for element_id in (
         "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
@@ -34,7 +34,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
 
 
 def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
-    javascript = (STATIC_ROOT / "mitre_workspace_v3.js").read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "mitre_workspace_v4.js").read_text(encoding="utf-8")
     stylesheet = (STATIC_ROOT / "mitre_workspace.css").read_text(encoding="utf-8")
     readability = (STATIC_ROOT / "mitre_workspace_readability.css").read_text(encoding="utf-8")
     polish = (STATIC_ROOT / "dei_visual_polish_v1.css").read_text(encoding="utf-8")
@@ -91,3 +91,16 @@ def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:
     assert "High-clarity narrative text" in polish
     assert "color: #c4d0dc" in polish
     assert "-moz-osx-font-smoothing: auto" in polish
+
+
+def test_mitre_portfolio_heat_map_is_available_as_a_second_view() -> None:
+    root = ElementTree.parse(VIEW_PATH).getroot()
+    xml = VIEW_PATH.read_text(encoding="utf-8")
+    javascript = (STATIC_ROOT / "mitre_workspace_v4.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC_ROOT / "dei_detection_usability_v1.css").read_text(encoding="utf-8")
+    assert "mitre_workspace_v4.js" in root.attrib["script"].split(",")
+    assert "Portfolio Heat Map" in xml
+    assert 'id="mitre-heatmap"' in xml
+    assert "function renderPortfolioHeatmap()" in javascript
+    assert "data-level" in javascript
+    assert ".dei-mitre-heatmap" in stylesheet

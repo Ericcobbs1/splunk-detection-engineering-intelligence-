@@ -73,7 +73,7 @@ def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
 
 def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     for state in ("complete", "current", "blocked", "upcoming"):
         assert f'data-pipeline-state="{state}"' in stylesheet
     assert "@keyframes dei-pipeline-flow" in stylesheet
@@ -350,9 +350,9 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
     shared = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
-    mitre = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
+    mitre = (STATIC / "mitre_workspace_v4.js").read_text(encoding="utf-8")
     builder = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
 
     handlers = {
         "dei-analyze": command,
@@ -398,7 +398,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
 
 def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for contract in (
         "refreshHomeLifecycleRecords", "DEILifecycleStore", "homeLifecycleRecords",
