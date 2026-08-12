@@ -13,6 +13,9 @@ def _source(name: str) -> str:
 def test_every_workspace_loads_the_shared_scan_service():
     for view in VIEWS.glob("*.xml"):
         root = ElementTree.parse(view).getroot()
+        if view.name in {"detection_lifecycle.xml", "detection_operations.xml"}:
+            assert "redirect_v1.js" in root.attrib["script"]
+            continue
         assert "dei_environment_scan_v1.js" in root.attrib["script"].split(","), view.name
 
 
@@ -69,6 +72,8 @@ def test_react_bundle_is_progressive_enhancement_not_a_dashboard_dependency():
     for view in VIEWS.glob("*.xml"):
         scripts = ElementTree.parse(view).getroot().attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts, view.name
+        if view.name in {"detection_lifecycle.xml", "detection_operations.xml"}:
+            continue
         assert "dei_guide_adapter_v4.js" in scripts, view.name
     adapter = _source("dei_guide_adapter_v4.js")
     assert "finishGuideLoad(false)" in adapter
@@ -102,7 +107,7 @@ def test_home_pipeline_drilldowns_open_owned_workspaces():
     assert '"detection_action_center"' in layout
     assert '"detection_health"' in layout
     assert '"command_center#dei-telemetry"' in layout
-    assert '"detection_operations"' in layout
+    assert '"detection_catalog"' in layout
 
 
 def test_tour_targets_exist_in_their_owning_views():
@@ -111,7 +116,7 @@ def test_tour_targets_exist_in_their_owning_views():
         "command_center.xml": ".//*[@id='dei-telemetry']",
         "mitre_coverage.xml": ".//*[@class='dei-mitre-advisor']",
         "detection_workflow.xml": ".//*[@id='guided-builder-workspace']",
-        "detection_operations.xml": ".//*[@id='lifecycle-work-queue']",
+        "detection_catalog.xml": ".//*[@id='lifecycle-work-queue']",
     }
     for view, xpath in targets.items():
         assert ElementTree.parse(VIEWS / view).getroot().find(xpath) is not None, view

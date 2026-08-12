@@ -964,11 +964,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#generator-spl, #builder-cron, #builder-earliest, #builder-latest").on("input", function () {
     if (selected) { setFeedback("Unsaved changes. Save the draft or run validation to persist them.", "ready"); }
   });
-  $("#lifecycle-workspace-menu").on("change", function () {
-    var destination = String($(this).val() || "");
-    if (destination && destination !== "detection_builder") { window.location.href = destination; }
-  });
-
   $("#builder-edit-validation-query").on("click", function () {
     var editor=$("#generator-spl");
     if (!editor.length || editor.prop("readonly")) {

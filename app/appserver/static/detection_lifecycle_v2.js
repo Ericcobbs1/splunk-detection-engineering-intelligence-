@@ -188,6 +188,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var query=String($("#lifecycle-search").val()||"").toLowerCase();
     var readiness=$("#lifecycle-readiness").val()||"all";
     var stage=$("#lifecycle-stage").val()||"all";
+    var visibleRows=parseInt($("#lifecycle-visible-rows").val(),10)||10;
     var all=mergedQueue().filter(isEngineeringWork);
     var items=all.filter(function (item) {
       var record=item.lifecycle_record; var current=stateFor(item,record);
@@ -196,13 +197,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return (!query||haystack.indexOf(query)!==-1) &&
         (readiness==="all"||item.readiness===readiness) && (stage==="all"||current===stage);
     });
-    $("#lifecycle-queue-count").text(items.length+" of "+all.length+" items");
+    var visibleItems=items.slice(0,visibleRows);
+    $("#lifecycle-queue-count").text(visibleItems.length+" shown · "+items.length+" matching · "+all.length+" total");
     $("#lifecycle-queue-total").text(items.length);
     if (!all.length) {
       $("#lifecycle-work-queue").html('<tr><td colspan="7"><strong>No lifecycle work is available.</strong><br/>Run Analyze Environment in Command Center or restore a persisted lifecycle record.</td></tr>');
       return;
     }
-    $("#lifecycle-work-queue").html(items.length ? items.map(function (item) {
+    $("#lifecycle-work-queue").html(items.length ? visibleItems.map(function (item) {
       var record=item.lifecycle_record; var state=stateFor(item,record); var sources=observedSourcetypes(item);
       var button=record ? '<a class="dei-manage-lifecycle" href="detection_workflow?detection='+encodeURIComponent(recordKey(item))+'">Continue</a>' :
         (buildable(item) ? '<button type="button" class="dei-generate-detection" data-detection="'+esc(item.detection_id)+'">Build</button>' : '<span class="dei-generation-blocked">Resolve gaps</span>');
@@ -535,11 +537,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function activatePipelineStage(card) {
     if (!$("#lifecycle-work-queue").length) {
-      window.location.href="detection_operations?pipeline="+encodeURIComponent(String(card.data("stage")||""));
+      window.location.href="detection_catalog?pipeline="+encodeURIComponent(String(card.data("stage")||""));
       return;
     }
     var state=String(card.data("filter-state")||"all");
     $("#lifecycle-stage").val(state);
+    $(".dei-pipeline-stage").removeClass("dei-action-target"); card.addClass("dei-action-target");
+    $("#dei-flow-status").text("Showing "+String(card.data("stage")||"lifecycle")+" work. Select Continue to open the full lifecycle in Guided Detection Builder.");
     renderQueue();
     document.querySelector(".dei-lifecycle-queue-section").scrollIntoView({behavior:"smooth",block:"start"});
   }
@@ -596,8 +600,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
-  $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); });
-  $("#lifecycle-workspace-menu").on("change",function () { var destination=$(this).val(); if(destination){window.location.href=destination;} });
+  $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); renderQueue(); });
   $(window).on("storage",function (event) { if(!event.originalEvent||event.originalEvent.key===REPORT_KEY){render();} });
   initialize(0);
 });

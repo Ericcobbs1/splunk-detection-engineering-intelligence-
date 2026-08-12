@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("command_center", "environment_insights", "mitre_coverage", "detection_lifecycle", "detection_operations", "detection_builder", "detection_action_center", "detection_catalog", "detection_workflow"):
+    for view in ("command_center", "environment_insights", "mitre_coverage", "detection_catalog", "detection_builder", "detection_action_center", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts
@@ -385,9 +385,9 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert "field-evidence verification" in lifecycle
     assert "telemetry ready" in lifecycle
     for destination in (
-        "command_center#dei-telemetry", "detection_operations?pipeline=profile",
-        "detection_operations?pipeline=qualify", "mitre_coverage#mitre-detection-list",
-        "detection_operations?pipeline=design", "detection_workflow#guided-builder-workspace",
+        "command_center#dei-telemetry", "detection_catalog?pipeline=profile",
+        "detection_catalog?pipeline=qualify", "mitre_coverage#mitre-detection-list",
+        "detection_catalog?pipeline=design", "detection_workflow#guided-builder-workspace",
         "detection_workflow#builder-validation-title",
     ):
         assert destination in javascript

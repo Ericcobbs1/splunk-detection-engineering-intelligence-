@@ -8,7 +8,7 @@
         <div id="dei-command-center" class="dei-shell dei-environment-discovery">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Environment Discovery</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_operations">Operate</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 

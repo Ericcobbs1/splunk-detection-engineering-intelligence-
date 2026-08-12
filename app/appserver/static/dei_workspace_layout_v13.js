@@ -257,8 +257,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     var empty={
       awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"command_center#dei-telemetry",action:"Run intelligence scan"},
-      building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_operations",action:"Open lifecycle work queue"},
-      healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_operations",action:"Review monitoring evidence"}
+      building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_catalog",action:"Open lifecycle work queue"},
+      healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_catalog",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
     $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" →");
   }
@@ -394,7 +394,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       .attr("data-pipeline-health",healthState).toggleClass("has-flow",progress>0);
     $("#dei-topology-core-health").text(healthDetail);
     $("#dei-topology-core-action").attr("data-health-destination",healthState==="critical" ? "detection_action_center" :
-      healthState==="healthy" ? "detection_health" : healthState==="awaiting" ? "command_center#dei-telemetry" : "detection_operations")
+      healthState==="healthy" ? "detection_health" : healthState==="awaiting" ? "command_center#dei-telemetry" : "detection_catalog")
       .attr("aria-label",healthLabel+". "+healthDetail+". Open the related pipeline workspace.")
       .attr("title",healthLabel+" | "+healthDetail);
     var stageStatus=current===-1 ? "All evidence stages complete" :
@@ -452,7 +452,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       {key:"review",label:"Review",detail:"MITRE and readiness",href:"mitre_coverage"},
       {key:"build",label:"Build",detail:"Generate SPL",href:"detection_workflow"},
       {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_workflow#builder-validation-title"},
-      {key:"operate",label:"Operate",detail:"Approve, enable, monitor",href:"detection_operations"}
+      {key:"operate",label:"Operate",detail:"Approve, enable, monitor",href:"detection_catalog"}
     ];
     return [
       '<section id="dei-guided-workflow" class="dei-guided-workflow" aria-labelledby="dei-guided-workflow-title">',
@@ -604,7 +604,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
-  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_operations#lifecycle-work-queue"}[step.page]; }
+  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_catalog#lifecycle-work-queue"}[step.page]; }
 
   function restartOnboarding() {
     if (window.DEIReactGuideConfigured || window.DEINextGuide) { return; }
@@ -736,9 +736,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function homeStageDestination(stage) {
-    var destination={discover:"command_center#dei-telemetry",profile:"detection_operations?pipeline=profile",
-      qualify:"detection_operations?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
-      design:"detection_operations?pipeline=design",generate:"detection_workflow#guided-builder-workspace",
+    var destination={discover:"command_center#dei-telemetry",profile:"detection_catalog?pipeline=profile",
+      qualify:"detection_catalog?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
+      design:"detection_catalog?pipeline=design",generate:"detection_workflow#guided-builder-workspace",
       validate:"detection_workflow#builder-validation-title"}[stage] || "detection_lifecycle";
     var detection=homeStageDetection(stage);
     if (detection) {
