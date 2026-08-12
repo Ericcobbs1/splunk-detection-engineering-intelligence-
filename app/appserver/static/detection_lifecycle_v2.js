@@ -30,12 +30,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function opensActionWindow(record) { return !!(record && ["testing","peer_review","production","monitoring","retired"].indexOf(record.state)!==-1); }
   function activateWorkspacePanel(panel) {
     var workspace=$("#workflow-unified-workspace"); if (!workspace.length) { return; }
-    var changeControl=panel==="change-control";
-    workspace.prop("hidden",false).attr("data-active-panel",changeControl?"change-control":"artifact");
-    $("#guided-builder-workspace").prop("hidden",changeControl);
-    $("#lifecycle-action-center").prop("hidden",!changeControl).toggle(changeControl);
-    $("#workflow-tab-artifact").attr("aria-selected",changeControl?"false":"true").toggleClass("active",!changeControl);
-    $("#workflow-tab-change-control").attr("aria-selected",changeControl?"true":"false").toggleClass("active",changeControl);
+    var mode=["all","artifact","change-control"].indexOf(panel)!==-1?panel:"all";
+    workspace.prop("hidden",false).attr("data-active-panel",mode);
+    $("#guided-builder-workspace").prop("hidden",mode==="change-control");
+    $("#lifecycle-action-center").prop("hidden",mode==="artifact").toggle(mode!=="artifact");
+    $("#workflow-tab-all").attr("aria-selected",mode==="all"?"true":"false").toggleClass("active",mode==="all");
+    $("#workflow-tab-artifact").attr("aria-selected",mode==="artifact"?"true":"false").toggleClass("active",mode==="artifact");
+    $("#workflow-tab-change-control").attr("aria-selected",mode==="change-control"?"true":"false").toggleClass("active",mode==="change-control");
   }
   function closeActionWindow() {
     activateWorkspacePanel("artifact");
@@ -46,7 +47,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function openActionWindow() {
     var center=$("#lifecycle-action-center"); if (!center.length) { return; }
-    activateWorkspacePanel("change-control");
+    activateWorkspacePanel("all");
   }
 
   function observedSourcetypes(item) {
@@ -305,7 +306,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (record.state==="production" || record.state==="monitoring") {
       var prior=record.monitoring||{};
-      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health *</span><select id="lifecycle-health"><option value="healthy"'+(prior.health==="healthy"?" selected":"")+'>Healthy</option><option value="degraded"'+(prior.health==="degraded"?" selected":"")+'>Degraded</option><option value="failing"'+(prior.health==="failing"?" selected":"")+'>Failing</option></select></label><label class="dei-action-field"><span>Result volume *</span><input id="lifecycle-result-volume" type="number" min="0" value="'+esc(prior.result_volume||0)+'"/></label><label class="dei-action-field"><span>Runtime ms *</span><input id="lifecycle-runtime" type="number" min="0" value="'+esc(prior.runtime_ms||0)+'"/></label><label class="dei-action-field"><span>True positives</span><input id="lifecycle-true-positives" type="number" min="0" value="'+esc(prior.true_positives||0)+'"/></label><label class="dei-action-field"><span>False positives</span><input id="lifecycle-false-positives" type="number" min="0" value="'+esc(prior.false_positives||0)+'"/></label></div><label class="dei-action-field"><span>Operational note</span><textarea id="lifecycle-action-comment" placeholder="Document health context. A rationale is required when starting Tuning or retiring."></textarea></label>';
+      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health *</span><select id="lifecycle-health"><option value="healthy"'+(prior.health==="healthy"?" selected":"")+'>Healthy</option><option value="degraded"'+(prior.health==="degraded"?" selected":"")+'>Degraded</option><option value="failing"'+(prior.health==="failing"?" selected":"")+'>Failing</option></select></label><label class="dei-action-field"><span>Result volume *</span><input id="lifecycle-result-volume" type="number" min="0" value="'+esc(prior.result_volume||0)+'"/></label><label class="dei-action-field"><span>Runtime ms *</span><input id="lifecycle-runtime" type="number" min="0" value="'+esc(prior.runtime_ms||0)+'"/></label><label class="dei-action-field"><span>True positives</span><input id="lifecycle-true-positives" type="number" min="0" value="'+esc(prior.true_positives||0)+'"/></label><label class="dei-action-field"><span>False positives</span><input id="lifecycle-false-positives" type="number" min="0" value="'+esc(prior.false_positives||0)+'"/></label></div><label class="dei-action-field"><span id="lifecycle-action-comment-label">Operational or tuning rationale</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="Document health context, the tuning objective, or the retirement reason."></textarea><small id="lifecycle-action-comment-help">A specific rationale is required to start Tuning or retire this detection.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="tuning") { return '<label class="dei-action-field"><span>Tuning or retirement note *</span><textarea id="lifecycle-action-comment" placeholder="Document the revision objective before opening Builder, or provide the retirement reason."></textarea></label>'; }
     if (record.state==="retired") { return '<p class="dei-empty">This lifecycle record is complete and immutable. Deployment, monitoring, decisions, and retirement evidence remain available in Audit history.</p>'; }
@@ -448,7 +449,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       saveAndReload(transition(record,"monitoring","health_measured",health+", "+volume+" results, "+runtime+" ms",{monitoring:monitoring}),"Monitoring evidence recorded.",action); return;
     }
     if (action==="start_tuning") {
-      if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("A tuning rationale is required."); return; }
+      if (!comment) { actionError("Document the tuning objective before opening a new editable version.","Tuning objective *"); return; }
       var previousVersion={version:Number(record.version||1),spl:record.spl,schedule:record.schedule,validation:record.validation,review:record.review,deployment:record.deployment,monitoring:record.monitoring,closed_at:new Date().toISOString()};
       saveAndReload(transition(record,"tuning","tuning_started",comment,{version:Number(record.version||1)+1,validation:null,review:null,deployment:null,monitoring:null,catalog:$.extend({},record.catalog,{status:"tuning"}),previous_versions:(record.previous_versions||[]).concat([previousVersion])}),"Tuning version opened. The detection returned to the engineering queue and prior operational evidence was archived.",action); return;
     }
@@ -459,6 +460,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function completePendingWorkspaceAction() {
+    if (pendingWorkspaceAction==="start_tuning") {
+      pendingWorkspaceAction=""; activateWorkspacePanel("all");
+      $("#lifecycle-action-feedback").removeClass("error ready working").addClass("success").text("Tuning version opened. Revise the editable artifact, then run fresh validation.");
+      window.setTimeout(function () { var spl=document.getElementById("generator-spl"); if (spl&&spl.offsetParent!==null) { spl.focus(); } },100);
+      return;
+    }
     if (pendingWorkspaceAction==="restart_recommendation") {
       pendingWorkspaceAction=""; hideActionWindow();
       var start=document.getElementById("builder-generate"); if (start) { window.setTimeout(function(){start.focus();},100); }
@@ -573,8 +580,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var key=String($("#workflow-detection-select").val()||""); if (key) { selectRecord(key); event.preventDefault(); }
   });
   $("#lifecycle-action-close").on("click",closeActionWindow);
+  $("#workflow-tab-all").on("click",function () { activateWorkspacePanel("all"); });
   $("#workflow-tab-artifact").on("click",function () { activateWorkspacePanel("artifact"); });
-  $("#workflow-tab-change-control").on("click",function () { if (selectedRecord) { openActionWindow(); } });
+  $("#workflow-tab-change-control").on("click",function () { if (selectedRecord) { activateWorkspacePanel("change-control"); } });
   $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
   $("#lifecycle-action-fields").on("input","#lifecycle-action-comment",clearActionError);
   $("#builder-restart-workflow").on("click",function () { $("#builder-restart-panel").prop("hidden",false); $("#builder-restart-reason").trigger("focus"); });
