@@ -13,7 +13,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
     assert root.tag == "form"
     assert root.attrib["theme"] == "dark"
     assert "detection_workflow_v2.js" in root.attrib["script"].split(",")
-    assert "detection_lifecycle_v2.js" in root.attrib["script"].split(",")
+    assert "detection_lifecycle_v3.js" in root.attrib["script"].split(",")
     assert "detection_query_generator_v5.js" in root.attrib["script"].split(",")
     assert "dei_detection_standards_v1.js" in root.attrib["script"].split(",")
     assert "detection_workflow_v1.css" in root.attrib["stylesheet"].split(",")
@@ -51,7 +51,7 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
     assert '$(document).on("dei:detection-draft-generated dei:detection-artifact-saved"' in javascript
     assert "dei:detection-artifact-saved" in javascript
-    assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
 
 
@@ -98,7 +98,7 @@ def test_guided_workflow_layout_prioritizes_current_action() -> None:
 def test_workflow_uses_readable_progressive_disclosure_without_removing_controls() -> None:
     root = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     stylesheet = (STATIC / "detection_workflow_v1.css").read_text(encoding="utf-8")
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert root.find(".//details[@id='builder-quality-workspace']") is not None
     for element_id in ("generator-es-output", "lifecycle-action-evidence", "lifecycle-action-history"):
         assert root.find(f".//details//*[@id='{element_id}']") is not None
@@ -124,7 +124,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
 
 
 def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     operations = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
@@ -163,7 +163,7 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
 
 
 def test_selected_detection_uses_one_in_place_governed_workspace() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "detection_workflow_v1.css").read_text(encoding="utf-8")
     assert 'activateWorkspacePanel("artifact")' in lifecycle
@@ -181,7 +181,7 @@ def test_selected_detection_uses_one_in_place_governed_workspace() -> None:
 
 
 def test_tuning_opens_an_editable_version_with_visible_guidance() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     view = (VIEWS / "detection_workflow.xml").read_text(encoding="utf-8")
     assert 'action==="start_tuning"' in lifecycle
     assert 'actionError("Document the tuning objective before opening a new editable version."' in lifecycle
@@ -193,7 +193,7 @@ def test_tuning_opens_an_editable_version_with_visible_guidance() -> None:
 
 
 def test_failed_validation_can_edit_spl_without_page_scroll_lock() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     assert 'stage==="testing"&&validation.status==="passed"' in workflow
@@ -207,7 +207,7 @@ def test_failed_validation_can_edit_spl_without_page_scroll_lock() -> None:
 
 
 def test_all_lifecycle_controls_are_non_submitting_and_peer_review_is_guarded() -> None:
-    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert lifecycle.count('<button type="button"') >= 7
     assert 'type="button" class="primary next" data-action="' in lifecycle
     assert 'type="button" class="previous" data-action="' in lifecycle
