@@ -583,6 +583,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#workflow-tab-all").on("click",function () { activateWorkspacePanel("all"); });
   $("#workflow-tab-artifact").on("click",function () { activateWorkspacePanel("artifact"); });
   $("#workflow-tab-change-control").on("click",function () { if (selectedRecord) { activateWorkspacePanel("change-control"); } });
+  $(document).on("dei:edit-spl-requested",function () { activateWorkspacePanel("artifact"); });
   $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
   $("#lifecycle-action-fields").on("input","#lifecycle-action-comment",clearActionError);
   $("#builder-restart-workflow").on("click",function () { $("#builder-restart-panel").prop("hidden",false); $("#builder-restart-reason").trigger("focus"); });
