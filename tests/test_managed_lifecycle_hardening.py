@@ -42,6 +42,7 @@ def test_lifecycle_state_transitions_require_evidence() -> None:
     assert 'draft:["testing"]' in javascript
     assert 'testing:["peer_review","draft"]' in javascript
     assert 'peer_review:["production","draft"]' in javascript
+    assert '<button data-action="return_draft">Return to Draft</button>' in javascript
     assert 'production:["monitoring","retired"]' in javascript
     assert 'monitoring:["monitoring","tuning","retired"]' in javascript
     assert 'tuning:["testing","retired"]' in javascript
