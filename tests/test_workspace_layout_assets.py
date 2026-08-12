@@ -23,6 +23,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_guide_adapter_v4.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
+    assert home.attrib["stylesheet"].split(",")[-1] == "dei_home_globe_v2.css"
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -180,6 +181,10 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "border:2px solid rgba(112,214,255,.58)" in stylesheet
     assert ".dei-official-home .dei-earth-globe:before" in stylesheet
     assert "brightness(.92)" in stylesheet
+    globe_stylesheet = (STATIC / "dei_home_globe_v2.css").read_text(encoding="utf-8")
+    assert "visibility:visible!important" in globe_stylesheet
+    assert "opacity:1!important" in globe_stylesheet
+    assert "@keyframes dei-home-globe-v2-rotation" in globe_stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "animation:dei-realistic-earth-rotation 52s linear infinite" in stylesheet
     assert "transform:translateX(-50%)" in stylesheet
