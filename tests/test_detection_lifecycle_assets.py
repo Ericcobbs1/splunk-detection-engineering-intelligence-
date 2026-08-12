@@ -74,9 +74,9 @@ def test_engineering_queue_has_scrollable_ten_or_twenty_five_row_viewport() -> N
     assert "renderQueue();" in javascript
 
 
-def test_detection_lifecycle_is_registered_in_navigation() -> None:
+def test_detection_lifecycle_compatibility_route_is_not_duplicated_in_navigation() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
-    assert root.find(".//view[@name='detection_lifecycle']") is not None
+    assert root.find(".//view[@name='detection_lifecycle']") is None
     assert root.find(".//view[@name='detection_workflow']") is not None
     assert root.find(".//view[@name='detection_action_center']") is None
     assert root.find(".//view[@name='detection_builder']") is None
