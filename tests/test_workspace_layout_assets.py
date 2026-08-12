@@ -13,15 +13,15 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts
-        assert "dei_guide_adapter_v4.js" in scripts
-        assert "dei_workspace_layout_v13.js" in scripts
+        assert "dei_guide_adapter_v5.js" in scripts
+        assert "dei_workspace_layout_v14.js" in scripts
         assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
         assert "dei_responsive_v1.css" in root.attrib["stylesheet"]
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     home_scripts = home.attrib["script"].split(",")
     assert "dei_interactive_guide_v2.js" not in home_scripts
-    assert "dei_guide_adapter_v4.js" in home_scripts
-    assert "dei_workspace_layout_v11.js" in home_scripts
+    assert "dei_guide_adapter_v5.js" in home_scripts
+    assert "dei_workspace_layout_v12.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_home_globe_react_v1.js" in home_scripts
     assert home.attrib["stylesheet"].split(",")[-4:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v7.css"]
@@ -41,7 +41,7 @@ def test_shared_responsive_layer_supports_browser_resizing() -> None:
 
 
 def test_workspace_modes_and_density_are_persisted_accessibly() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     for value in (
         "dei.workspaceMode", "dei.workspaceDensity", "analyst", "coverage",
         "engineering", "aria-pressed", "ArrowLeft", "ArrowRight",
@@ -112,7 +112,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v11.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
@@ -126,7 +126,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert shell.find(".//*[@id='dei-home-flow-status']") is not None
     assert shell.find(".//*[@id='dei-home-refresh']") is not None
     assert shell.find(".//*[@id='dei-home-tour']") is not None
-    assert shell.find(".//*[@class='dei-run-intelligence-scan']") is not None
+    assert shell.find(".//*[@class='dei-home-flow-link dei-open-environment-discovery']") is not None
     lifecycle_action = shell.find(".//*[@class='dei-home-flow-link']")
     assert lifecycle_action is not None
     assert lifecycle_action.text == "Detection Engineering Lifecycle"
@@ -280,7 +280,7 @@ def test_removed_home_widgets_remain_available_in_owned_workspaces() -> None:
 
 def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     for stage in ("discover", "review", "build", "validate", "operate"):
         assert f'key:"{stage}"' in javascript
     for selector in (
@@ -303,7 +303,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
-    javascript = (STATIC / "dei_guide_adapter_v4.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_guide_adapter_v5.js").read_text(encoding="utf-8")
     react_source = Path("ui/interactive-guide.jsx").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_guided_tour_v6.css").read_text(encoding="utf-8")
     for value in (
@@ -347,7 +347,7 @@ def test_environment_workflow_is_split_between_discovery_and_results() -> None:
 
 
 def test_visible_controls_have_handlers_or_real_destinations() -> None:
-    shared = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
+    shared = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     command = (STATIC / "command_center.js").read_text(encoding="utf-8")
     state = (STATIC / "dashboard_state_v2.js").read_text(encoding="utf-8")
     mitre = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
@@ -397,7 +397,7 @@ def test_visible_controls_have_handlers_or_real_destinations() -> None:
 
 
 def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v13.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for contract in (

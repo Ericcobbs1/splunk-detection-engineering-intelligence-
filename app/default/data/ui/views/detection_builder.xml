@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js,detection_builder_redirect_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+<form version="1.1" theme="dark" script="dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js,detection_builder_redirect_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
   <label>Guided Detection Builder</label>
   <description>Compatibility route for saved Guided Detection Builder links.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>

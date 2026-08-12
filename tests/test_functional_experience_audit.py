@@ -19,12 +19,13 @@ def test_every_workspace_loads_the_shared_scan_service():
         assert "dei_environment_scan_v1.js" in root.attrib["script"].split(","), view.name
 
 
-def test_home_scan_is_an_operation_not_a_redirect():
-    layout = _source("dei_workspace_layout_v13.js")
+def test_home_scan_is_consolidated_into_environment_discovery():
+    layout = _source("dei_workspace_layout_v14.js")
     service = _source("dei_environment_scan_v1.js")
-    assert 'class="dei-run-intelligence-scan"' in layout
-    assert 'window.DEIEnvironmentScan.run(' in layout
-    assert '<a href="command_center#dei-telemetry">Run intelligence scan' not in layout
+    assert 'href="command_center#dei-telemetry"' in layout
+    assert 'window.DEIEnvironmentScan.run(' not in layout
+    assert 'dei-run-intelligence-scan' not in layout
+    assert 'command_center#dei-telemetry' in layout
     assert "dei:scan-progress" in service
     assert "dei:environment-refreshed" in service
     assert "latestRecommendationReport" in service
@@ -42,7 +43,7 @@ def test_home_scan_is_an_operation_not_a_redirect():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    adapter = _source("dei_guide_adapter_v4.js")
+    adapter = _source("dei_guide_adapter_v5.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     bundle = _source("dei_interactive_guide_v2.js")
     for page in ("home", "environment", "environment_insights", "mitre", "builder", "catalog"):
@@ -74,8 +75,8 @@ def test_react_bundle_is_progressive_enhancement_not_a_dashboard_dependency():
         assert "dei_interactive_guide_v2.js" not in scripts, view.name
         if view.name in {"detection_lifecycle.xml", "detection_operations.xml"}:
             continue
-        assert "dei_guide_adapter_v4.js" in scripts, view.name
-    adapter = _source("dei_guide_adapter_v4.js")
+        assert "dei_guide_adapter_v5.js" in scripts, view.name
+    adapter = _source("dei_guide_adapter_v5.js")
     assert "finishGuideLoad(false)" in adapter
     assert "dashboard remains available" in adapter
 
@@ -101,7 +102,7 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v11.js")
+    layout = _source("dei_workspace_layout_v12.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
@@ -147,11 +148,11 @@ def test_core_action_controls_have_implementation_bindings():
 
 
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
-    adapter = _source("dei_guide_adapter_v4.js")
+    adapter = _source("dei_guide_adapter_v5.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert adapter.count("actionLabel:") == 15
     for target in (
-        ".dei-run-intelligence-scan", "#dei-open-environment-insights",
+        ".dei-open-environment-discovery", "#dei-open-environment-insights",
         ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
         ".dei-advisor-item", "#builder-detection-select", "#builder-generate",
         "#builder-run-validation", "#lifecycle-action-comment",
@@ -171,8 +172,8 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
 
 
 def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
-    adapter = _source("dei_guide_adapter_v4.js")
-    layout = _source("dei_workspace_layout_v13.js")
+    adapter = _source("dei_guide_adapter_v5.js")
+    layout = _source("dei_workspace_layout_v14.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert "window.MutationObserver" in adapter
     assert "window.setTimeout(advance,0)" in adapter
