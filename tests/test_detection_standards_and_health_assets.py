@@ -41,7 +41,6 @@ def test_accessible_readability_baseline_is_packaged() -> None:
 
 def test_health_refresh_and_catalog_troubleshooting_use_shared_guidance() -> None:
     health = ElementTree.parse(VIEWS / "detection_health.xml").getroot()
-    catalog = ElementTree.parse(VIEWS / "detection_catalog.xml").getroot()
     health_xml = (VIEWS / "detection_health.xml").read_text(encoding="utf-8")
     catalog_xml = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
     assert "dei_detection_usability_v1.js" in health.attrib["script"].split(",")
