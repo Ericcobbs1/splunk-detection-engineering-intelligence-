@@ -45,7 +45,17 @@
             </div>
           </section>
 
-          <section id="guided-builder-workspace" class="dei-guided-builder-workspace" hidden="hidden" aria-labelledby="guided-builder-title">
+          <section id="workflow-unified-workspace" class="dei-unified-workspace" hidden="hidden" aria-labelledby="workflow-workspace-title">
+            <header class="dei-unified-workspace-head">
+              <div><p class="dei-eyebrow">Selected detection workspace</p><h2 id="workflow-workspace-title">Build, validate, and govern in one view</h2><p>Inspect the artifact and complete its current evidence gate without leaving this workspace.</p></div>
+              <span id="workflow-artifact-mode" class="dei-chip">Editable artifact</span>
+            </header>
+            <div class="dei-workspace-tabs" role="tablist" aria-label="Detection workspace views">
+              <button id="workflow-tab-artifact" type="button" role="tab" aria-selected="true" aria-controls="guided-builder-workspace">Artifact &amp; validation</button>
+              <button id="workflow-tab-change-control" type="button" role="tab" aria-selected="false" aria-controls="lifecycle-action-center">Change control</button>
+            </div>
+
+          <section id="guided-builder-workspace" class="dei-guided-builder-workspace" role="tabpanel" aria-labelledby="workflow-tab-artifact">
             <section class="dei-lifecycle-section dei-builder-selector-section">
               <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Build and validate</p><h2 id="guided-builder-title">Detection engineering workspace</h2><p>Generate or revise the selected detection, apply SPL standards, and preserve bounded validation evidence without leaving the guided lifecycle.</p></div><span id="builder-ready-count" class="dei-chip">0 ready</span></div>
               <div class="dei-builder-selector"><select id="builder-detection-select" aria-label="Telemetry-ready detection"><option value="">Select a detection to build</option></select><button id="builder-generate" type="button" disabled="disabled">Generate detection draft</button></div>
@@ -74,12 +84,12 @@
             </section>
           </section>
 
-          <div id="lifecycle-action-backdrop" class="dei-action-modal-backdrop" hidden="hidden"></div>
-          <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center dei-guided-action-center" style="display:none" role="dialog" aria-modal="true" aria-labelledby="lifecycle-action-title" aria-describedby="lifecycle-action-summary" tabindex="-1">
-            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Change Control</p><h2 id="lifecycle-action-title">Select a lifecycle record</h2><p id="lifecycle-action-summary">Move this detection backward for required changes or forward after its evidence gate is satisfied.</p></div><div class="dei-lifecycle-modal-controls"><div class="dei-lifecycle-position"><span id="lifecycle-action-position">Lifecycle position</span><strong id="lifecycle-action-state">No record selected</strong></div><button id="lifecycle-action-close" type="button" aria-label="Close detection change-control window">×</button></div></div>
+          <section id="lifecycle-action-center" class="dei-lifecycle-section dei-action-center dei-guided-action-center" hidden="hidden" role="tabpanel" aria-labelledby="workflow-tab-change-control">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Change Control</p><h2 id="lifecycle-action-title">Select a lifecycle record</h2><p id="lifecycle-action-summary">Move this detection backward for required changes or forward after its evidence gate is satisfied.</p></div><div class="dei-lifecycle-modal-controls"><div class="dei-lifecycle-position"><span id="lifecycle-action-position">Lifecycle position</span><strong id="lifecycle-action-state">No record selected</strong></div><button id="lifecycle-action-close" type="button" aria-label="Return to artifact and validation">View artifact</button></div></div>
             <div id="lifecycle-action-feedback" class="dei-builder-feedback ready" role="status" aria-live="polite">Select a detection above to continue.</div>
             <div id="lifecycle-action-progress" class="dei-action-progress"></div>
             <div class="dei-action-grid"><article><span class="dei-generator-label">Required evidence and action</span><div id="lifecycle-action-evidence"></div><div id="lifecycle-action-fields"></div><div id="lifecycle-action-buttons" class="dei-generator-actions"></div></article><article><span class="dei-generator-label">Audit history</span><div id="lifecycle-action-history" class="dei-audit-history"></div></article></div>
+          </section>
           </section>
         </main>
       </html>
