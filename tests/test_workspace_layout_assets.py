@@ -23,7 +23,8 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_guide_adapter_v4.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
-    assert home.attrib["stylesheet"].split(",")[-3:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css"]
+    assert "dei_home_globe_react_v1.js" in home_scripts
+    assert home.attrib["stylesheet"].split(",")[-4:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v5.css"]
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -173,8 +174,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert ".dei-home-flow-actions>.dei-run-intelligence-scan,.dei-home-flow-actions>#dei-home-refresh,.dei-home-flow-actions>#dei-home-tour,.dei-home-flow-actions>.dei-home-flow-link" in stylesheet
     assert "width:auto!important" in stylesheet
     assert 'shell().is("#dei-home-page")' in javascript
-    assert shell.find(".//*[@class='dei-earth-globe']") is not None
-    assert len(shell.findall(".//img[@src='/static/app/splunk_detection_engineering_intelligence/dei_earth_360_v2.png']")) == 2
+    assert shell.find(".//*[@id='dei-earth-react-root']") is not None
     assert ".dei-official-home .dei-earth-track{position:relative;z-index:0;display:flex;width:200%" in stylesheet
     assert "width:min(72vw,760px)" in stylesheet
     assert "aspect-ratio:1" in stylesheet
@@ -193,6 +193,18 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "inset:auto!important;top:50%!important" in position_stylesheet
     assert "left:50%!important" in position_stylesheet
     assert "transform:translate(-50%,-50%)!important" in position_stylesheet
+    react_source = Path("ui/home-globe.jsx").read_text(encoding="utf-8")
+    react_stylesheet = (STATIC / "dei_home_globe_v5.css").read_text(encoding="utf-8")
+    assert "createRoot(host).render(<HomeGlobe />)" in react_source
+    assert "dei_earth_360_v3.png?v=107" in react_source
+    assert "dei_realistic_earth_v1.webp?v=107" in react_source
+    assert 'data-renderer="react"' in react_source
+    assert "@keyframes dei-react-earth-rotation" in react_stylesheet
+    assert "width:clamp(420px,34vw,620px)!important" in react_stylesheet
+    assert ".dei-official-home .dei-earth-globe{display:none!important}" in react_stylesheet
+    earth_texture = (STATIC / "dei_earth_360_v3.png").read_bytes()
+    assert earth_texture.startswith(b"\x89PNG\r\n\x1a\n")
+    assert len(earth_texture) > 1_000_000
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "animation:dei-realistic-earth-rotation 52s linear infinite" in stylesheet
     assert "transform:translateX(-50%)" in stylesheet
