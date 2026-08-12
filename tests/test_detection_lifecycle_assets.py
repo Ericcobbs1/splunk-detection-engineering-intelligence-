@@ -20,7 +20,7 @@ def test_detection_lifecycle_view_is_valid_and_packaged() -> None:
     assert root.attrib["theme"] == "dark"
     assert root.attrib["script"] == "detection_lifecycle_redirect_v1.js"
     assert root.attrib["stylesheet"] == (
-        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
+        "command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css"
     )
     for element_id in (
         "dei-lifecycle-page", "lifecycle-data-status", "lifecycle-analysis-age",
