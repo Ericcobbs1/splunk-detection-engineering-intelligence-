@@ -94,6 +94,20 @@ def test_guided_workflow_layout_prioritizes_current_action() -> None:
         assert contract in stylesheet
 
 
+def test_workflow_uses_readable_progressive_disclosure_without_removing_controls() -> None:
+    root = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
+    stylesheet = (STATIC / "detection_workflow_v1.css").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    assert root.find(".//details[@id='builder-quality-workspace']") is not None
+    for element_id in ("generator-es-output", "lifecycle-action-evidence", "lifecycle-action-history"):
+        assert root.find(f".//details//*[@id='{element_id}']") is not None
+    assert "Gate guidance and ownership" in lifecycle
+    assert ".dei-workflow-disclosure" in stylesheet
+    assert "font-size:14px;line-height:1.55" in stylesheet
+    assert "grid-template-columns:minmax(0,1fr)" in stylesheet
+    assert "@media(min-width:1600px)" in stylesheet
+
+
 def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
     root = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     navigation = root.find(".//nav[@class='dei-workspace-nav']")
