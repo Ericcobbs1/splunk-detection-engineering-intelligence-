@@ -1,0 +1,5 @@
+/* Render the Earth texture on the sphere itself; avoids Simple XML child-image rendering differences. */
+.dei-official-home .dei-earth-globe{display:block!important;visibility:visible!important;opacity:1!important;background-color:#061624!important;background-image:url("dei_earth_360_v2.png?v=106")!important;background-repeat:repeat-x!important;background-size:200% 100%!important;background-position:0 center!important;animation:dei-earth-surface-v3 52s linear infinite!important}
+.dei-official-home .dei-earth-track{display:none!important}
+@keyframes dei-earth-surface-v3{from{background-position:0 center}to{background-position:-200% center}}
+@media(prefers-reduced-motion:reduce){.dei-official-home .dei-earth-globe{animation:none!important;background-position:50% center!important}}
