@@ -157,8 +157,8 @@ def test_selected_detection_uses_one_in_place_governed_workspace() -> None:
     assert "lifecycle-action-backdrop" not in lifecycle
     assert 'window.location.href="detection_workflow?detection="+encodeURIComponent(recordKey(record))' not in lifecycle
     assert 'href:"#lifecycle-action-center"' in workflow
-    assert "function applyArtifactMode(stage)" in workflow
-    assert '["testing","peer_review","catalog","production","monitoring","retired"]' in workflow
+    assert "function applyArtifactMode(stage,record)" in workflow
+    assert '["peer_review","catalog","production","monitoring","retired"]' in workflow
     assert ".dei-unified-workspace" in stylesheet
     assert ".dei-workspace-tabs" in stylesheet
     assert 'activateWorkspacePanel("all")' in lifecycle
@@ -175,3 +175,17 @@ def test_tuning_opens_an_editable_version_with_visible_guidance() -> None:
     assert 'Tuning version opened. Revise the editable artifact, then run fresh validation.' in lifecycle
     assert 'id="lifecycle-inline-error"' in lifecycle
     assert "Full workflow" in view
+
+
+def test_failed_validation_can_edit_spl_without_page_scroll_lock() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    assert 'stage==="testing"&&validation.status==="passed"' in workflow
+    assert "function applyArtifactMode(stage,record)" in workflow
+    assert '$(document).trigger("dei:edit-spl-requested")' in generator
+    assert 'editor[0].focus({preventScroll:true})' in generator
+    assert 'pane.scrollTop(Math.max(0,editor.position().top-80))' in generator
+    assert '$("#generator-spl")[0].scrollIntoView' not in generator
+    assert '$(document).on("dei:edit-spl-requested"' in lifecycle
+    assert 'activateWorkspacePanel("artifact")' in lifecycle
