@@ -210,7 +210,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       {id:"catalog",label:"Catalog ready"},{id:"production",label:"Production"},{id:"monitoring",label:"Monitoring"},
       {id:"tuning",label:"Tuning"},{id:"retired",label:"Retired"}
     ];
-    var currentStage=record.catalog && record.catalog.status==="ready" ? "catalog" : record.state;
+    var currentStage=record.catalog && ["ready","development","staging"].indexOf(record.catalog.status)!==-1 ? "catalog" : record.state;
     var current=Math.max(0,states.map(function (state) { return state.id; }).indexOf(currentStage));
     return '<div class="dei-lifecycle-progress">'+states.map(function (state,index) {
       var status=index<current?"complete":(index===current?"current":"future");
@@ -221,7 +221,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function lifecyclePosition(record) {
     var stages=["draft","testing","peer_review","catalog","production","monitoring","tuning","retired"];
-    var current=record.catalog && record.catalog.status==="ready" ? "catalog" : record.state;
+    var current=record.catalog && ["ready","development","staging"].indexOf(record.catalog.status)!==-1 ? "catalog" : record.state;
     var index=Math.max(0,stages.indexOf(current));
     return {stage:current,index:index+1,total:stages.length};
   }
@@ -276,13 +276,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (record.state==="peer_review") {
       return record.review && record.review.decision==="approved" ?
-        '<button class="primary" data-action="record_deployment">Record deployment and enter Production</button><button data-action="return_draft">Reopen draft</button>' :
+        '<button class="primary" data-action="record_deployment">Record deployment</button><button data-action="return_draft">Reopen draft</button>' :
         '<button class="primary" data-action="approve_review">Approve version</button><button class="danger" data-action="return_draft">Return for changes</button><button data-action="open_builder">Inspect in Builder</button>';
     }
     if (record.state==="production") { return '<button class="primary" data-action="record_health">Record baseline and start Monitoring</button><button class="danger" data-action="retire">Retire</button>'; }
     if (record.state==="monitoring") { return '<button class="primary" data-action="record_health">Record health</button><button data-action="start_tuning">Start tuning version</button><button class="danger" data-action="retire">Retire</button>'; }
     if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open guided builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
     return "";
+  }
+
+  function updateLifecycleDeploymentWorkflow() {
+    var environment=String($("#lifecycle-deployment-environment").val()||"production");
+    var button=$("#lifecycle-action-buttons [data-action='record_deployment']");
+    if (button.length) { button.text(environment==="production"?"Record deployment and enter Production":"Record "+label(environment)+" deployment"); }
   }
 
   function selectRecord(key) {
@@ -300,7 +306,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#lifecycle-action-fields").html(fieldMarkup(selectedRecord));
     $("#lifecycle-action-buttons").html(buttonMarkup(selectedRecord));
     $("#lifecycle-action-history").html(history(selectedRecord));
-    $("#lifecycle-action-feedback").removeClass("error success").addClass("ready").text(gateGuidance(selectedRecord).instruction);
+    $("#lifecycle-action-feedback").removeClass("error success").addClass("ready").text(gateGuidance(selectedRecord).instruction); updateLifecycleDeploymentWorkflow();
     var center=document.getElementById("lifecycle-action-center"); if (center) { center.scrollIntoView({behavior:"smooth",block:"start"}); }
   }
 
@@ -359,12 +365,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (action==="return_draft") {
       if (!comment) { $("#lifecycle-action-feedback").addClass("error").text("Change rationale is required."); return; }
-      saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null}),"Returned to Draft.",action); return;
+      saveAndReload(transition(record,"draft","returned_for_changes",comment,{review:{decision:"changes_requested",reviewer:Store.username(),comments:comment},validation:null,deployment:null,catalog:null}),"Returned to Draft and removed from active catalog buckets.",action); return;
     }
     if (action==="record_deployment") {
       var target=String($("#lifecycle-deployment-target").val()||""); var environment=String($("#lifecycle-deployment-environment").val()||"production"); var external=String($("#lifecycle-external-id").val()||"").trim();
       if (!external) { $("#lifecycle-action-feedback").addClass("error").text("A deployment object ID or saved-search name is required."); return; }
-      saveAndReload(transition(record,"production","deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""),{deployment:{target:target,environment:environment,external_object_id:external,change_reference:comment,deployed_at:new Date().toISOString(),deployed_by:Store.username(),analyst_recorded:true}}),"Production deployment recorded.",action); return;
+      var deployedAt=new Date().toISOString(); var deployment={target:target,environment:environment,external_object_id:external,change_reference:comment,deployed_at:deployedAt,deployed_by:Store.username(),analyst_recorded:true,enabled:environment==="production"};
+      if (environment==="production") { saveAndReload(transition(record,"production","deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""),{deployment:deployment,catalog:$.extend({},record.catalog,{status:"enabled",enabled_at:deployedAt,enabled_by:Store.username()})}),"Production deployment recorded.",action); return; }
+      record.deployment=deployment; record.catalog=$.extend({},record.catalog,{status:environment}); record=Store.appendHistory(record,"nonproduction_deployment_recorded",target+" / "+environment+": "+external+(comment?" · "+comment:""));
+      saveAndReload(Store.write(record),label(environment)+" deployment recorded. The detection remains approved and can be promoted or returned for changes.",action); return;
     }
     if (action==="record_health") {
       var health=String($("#lifecycle-health").val()||"healthy"); var volume=Number($("#lifecycle-result-volume").val()||0); var runtime=Number($("#lifecycle-runtime").val()||0); var truePositives=Number($("#lifecycle-true-positives").val()||0); var falsePositives=Number($("#lifecycle-false-positives").val()||0);
@@ -478,6 +487,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });
   $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
+  $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
   $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
   $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
   $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); });
