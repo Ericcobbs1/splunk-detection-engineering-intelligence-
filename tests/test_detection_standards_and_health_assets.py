@@ -37,3 +37,15 @@ def test_accessible_readability_baseline_is_packaged() -> None:
     css = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     for contract in ("-webkit-font-smoothing:antialiased", "font-size:max(14px,1em)", "text-shadow:none", ":focus-visible", ".dei-health-record", ".dei-quality-workspace"):
         assert contract in css
+
+
+def test_health_refresh_and_catalog_troubleshooting_use_shared_guidance() -> None:
+    health = ElementTree.parse(VIEWS / "detection_health.xml").getroot()
+    catalog = ElementTree.parse(VIEWS / "detection_catalog.xml").getroot()
+    health_xml = (VIEWS / "detection_health.xml").read_text(encoding="utf-8")
+    catalog_xml = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
+    assert "dei_detection_usability_v1.js" in health.attrib["script"].split(",")
+    assert 'id="health-refresh" class="dei-secondary-action"' in health_xml
+    assert "Find and troubleshoot the deployed search in Splunk" in catalog_xml
+    assert "Settings → Searches, Reports, and Alerts" in catalog_xml
+    assert "savedsearches.conf" in catalog_xml
