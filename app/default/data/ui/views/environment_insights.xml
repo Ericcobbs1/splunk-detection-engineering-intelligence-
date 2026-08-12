@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
+<form version="1.1" theme="dark" script="dashboard_state_v2.js,command_center.js,analysis_bridge.js,environment_intelligence_v2.js,dei_environment_scan_v1.js,dei_guide_adapter_v5.js,dei_workspace_layout_v14.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_telemetry_change_v1.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css">
   <label>DEI Environment Intelligence</label>
   <description>Review the persisted detection readiness and ATT&amp;CK coverage analysis.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -41,7 +41,7 @@
           <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&amp;CK coverage intelligence">
             <div class="dei-env-titlebar">
               <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and ATT&amp;CK effectiveness analysis.</p></div>
-              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-clear-environment" class="dei-clear-button-v2" type="button"><span>×</span> Clear dashboard</button><button id="dei-refresh-environment" class="dei-refresh-button-v2" type="button"><span>↻</span> Refresh environment</button></div>
+              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-clear-environment" class="dei-clear-button-v2" type="button"><span>×</span> Clear dashboard</button><a id="dei-refresh-environment" class="dei-refresh-button-v2" href="command_center#dei-telemetry"><span>↻</span> Run new scan in Discovery</a></div>
             </div>
 
             <div class="dei-env-summary-card">
@@ -82,7 +82,7 @@
               </aside>
             </div>
 
-            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Select <strong>Refresh environment</strong> to replace it with fresh analysis, or <strong>Clear dashboard</strong> to remove it before another query.</div>
+            <div class="dei-env-persistence-note">ⓘ This snapshot remains loaded while you navigate the app. Open <strong>Environment Discovery</strong> to replace it with a fresh scan, or select <strong>Clear dashboard</strong> to remove the saved view.</div>
             </div></details>
           </section>
 
