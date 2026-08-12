@@ -7,6 +7,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var report = null;
   var records = [];
   var selectedRecord = null;
+  var pendingWorkspaceAction = "";
   var Store = null;
   var generatedDrafts = {};
 
@@ -227,11 +228,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     ];
     var currentStage=record.catalog && ["ready","development","staging"].indexOf(record.catalog.status)!==-1 ? "catalog" : record.state;
     var current=Math.max(0,states.map(function (state) { return state.id; }).indexOf(currentStage));
+    var controls=stageControls(record);
     return '<div class="dei-lifecycle-progress">'+states.map(function (state,index) {
       var status=index<current?"complete":(index===current?"current":"future");
       var statusLabel=status==="complete"?"Complete":(status==="current"?"Current stage":"Upcoming");
-      return '<div class="dei-progress-step '+status+'"'+(status==="current"?' aria-current="step"':"")+'><span>'+(status==="complete"?"✓":String(index+1))+'</span><div><strong>'+esc(state.label)+'</strong><small>'+statusLabel+'</small></div></div>';
+      var action=controls.previous&&controls.previous.stage===state.id?controls.previous.action:(controls.next&&controls.next.stage===state.id?controls.next.action:"");
+      var actionLabel=controls.previous&&action===controls.previous.action?controls.previous.label:(controls.next&&action===controls.next.action?controls.next.label:"");
+      var tag=action?"button":"div"; var actionText=action?' data-stage-action="'+esc(action)+'" type="button" title="'+esc(actionLabel)+'"':"";
+      return '<'+tag+' class="dei-progress-step '+status+(action?' available':'')+'"'+actionText+(status==="current"?' aria-current="step"':"")+'><span>'+(status==="complete"?"✓":String(index+1))+'</span><div><strong>'+esc(state.label)+'</strong><small>'+(action?"Available action":statusLabel)+'</small></div></'+tag+'>';
     }).join("")+"</div>";
+  }
+
+  function stageControls(record) {
+    var approved=record.review&&record.review.decision==="approved";
+    if (record.state==="testing") { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return to Draft"},edit:{action:"open_builder",label:"Edit detection"},next:record.validation&&record.validation.status==="passed"?{stage:"peer_review",action:"submit_review",label:"Continue · Submit for peer review"}:null}; }
+    if (record.state==="peer_review"&&!approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return for changes"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"catalog",action:"approve_review",label:"Continue · Approve version"}}; }
+    if (record.state==="peer_review"&&approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Reopen Draft"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"production",action:"record_deployment",label:"Continue · Record deployment"}}; }
+    if (record.state==="production") { return {previous:null,edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"monitoring",action:"record_health",label:"Continue · Start Monitoring"}}; }
+    if (record.state==="monitoring") { return {previous:{stage:"tuning",action:"start_tuning",label:"Revise · Start tuning version"},edit:null,next:{stage:"monitoring",action:"record_health",label:"Continue · Record health"}}; }
+    return {previous:null,edit:null,next:null};
   }
 
   function lifecyclePosition(record) {
@@ -285,17 +300,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function buttonMarkup(record) {
+    var controls=stageControls(record); var markup='<div class="dei-stage-controller" aria-label="Lifecycle stage controls">';
+    markup+=controls.previous?'<button class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
+    if (controls.edit) { markup+='<button data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
+    if (controls.next) { markup+='<button class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
+    markup+='</div>';
     if (record.state==="draft") { return '<button class="primary" data-action="open_builder">Open guided builder</button>'; }
-    if (record.state==="testing") {
-      return (record.validation && record.validation.status==="passed" ? '<button class="primary" data-action="submit_review">Submit for peer review</button>' : "")+'<button data-action="open_builder">Open guided builder</button><button data-action="return_draft">Return to Draft</button>';
-    }
-    if (record.state==="peer_review") {
-      return record.review && record.review.decision==="approved" ?
-        '<button class="primary" data-action="record_deployment">Record deployment</button><button data-action="return_draft">Reopen draft</button>' :
-        '<button class="primary" data-action="approve_review">Approve version</button><button class="danger" data-action="return_draft">Return for changes</button><button data-action="open_builder">Inspect in Builder</button>';
-    }
-    if (record.state==="production") { return '<button class="primary" data-action="record_health">Record baseline and start Monitoring</button><button class="danger" data-action="retire">Retire</button>'; }
-    if (record.state==="monitoring") { return '<button class="primary" data-action="record_health">Record health</button><button data-action="start_tuning">Start tuning version</button><button class="danger" data-action="retire">Retire</button>'; }
+    if (["testing","peer_review","production","monitoring"].indexOf(record.state)!==-1) { return markup+(record.state==="production"||record.state==="monitoring"?'<button class="danger" data-action="retire">Retire</button>':""); }
     if (record.state==="tuning") { return '<button class="primary" data-action="open_builder">Open guided builder for tuning</button><button class="danger" data-action="retire">Retire</button>'; }
     return "";
   }
@@ -343,7 +354,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     promise.done(function (saved) {
       $("#lifecycle-action-feedback").removeClass("error ready").addClass("success").text(message);
       $(document).trigger("dei:lifecycle-action-complete",[action,saved]);
-      reloadRecords();
+      pendingWorkspaceAction=action; reloadRecords();
     }).fail(function (error) {
       $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to save lifecycle record."));
     });
@@ -407,6 +418,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
+  function completePendingWorkspaceAction() {
+    if (pendingWorkspaceAction!=="return_draft") { pendingWorkspaceAction=""; return; }
+    pendingWorkspaceAction=""; hideActionWindow();
+    var builder=document.getElementById("guided-builder-workspace"); if (builder) { builder.scrollIntoView({behavior:"smooth",block:"start"}); }
+    window.setTimeout(function () { var spl=document.getElementById("generator-spl"); if (spl&&spl.offsetParent!==null) { spl.focus(); } },350);
+  }
+
   function requestedPipelineStage() {
     var match=String(window.location.search||"").match(/[?&]pipeline=([^&]+)/);
     return match ? decodeURIComponent(match[1]) : "";
@@ -454,6 +472,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       } else {
         hideActionWindow();
       }
+      completePendingWorkspaceAction();
     });
   }
   function initialize(attempt) {
@@ -503,6 +522,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $("#lifecycle-work-queue").on("click",".dei-inline-reset",function () { $("#lifecycle-reset-filters").trigger("click"); });
   $("#lifecycle-action-buttons").on("click","button",function () { handleAction(String($(this).data("action")||"")); });
+  $("#lifecycle-action-progress").on("click","[data-stage-action]",function () { handleAction(String($(this).data("stage-action")||"")); });
   $("#workflow-primary-action").on("click",function (event) {
     if (String($(this).attr("href")||"")!=="#lifecycle-action-center") { return; }
     var key=String($("#workflow-detection-select").val()||""); if (key) { selectRecord(key); event.preventDefault(); }
