@@ -28,19 +28,25 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function updateRestartControl(record) { $("#builder-restart-workflow").toggle(!!record&&record.state==="draft"); if (!record||record.state!=="draft") { $("#builder-restart-panel").prop("hidden",true); } }
   function opensActionWindow(record) { return !!(record && ["testing","peer_review","production","monitoring","retired"].indexOf(record.state)!==-1); }
+  function activateWorkspacePanel(panel) {
+    var workspace=$("#workflow-unified-workspace"); if (!workspace.length) { return; }
+    var changeControl=panel==="change-control";
+    workspace.prop("hidden",false).attr("data-active-panel",changeControl?"change-control":"artifact");
+    $("#guided-builder-workspace").prop("hidden",changeControl);
+    $("#lifecycle-action-center").prop("hidden",!changeControl).toggle(changeControl);
+    $("#workflow-tab-artifact").attr("aria-selected",changeControl?"false":"true").toggleClass("active",!changeControl);
+    $("#workflow-tab-change-control").attr("aria-selected",changeControl?"true":"false").toggleClass("active",changeControl);
+  }
   function closeActionWindow() {
-    $("#lifecycle-action-center").hide().removeClass("is-open");
-    $("#lifecycle-action-backdrop").prop("hidden",true);
-    $("body").removeClass("dei-lifecycle-modal-open");
-    var selector=document.getElementById("workflow-detection-select"); if (selector) { selector.focus(); }
+    activateWorkspacePanel("artifact");
+    var tab=document.getElementById("workflow-tab-artifact"); if (tab) { tab.focus(); }
   }
   function hideActionWindow() {
-    $("#lifecycle-action-center").hide().removeClass("is-open"); $("#lifecycle-action-backdrop").prop("hidden",true); $("body").removeClass("dei-lifecycle-modal-open");
+    activateWorkspacePanel("artifact");
   }
   function openActionWindow() {
     var center=$("#lifecycle-action-center"); if (!center.length) { return; }
-    center.show().addClass("is-open"); $("#lifecycle-action-backdrop").prop("hidden",false); $("body").addClass("dei-lifecycle-modal-open");
-    window.setTimeout(function () { center.trigger("focus"); },0);
+    activateWorkspacePanel("change-control");
   }
 
   function observedSourcetypes(item) {
@@ -349,7 +355,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var field=$("#lifecycle-action-comment"); var inline=$("#lifecycle-inline-error");
     if (label) { $("#lifecycle-action-comment-label").text(label); }
     inline.prop("hidden",false).text(message); field.attr("aria-invalid","true").trigger("focus");
-    if (field.length) { field[0].scrollIntoView({behavior:"smooth",block:"center"}); }
     $("#lifecycle-action-feedback").removeClass("ready success").addClass("error").text(message);
   }
   function clearActionError() { $("#lifecycle-inline-error").prop("hidden",true).text(""); $("#lifecycle-action-comment").removeAttr("aria-invalid"); }
@@ -395,12 +400,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function saveAndOpenCatalog(record,action) {
-    Store.write(record).done(function (saved) {
-      $(document).trigger("dei:lifecycle-action-complete",[action,saved||record]);
-      window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
-    }).fail(function (error) {
-      $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to catalog the approved detection."));
-    });
+    saveAndReload(Store.write(record),"Peer review approved. Record the deployment target in this workspace.",action);
   }
 
   function handleAction(action) {
@@ -408,7 +408,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!record) { return; }
     if (action==="open_builder") {
       window.localStorage.setItem(SELECTED_DETECTION_KEY,recordKey(record));
-      window.location.href="detection_workflow?detection="+encodeURIComponent(recordKey(record)); return;
+      activateWorkspacePanel("artifact");
+      $(document).trigger("dei:artifact-inspection-requested",[recordKey(record),record.state,record]);
+      return;
     }
     if (action==="submit_review") {
       if (!record.validation || record.validation.status!=="passed") { return; }
@@ -459,13 +461,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function completePendingWorkspaceAction() {
     if (pendingWorkspaceAction==="restart_recommendation") {
       pendingWorkspaceAction=""; hideActionWindow();
-      var start=document.getElementById("builder-generate"); if (start) { start.scrollIntoView({behavior:"smooth",block:"center"}); window.setTimeout(function(){start.focus();},300); }
+      var start=document.getElementById("builder-generate"); if (start) { window.setTimeout(function(){start.focus();},100); }
       return;
     }
     if (pendingWorkspaceAction!=="return_draft") { pendingWorkspaceAction=""; return; }
     pendingWorkspaceAction=""; hideActionWindow();
-    var builder=document.getElementById("guided-builder-workspace"); if (builder) { builder.scrollIntoView({behavior:"smooth",block:"start"}); }
-    window.setTimeout(function () { var spl=document.getElementById("generator-spl"); if (spl&&spl.offsetParent!==null) { spl.focus(); } },350);
+    window.setTimeout(function () { var spl=document.getElementById("generator-spl"); if (spl&&spl.offsetParent!==null) { spl.focus(); } },100);
   }
 
   function requestedPipelineStage() {
@@ -571,16 +572,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (String($(this).attr("href")||"")!=="#lifecycle-action-center") { return; }
     var key=String($("#workflow-detection-select").val()||""); if (key) { selectRecord(key); event.preventDefault(); }
   });
-  $("#lifecycle-action-close,#lifecycle-action-backdrop").on("click",closeActionWindow);
-  $(document).on("keydown.deiLifecycleModal",function (event) {
-    if (!$("#lifecycle-action-center").hasClass("is-open")) { return; }
-    if (event.key==="Escape") { closeActionWindow(); event.preventDefault(); return; }
-    if (event.key!=="Tab") { return; }
-    var focusable=$("#lifecycle-action-center").find('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])').filter(":visible");
-    if (!focusable.length) { return; } var first=focusable[0],last=focusable[focusable.length-1];
-    if (event.shiftKey&&document.activeElement===first) { last.focus(); event.preventDefault(); }
-    else if (!event.shiftKey&&document.activeElement===last) { first.focus(); event.preventDefault(); }
-  });
+  $("#lifecycle-action-close").on("click",closeActionWindow);
+  $("#workflow-tab-artifact").on("click",function () { activateWorkspacePanel("artifact"); });
+  $("#workflow-tab-change-control").on("click",function () { if (selectedRecord) { openActionWindow(); } });
   $("#lifecycle-action-fields").on("change","#lifecycle-deployment-environment",updateLifecycleDeploymentWorkflow);
   $("#lifecycle-action-fields").on("input","#lifecycle-action-comment",clearActionError);
   $("#builder-restart-workflow").on("click",function () { $("#builder-restart-panel").prop("hidden",false); $("#builder-restart-reason").trigger("focus"); });

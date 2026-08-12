@@ -931,6 +931,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $("#workflow-detection-select").val($(this).val()).trigger("change");
     }
   });
+  $(document).on("dei:artifact-inspection-requested", function (event, id, stage, record) {
+    var artifact = record ? $.extend(true, {}, record) : storedArtifact("dei-" + String(id || ""));
+    if (!artifact || !artifact.spl) { return; }
+    artifact.id = artifact.id || "dei-" + String(id || "");
+    artifact.status = artifact.state || artifact.status || String(stage || "draft");
+    artifact.severity = artifact.severity || "unknown";
+    artifact.source_readiness = artifact.source_readiness || "persisted";
+    artifact.mitre_attack = artifact.mitre_attack || [];
+    artifact.schedule = artifact.schedule || {cron:"Not recorded", earliest:"Not recorded", latest:"Not recorded"};
+    artifact.engineering_warnings = artifact.engineering_warnings || [];
+    generatedBaseline = $.extend(true, {}, artifact);
+    $("#detection-generator").show().attr("data-dei-generated-detection", String(id || ""));
+    renderArtifact(artifact);
+    setStartFeedback("Loaded the governed version for in-place lifecycle review.", "success");
+  });
   $(document).off("click.deiGenerate", "#builder-generate").on("click.deiGenerate", "#builder-generate", generateSelectedDetection);
   $("#builder-save-draft").on("click", saveCurrentDraft);
   $("#builder-run-validation").on("click", runValidation);

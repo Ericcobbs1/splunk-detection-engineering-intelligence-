@@ -84,7 +84,7 @@ def test_catalog_manage_preserves_peer_review_and_routes_deployment_buckets() ->
     assert 'environment==="production"' in lifecycle
 
 
-def test_lifecycle_modal_has_fluid_evidence_gated_stage_controls() -> None:
+def test_unified_lifecycle_workspace_has_fluid_evidence_gated_stage_controls() -> None:
     lifecycle = (STATIC / "detection_lifecycle_v2.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "detection_lifecycle_v1.css").read_text(encoding="utf-8")
     assert "function stageControls(record)" in lifecycle
@@ -95,7 +95,8 @@ def test_lifecycle_modal_has_fluid_evidence_gated_stage_controls() -> None:
     assert 'data-stage-action=' in lifecycle
     assert 'pendingWorkspaceAction=action' in lifecycle
     assert 'pendingWorkspaceAction!=="return_draft"' in lifecycle
-    assert 'builder.scrollIntoView' in lifecycle
+    assert 'builder.scrollIntoView' not in lifecycle
+    assert "function activateWorkspacePanel(panel)" in lifecycle
     assert '.dei-stage-controller' in stylesheet
     assert '.dei-progress-step.available' in stylesheet
 
@@ -132,7 +133,7 @@ def test_detection_can_restart_at_recommendation_without_losing_audit_history() 
     assert "function syncBrowserArtifact(record)" in lifecycle
     assert 'action==="return_draft"||action==="restart_recommendation"' in lifecycle
     assert "function updateRestartControl(record)" in lifecycle
-    assert 'stage!=="recommendation"' in workflow
+    assert '$("#workflow-unified-workspace").prop("hidden",false)' in workflow
     for element_id in ("builder-restart-workflow", "builder-restart-panel", "builder-restart-reason", "builder-confirm-restart", "builder-cancel-restart"):
         assert f'id="{element_id}"' in view
 
