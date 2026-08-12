@@ -4,8 +4,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 APP_ROOT = Path("app")
-VIEW_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "mitre_framework_explorer.xml"
-SUMMARY_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "mitre_coverage.xml"
+VIEW_PATH = APP_ROOT / "default" / "data" / "ui" / "views" / "mitre_coverage.xml"
 STATIC_ROOT = APP_ROOT / "appserver" / "static"
 
 
@@ -19,7 +18,7 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
         "dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css"
     )
     for element_id in (
-        "dei-mitre-explorer-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
+        "dei-mitre-page", "mitre-data-status", "mitre-analysis-age", "mitre-filter",
         "mitre-readiness-filter", "mitre-sourcetype-filter", "mitre-detection-list", "mitre-matrix",
         "mitre-covered-tactics", "mitre-inspector-title", "mitre-inspector-body",
         "mitre-coverage-donut", "mitre-coverage-percent", "mitre-portfolio-covered",
@@ -32,16 +31,6 @@ def test_mitre_workspace_view_is_valid_and_contained() -> None:
     assert matrix is not None and inspector is not None and content is not None
     assert list(content).index(matrix) < list(content).index(inspector)
     assert root.find(".//a[@href='detection_catalog']") is not None
-
-
-def test_high_level_coverage_links_to_granular_framework_explorer() -> None:
-    root = ElementTree.parse(SUMMARY_PATH).getroot()
-    assert root.find(".//*[@id='dei-mitre-page']") is not None
-    assert root.find(".//*[@class='dei-mitre-matrix-pane']") is None
-    assert root.find(".//a[@href='mitre_framework_explorer']") is not None
-    javascript = (STATIC_ROOT / "mitre_workspace_v3.js").read_text(encoding="utf-8")
-    assert "dei-mitre-summary-chip" in javascript
-    assert "mitre_framework_explorer?detection=" in javascript
 
 
 def test_mitre_workspace_includes_current_enterprise_matrix_context() -> None:

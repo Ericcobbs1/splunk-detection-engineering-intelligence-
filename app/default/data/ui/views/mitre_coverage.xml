@@ -1,11 +1,11 @@
 <form version="1.1" theme="dark" script="mitre_workspace_v3.js,dei_environment_scan_v1.js,dei_guide_adapter_v4.js,dei_workspace_layout_v13.js" stylesheet="command_center_v2.css,mitre_workspace.css,mitre_workspace_readability.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v1.css">
   <label>MITRE ATT&amp;CK Coverage</label>
-  <description>High-level detection-to-ATT&amp;CK mapping.</description>
+  <description>Detection Advisor and Enterprise ATT&amp;CK coverage workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
   <row>
     <panel>
       <html>
-        <div id="dei-mitre-page" class="dei-shell dei-mitre-page dei-mitre-summary-page">
+        <div id="dei-mitre-page" class="dei-shell dei-mitre-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>MITRE ATT&amp;CK Coverage</span></div></div>
             <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a class="active" href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a></nav>
@@ -13,13 +13,36 @@
           </section>
 
           <section class="dei-mitre-page-head">
-            <div class="dei-mitre-head-copy"><p class="dei-eyebrow">Coverage at a glance</p><h1>See what each detection maps to.</h1><p>Select a detection to understand the ATT&amp;CK tactics and techniques it covers.</p><div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="mitre_framework_explorer">Open full ATT&amp;CK framework →</a></div></div>
-            <div class="dei-coverage-summary" aria-label="Portfolio ATT&amp;CK coverage summary"><div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div><div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Mapped by current detections</small></div></div>
+            <div class="dei-mitre-head-copy">
+              <p class="dei-eyebrow">Detection Coverage Intelligence</p>
+              <h1>Enterprise ATT&amp;CK coverage workspace</h1>
+              <p>Choose a detection opportunity, inspect where it is effective in ATT&amp;CK, and use the bundled offline reference when this search head cannot reach the Internet.</p>
+              <div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="command_center#dei-telemetry">Refresh analysis</a></div>
+            </div>
+            <div class="dei-coverage-summary" aria-label="Portfolio ATT&amp;CK coverage summary">
+              <div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div>
+              <div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Across loaded detection findings</small><p>Click a detection below for technique-level detail. Use the live MITRE button when Internet access is available for the authoritative record.</p></div>
+            </div>
           </section>
 
-          <section class="dei-mitre-layout dei-mitre-summary-layout">
-            <aside class="dei-mitre-advisor" aria-label="Detection Advisor"><div class="dei-pane-head"><div><p class="dei-eyebrow">Detections</p><h2>Select a detection</h2></div><span id="mitre-detection-count" class="dei-chip">0</span></div><div class="dei-filter-stack"><input id="mitre-filter" type="search" placeholder="Filter detections..."/><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select><select id="mitre-sourcetype-filter" aria-label="Filter detections by sourcetype"><option value="all">All sourcetypes</option></select></div><div id="mitre-detection-list" class="dei-mitre-detection-list"><p class="dei-empty">Run analysis to populate detections.</p></div></aside>
-            <section class="dei-mitre-inspector dei-mitre-summary-inspector" aria-label="High-level mapping"><div class="dei-pane-head"><div><p class="dei-eyebrow">Mapped coverage</p><h2 id="mitre-inspector-title">Select a detection</h2><p>Review its high-level ATT&amp;CK mapping or open the full framework for granular detail.</p></div></div><div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Mapped tactics and techniques will appear here.</p></div><span id="mitre-covered-tactics" hidden="hidden">0 / 15 covered</span><div id="mitre-matrix" hidden="hidden" aria-hidden="true"></div><p id="mitre-matrix-context" hidden="hidden"></p></section>
+          <section class="dei-mitre-layout">
+            <aside class="dei-mitre-advisor" aria-label="Detection Advisor">
+              <div class="dei-pane-head"><div><p class="dei-eyebrow">Detection Advisor</p><h2>Findings</h2></div><span id="mitre-detection-count" class="dei-chip">0</span></div>
+              <div class="dei-filter-stack"><input id="mitre-filter" type="search" placeholder="Filter detections..."/><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select><select id="mitre-sourcetype-filter" aria-label="Filter Detection Advisor by sourcetype"><option value="all">All sourcetypes</option></select></div>
+              <div id="mitre-detection-list" class="dei-mitre-detection-list"><p class="dei-empty">Run analysis from Command Center to populate findings.</p></div>
+            </aside>
+
+            <div class="dei-mitre-content">
+              <main class="dei-mitre-matrix-pane">
+                <div class="dei-pane-head"><div><p class="dei-eyebrow">Enterprise Matrix</p><h2>ATT&amp;CK tactics</h2><p id="mitre-matrix-context">Select a detection to map its effective coverage.</p></div><span id="mitre-covered-tactics" class="dei-chip">0 / 15 covered</span></div>
+                <div id="mitre-matrix" class="dei-mitre-matrix" aria-label="MITRE ATT&amp;CK Enterprise matrix"></div>
+              </main>
+
+              <section class="dei-mitre-inspector" aria-label="Coverage details">
+                <div class="dei-pane-head"><div><p class="dei-eyebrow">Coverage Inspector</p><h2 id="mitre-inspector-title">Select a detection</h2><p>Bundled ATT&amp;CK context is available offline; the live MITRE record remains the authoritative source.</p></div></div>
+                <div id="mitre-inspector-body" class="dei-mitre-inspector-body"><p class="dei-empty">Technique, platform, readiness, detection guidance, mitigation, and protection details will appear here.</p></div>
+              </section>
+            </div>
           </section>
         </div>
       </html>
