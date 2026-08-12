@@ -23,7 +23,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_guide_adapter_v4.js" in home_scripts
     assert "dei_workspace_layout_v11.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
-    assert home.attrib["stylesheet"].split(",")[-2:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css"]
+    assert home.attrib["stylesheet"].split(",")[-3:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css"]
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions
@@ -189,6 +189,10 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert 'background-image:url("dei_earth_360_v2.png?v=106")!important' in surface_stylesheet
     assert ".dei-official-home .dei-earth-track{display:none!important}" in surface_stylesheet
     assert "@keyframes dei-earth-surface-v3" in surface_stylesheet
+    position_stylesheet = (STATIC / "dei_home_globe_v4.css").read_text(encoding="utf-8")
+    assert "inset:auto!important;top:50%!important" in position_stylesheet
+    assert "left:50%!important" in position_stylesheet
+    assert "transform:translate(-50%,-50%)!important" in position_stylesheet
     assert "@keyframes dei-realistic-earth-rotation" in stylesheet
     assert "animation:dei-realistic-earth-rotation 52s linear infinite" in stylesheet
     assert "transform:translateX(-50%)" in stylesheet

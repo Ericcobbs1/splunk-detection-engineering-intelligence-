@@ -1,0 +1,2 @@
+/* Positioning correction: inset must be resolved before explicit center coordinates. */
+.dei-official-home .dei-topology-canvas>.dei-earth-globe{inset:auto!important;top:50%!important;right:auto!important;bottom:auto!important;left:50%!important;transform:translate(-50%,-50%)!important}
