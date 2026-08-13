@@ -24,7 +24,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     assert "dei_workspace_layout_v12.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_home_globe_react_v1.js" in home_scripts
-    assert home.attrib["stylesheet"].split(",")[-4:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v7.css"]
+    assert home.attrib["stylesheet"].split(",")[-5:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v7.css", "dei_theme_v1.css"]
     assert "dei_responsive_v1.css" in home.attrib["stylesheet"].split(",")
     home_actions = (STATIC / "dei_home_actions_v1.css").read_text(encoding="utf-8")
     assert "grid-template-columns:repeat(4,max-content)!important" in home_actions

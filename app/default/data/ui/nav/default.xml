@@ -10,6 +10,7 @@
     <view name="detection_catalog" />
     <view name="detection_health" />
   </collection>
+  <view name="dei_help" />
   <collection label="Splunk">
     <view name="search" />
   </collection>
