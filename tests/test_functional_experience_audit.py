@@ -199,10 +199,20 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'if (page()!==step.page) { close(false); return; }' in adapter
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
-    assert "if(stepChanged) focusTarget()" in adapter
+    assert "if(stepChanged) focusTarget(false)" in adapter
+    assert "onFocusTarget:function(){ focusTarget(true); }" in adapter
     assert 'status.text("Target highlighted — complete the glowing action in the workspace.")' in adapter
     assert 'target.addClass("dei-guide-focus-pulse")' in adapter
-    assert '.text("DO THIS HERE").addClass("dei-guide-marker-focus")' in adapter
+    assert '.text("CLICK HERE").addClass("dei-guide-marker-focus")' in adapter
     assert 'window.clearTimeout(focusPulseTimer)' in adapter
+    assert 'id="dei-guide-return"' in adapter
+    assert 'id="dei-guide-focus-status"' in adapter
+    assert 'aria-live="assertive"' in adapter
+    assert 'restoreGuide(true)' in adapter
+    assert 'hasClass("dei-guide-focus-mode")) restoreGuide(true)' in adapter
+    assert '.trigger("click")' not in adapter
     assert "deiGuideShowMe" in stylesheet
     assert "deiGuideShowMarker" in stylesheet
+    assert "body.dei-guide-focus-mode .dei-onboarding-dialog" in stylesheet
+    assert "#dei-guide-return" in stylesheet
+    assert 'content:"↓"' in stylesheet
