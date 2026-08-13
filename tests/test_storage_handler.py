@@ -1,9 +1,12 @@
 """Tests for authenticated server-side governed persistence."""
 
 import json
+from pathlib import Path
 from typing import Any
 
 from dei.api.storage_handler import LIFECYCLE, SCAN_HISTORY, SCAN_SUMMARIES, StorageHandler
+
+APP = Path("app")
 
 
 class FakeStore:
@@ -24,6 +27,11 @@ class FakeStore:
 
 def request(payload: dict[str, Any], method: str = "POST") -> str:
     return json.dumps({"method": method, "sessionKey": "token", "payload": payload})
+
+
+def test_storage_runtime_modules_are_packaged() -> None:
+    assert (APP / "bin" / "dei_storage_rest.py").is_file()
+    assert (APP / "bin" / "dei" / "api" / "storage_handler.py").is_file()
 
 
 def test_scan_write_and_read_are_server_side_and_durable() -> None:
