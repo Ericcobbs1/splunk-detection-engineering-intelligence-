@@ -85,7 +85,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function targetFor(step) {
     var target=$(step.target).filter(":visible").filter(function(){ var rect=this.getBoundingClientRect(); return rect.width>0&&rect.height>0; }).first();
     if(!target.length||step.completion) return target;
-    return target.is("button,input,select,textarea,a,[role='button']")?target:$();
+    if(!target.is("button,input,select,textarea,a,[role='button']")) return $();
+    if(target.prop("disabled")||target.prop("readonly")||target.attr("aria-disabled")==="true") return $();
+    return target;
+  }
+  function reconcileCompletedStep(index) {
+    if(index===8&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(9); return true; }
+    if((index===9||index===10)&&$('[data-action="approve_review"]:visible').length){ goToStep(11); return true; }
+    if(index===11&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(12); return true; }
+    if(index===13&&String($("#catalog-external-id").val()||"").trim()){ goToStep(14); return true; }
+    if(index===14&&!$('[data-catalog-action="deploy"]:visible').length&&$("#catalog-action-panel:visible").length){ goToStep(15); return true; }
+    return false;
   }
   function focusFor(step,target) { var focus=step.focusTarget?$(step.focusTarget).filter(":visible").first():target; return focus.length?focus:target; }
   function scheduleRender(delay) { window.clearTimeout(renderTimer); renderTimer=window.setTimeout(render,delay||80); }
@@ -190,6 +200,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     prepareStep(step);
     if(index===6 && $("#builder-detection-select").val()){ writeStep(7); scheduleRender(0); return; }
     if(index===7 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(8); scheduleRender(0); return; }
+    if(reconcileCompletedStep(index)) return;
     var target=targetFor(step);
     if (!target.length) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
