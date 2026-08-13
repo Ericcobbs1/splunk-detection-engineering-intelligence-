@@ -20,7 +20,7 @@ require(["jquery","splunkjs/mvc/simplexml/ready!"],function($){"use strict";
     var example=recommendedName();
     field.attr("placeholder",example).attr("aria-describedby","lifecycle-external-id-help");
     if(!$("#lifecycle-external-id-help").length){
-      field.after('<small id="lifecycle-external-id-help">Enter the exact deployed Splunk object name. Example: <code>'+escapeHtml(example)+'</code>. Platform saved searches are under Settings → Searches, Reports, and Alerts; ES correlation searches are under Configure → Content → Content Management.</small>');
+      field.after('<small id="lifecycle-external-id-help">Enter the exact deployed Splunk object name. Recommended name: <span class="dei-recommended-object-name">'+escapeHtml(example)+'</span>. Platform saved searches are under Settings → Searches, Reports, and Alerts; ES correlation searches are under Configure → Content → Content Management.</small>');
     }
   }
   function enhanceMonitoring(){
