@@ -94,7 +94,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(!target.length){ marker.remove(); return; }
     if(!marker.length){ marker=$('<span id="dei-guide-action-marker" aria-hidden="true">NEXT ACTION</span>').appendTo("body"); }
     var rect=target[0].getBoundingClientRect();
-    marker.css({top:Math.max(8,rect.top-13),left:Math.min(window.innerWidth-112,Math.max(8,rect.right-98))});
+    var markerWidth=marker.outerWidth()||118;
+    marker.css({top:Math.max(18,rect.top-18),left:Math.min(window.innerWidth-markerWidth-8,Math.max(8,rect.left+(rect.width-markerWidth)/2))});
+  }
+  function settleTarget(step,target) {
+    window.requestAnimationFrame(function(){
+      var current=targetFor(step);
+      if(!current.length||current[0]!==target[0]) return;
+      updateMarker(current);
+      var focus=focusFor(step,current);
+      focus.attr("tabindex",focus.attr("tabindex")||"-1").trigger("focus");
+    });
   }
   function restoreGuide(moveFocus) {
     $("body").removeClass("dei-guide-focus-mode");
@@ -117,7 +127,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return false;
     }
     window.clearTimeout(focusPulseTimer);
-    target[0].scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});
+    target[0].scrollIntoView({behavior:"auto",block:"center",inline:"center"});
     target.removeClass("dei-guide-focus-pulse");
     void target[0].offsetWidth;
     target.addClass("dei-guide-focus-pulse");
@@ -135,7 +145,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     } else {
       $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
     }
-    window.setTimeout(function(){ var focus=focusFor(step,target); focus.attr("tabindex",focus.attr("tabindex")||"-1").trigger("focus"); },320);
+    settleTarget(step,target);
     focusPulseTimer=window.setTimeout(function(){
       target.removeClass("dei-guide-focus-pulse");
     },1800);

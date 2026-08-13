@@ -220,6 +220,17 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'content:"↓"' in stylesheet
 
 
+def test_show_me_centers_then_reanchors_marker_to_the_actual_control():
+    adapter = _source("dei_guide_adapter_v5.js")
+    assert 'scrollIntoView({behavior:"auto",block:"center",inline:"center"})' in adapter
+    assert "rect.left+(rect.width-markerWidth)/2" in adapter
+    assert "function settleTarget(step,target)" in adapter
+    assert "window.requestAnimationFrame(function()" in adapter
+    assert "current[0]!==target[0]" in adapter
+    assert "settleTarget(step,target)" in adapter
+    assert 'scrollIntoView({behavior:"smooth"' not in adapter
+
+
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
     adapter = _source("dei_guide_adapter_v5.js")
     transitions = (
