@@ -4,18 +4,18 @@
   <fieldset submitButton="false" autoRun="false"></fieldset>
   <row><panel><html>
     <div id="dei-mitre-page" class="dei-shell dei-mitre-page dei-mitre-heatmap-page">
+      <section class="dei-mitre-page-head">
+        <div class="dei-mitre-head-copy"><p class="dei-eyebrow">Portfolio Coverage Intelligence</p><h1>Enterprise ATT&amp;CK portfolio heat map</h1><p>Measure aggregate technique coverage across loaded detections. Use the original Coverage page for individual detection mapping and detailed guidance.</p><div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="mitre_coverage">Open Detection Matrix</a><a class="dei-link-button" href="command_center#dei-telemetry">Open Environment Discovery</a></div></div>
+        <div class="dei-coverage-summary"><div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div><div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Across loaded detection findings</small></div></div>
+      </section>
       <section class="dei-product-bar" aria-label="DEI workspace navigation">
         <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>MITRE ATT&amp;CK Heat Map</span></div></div>
         <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a class="active" href="mitre_heatmap">Heat Map</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a></nav>
         <div id="mitre-data-status" class="dei-status">Analysis: checking</div>
       </section>
-      <section class="dei-mitre-page-head">
-        <div class="dei-mitre-head-copy"><p class="dei-eyebrow">Portfolio Coverage Intelligence</p><h1>Enterprise ATT&amp;CK portfolio heat map</h1><p>Measure aggregate technique coverage across loaded detections. Use the original Coverage page for individual detection mapping and detailed guidance.</p><div class="dei-mitre-head-actions"><span id="mitre-analysis-age" class="dei-chip">No analysis loaded</span><a class="dei-link-button" href="mitre_coverage">Open Detection Matrix</a><a class="dei-link-button" href="command_center#dei-telemetry">Open Environment Discovery</a></div></div>
-        <div class="dei-coverage-summary"><div id="mitre-coverage-donut" class="dei-coverage-donut"><div><strong id="mitre-coverage-percent">0%</strong><span>tactic coverage</span></div></div><div class="dei-coverage-summary-copy"><span>Portfolio coverage</span><strong id="mitre-portfolio-covered">0 of 15 tactics</strong><small>Across loaded detection findings</small></div></div>
-      </section>
       <section class="dei-lifecycle-section">
         <div class="dei-pane-head"><div><p class="dei-eyebrow">Heat Map Filters</p><h2>Aggregate technique coverage</h2><p>Filter the portfolio by detection name, readiness, or observed sourcetype.</p></div><span id="mitre-detection-count" class="dei-chip">0</span></div>
-        <div class="dei-filter-stack"><input id="mitre-filter" type="search" placeholder="Filter detections..."/><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select><select id="mitre-sourcetype-filter"><option value="all">All sourcetypes</option></select></div>
+        <div class="dei-filter-stack"><select id="mitre-filter" aria-label="Select detection"><option value="all">All detections</option></select><select id="mitre-readiness-filter"><option value="all">All readiness</option><option value="production_ready">Production ready</option><option value="partial">Partial</option><option value="field_gap">Field gap</option><option value="field_unverified">Field unverified</option></select><select id="mitre-sourcetype-filter"><option value="all">All sourcetypes</option></select></div>
         <div class="dei-heat-legend"><span>Green: production-ready coverage</span><span>Amber: partial coverage</span><span>Red: field or verification gap</span><span>Gray: uncovered</span></div>
         <div id="mitre-heatmap" class="dei-mitre-heatmap" aria-label="MITRE ATT&amp;CK portfolio heat map"></div>
       </section>
