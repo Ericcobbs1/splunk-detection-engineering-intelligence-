@@ -259,7 +259,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var approved=record.review&&record.review.decision==="approved";
     if (record.state==="testing") { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return to Draft"},edit:{action:"open_builder",label:"Edit detection"},next:record.validation&&record.validation.status==="passed"?{stage:"peer_review",action:"submit_review",label:"Continue · Submit for peer review"}:null}; }
     if (record.state==="peer_review"&&!approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return for changes"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"catalog",action:"approve_review",label:"Continue · Approve version"}}; }
-    if (record.state==="peer_review"&&approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Reopen Draft"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"production",action:"record_deployment",label:"Continue · Record deployment"}}; }
+    if (record.state==="peer_review"&&approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Reopen Draft"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"catalog",action:"open_catalog",label:"Continue · Open Detection Catalog"}}; }
     if (record.state==="production") { return {previous:null,edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"monitoring",action:"record_health",label:"Continue · Start Monitoring"}}; }
     if (record.state==="monitoring") { return {previous:{stage:"tuning",action:"start_tuning",label:"Revise · Start tuning version"},edit:null,next:{stage:"monitoring",action:"record_health",label:"Continue · Record health"}}; }
     return {previous:null,edit:null,next:null};
@@ -302,7 +302,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     if (record.state==="peer_review") {
       if (record.review && record.review.decision==="approved") {
-        return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" placeholder="Exact deployed object reference"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional change request, deployment evidence, or required rationale when reopening Draft."></textarea></label>';
+        return '<div class="dei-catalog-handoff" role="status"><strong>Peer review approved</strong><p>Deployment is completed once in Detection Catalog. Continue there to record the target, environment, exact object name, and enablement note.</p></div>';
       }
       return '<label class="dei-action-field"><span id="lifecycle-action-comment-label">Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-inline-error" placeholder="Document why this version is approved or list the exact changes required."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
@@ -413,6 +413,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       window.localStorage.setItem(SELECTED_DETECTION_KEY,recordKey(record));
       activateWorkspacePanel("artifact");
       $(document).trigger("dei:artifact-inspection-requested",[recordKey(record),record.state,record]);
+      return;
+    }
+    if (action==="open_catalog") {
+      window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
       return;
     }
     if (action==="submit_review") {

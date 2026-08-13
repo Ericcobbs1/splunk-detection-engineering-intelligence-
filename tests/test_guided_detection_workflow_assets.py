@@ -154,7 +154,8 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert "dei:detection-draft-generated" in generator
     assert '$(document).on("dei:artifact-inspection-requested"' in generator
     assert 'artifact = record ? $.extend(true, {}, record)' in generator
-    assert 'window.location.href="detection_catalog?detection="' not in lifecycle
+    assert 'window.location.href="detection_catalog?detection="' in lifecycle
+    assert 'action:"open_catalog"' in lifecycle
     for action in (
         "submit_review", "approve_review", "return_draft", "record_health",
         "start_tuning", "retire",

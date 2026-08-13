@@ -36,7 +36,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var renderedStep=-1;
   var activeTarget=null;
   var renderingGuide=false;
-  var reviewReturnMode=false;
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
@@ -48,12 +47,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"builder",target:"#builder-generate",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
     {page:"builder",target:"#lifecycle-action-comment",title:"Document the validation handoff",instruction:"Summarize the validated analytic intent, expected analyst behavior, evidence, and known limitations for peer review.",actionLabel:"Enter the review submission note"},
-    {page:"builder",target:'[data-action="submit_review"]',title:"Submit for independent review",instruction:"Send the validated detection and its evidence to the peer-review gate.",actionLabel:"Select Submit for peer review"},
-    {page:"builder",target:"#lifecycle-action-comment",title:"Record the peer-review decision",instruction:"As the reviewer, document why the SPL is safe, scoped, supportable, and operationally actionable.",actionLabel:"Enter the approval rationale"},
-    {page:"builder",target:'[data-action="approve_review"]',title:"Approve the reviewed version",instruction:"Approve this exact validated version so it can enter the governed Detection Catalog.",actionLabel:"Select Approve version"},
-    {page:"catalog",target:"#catalog-external-id",title:"Identify the production object",instruction:"Leave the environment set to Production and record the exact saved search, correlation search, or deployment object that will run this detection.",actionLabel:"Enter the deployment object ID"},
-    {page:"catalog",target:'[data-catalog-action="deploy"]',title:"Enable the approved detection",instruction:"Record the production deployment to enable this reviewed detection in the governed catalog.",actionLabel:"Select Record deployment"},
-    {page:"catalog",target:"#catalog-action-panel",title:"Detection enabled — know where to manage it",instruction:"The detection lifecycle is complete. Use these locations for ongoing administration.",actionLabel:"Tutorial complete",completion:true,details:["DEI Detection Catalog: monitor status, health, deployment reference, tuning, disablement, and retirement.","Splunk Settings → Searches, reports, and alerts: manage a Splunk saved search by its exact object name.","Enterprise Security → Content Management: manage an ES detection or correlation search by its exact object name."]}
+    {page:"builder",target:'[data-action="submit_review"]',title:"Send the validated version to review",instruction:"Submit this exact version and its evidence. The next screen is the independent approval decision.",actionLabel:"Select Submit for peer review"},
+    {page:"builder",target:"#lifecycle-action-comment",title:"Document the approval decision",instruction:"As the reviewer, record why this version is safe, scoped, supportable, and operationally actionable.",actionLabel:"Enter the approval rationale",lockBack:true},
+    {page:"builder",target:'[data-action="approve_review"]',title:"Approve and continue to deployment",instruction:"Approve this version. The tutorial will take you directly to its single deployment workspace in Detection Catalog.",actionLabel:"Select Approve version",lockBack:true},
+    {page:"catalog",target:"#catalog-external-id-field",focusTarget:"#catalog-external-id",title:"Record the production object",instruction:"This is the only deployment form. Keep Production selected and enter the exact saved-search, ES detection, or external object name that was deployed.",actionLabel:"Enter the exact deployed object name",lockBack:true},
+    {page:"catalog",target:'[data-catalog-action="deploy"]',title:"Enable the approved detection",instruction:"Review the target, environment, and object name once, then record the production deployment to enable the detection.",actionLabel:"Select Enable in Production",lockBack:true},
+    {page:"catalog",target:"#catalog-action-panel",title:"Detection enabled — workflow complete",instruction:"The detection is now governed in the Catalog. Continue operational work here without returning to the Builder deployment form.",actionLabel:"Tutorial complete",completion:true,lockBack:true,details:["Detection Catalog: manage status, deployment reference, health, tuning, disablement, and retirement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
   ];
 
   function page() {
@@ -76,10 +75,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function readStep() { var value=Number(window.sessionStorage.getItem(sessionKey(STEP_KEY))||0); return Math.max(0,Math.min(steps.length-1,value)); }
   function writeStep(value) { window.sessionStorage.setItem(sessionKey(STEP_KEY),String(value)); }
   function activeStep(index) {
-    if(reviewReturnMode&&index===11) return {page:"builder",target:'[data-action="return_draft"]',title:"Return the version for required changes",instruction:"Change control must be explicit. Use Return for changes to reopen engineering work, or continue the review without changing lifecycle state.",actionText:"Select Return for changes",reviewReturn:true};
     return steps[index];
   }
   function targetFor(step) { return $(step.target).filter(":visible").first(); }
+  function focusFor(step,target) { var focus=step.focusTarget?$(step.focusTarget).filter(":visible").first():target; return focus.length?focus:target; }
   function scheduleRender(delay) { window.clearTimeout(renderTimer); renderTimer=window.setTimeout(render,delay||80); }
   function observeTargets() {
     if(targetObserver||!window.MutationObserver) return;
@@ -109,7 +108,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
   function focusTarget(showTargetMode) {
-    var target=targetFor(activeStep(readStep()));
+    var step=activeStep(readStep());
+    var target=targetFor(step);
     var status=$(".dei-next-guide-status span");
     if (!target.length) {
       status.text("Locating this action…");
@@ -123,6 +123,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     target.addClass("dei-guide-focus-pulse");
     updateMarker(target);
     if(showTargetMode){
+      if(window.getSelection){ var selection=window.getSelection(); if(selection&&selection.removeAllRanges) selection.removeAllRanges(); }
       $("body").addClass("dei-guide-focus-mode");
       $(".dei-onboarding-dialog").attr("aria-hidden","true");
       if(!$("#dei-guide-return").length){
@@ -134,7 +135,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     } else {
       $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
     }
-    window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").trigger("focus"); },320);
+    window.setTimeout(function(){ var focus=focusFor(step,target); focus.attr("tabindex",focus.attr("tabindex")||"-1").trigger("focus"); },320);
     focusPulseTimer=window.setTimeout(function(){
       target.removeClass("dei-guide-focus-pulse");
     },1800);
@@ -181,7 +182,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onContinueReview:function(){ reviewReturnMode=false; renderedStep=-1; render();},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); }});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); }});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
@@ -189,7 +190,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function goToStep(index) {
     restoreGuide(false);
-    reviewReturnMode=false;
     writeStep(index);
     renderedStep=-1;
     var step=steps[readStep()];
@@ -197,8 +197,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     render();
   }
   function guideBack(index) {
-    if(index===11&&$('[data-action="return_draft"]:visible').length){ reviewReturnMode=true; renderedStep=-1; activeTarget=null; render(); return; }
-    if(index>0) goToStep(index-1);
+    if(index>0&&!activeStep(index).lockBack) goToStep(index-1);
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } goToStep(index+1); }
   function completeDraft(id,record) {
