@@ -105,7 +105,8 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     assert 'status:"ready"' in javascript
     assert '"added_to_detection_catalog"' in javascript
     assert "saveAndOpenCatalog" in javascript
-    assert 'window.location.href="detection_catalog?detection="' not in javascript
+    assert 'window.location.href="detection_catalog?detection="' in javascript
+    assert 'action:"open_catalog"' in javascript
     assert '"Peer review approved. Record the deployment target in this workspace."' in javascript
     for contract in (
         "cataloged(record)", '["ready","development","staging"]', 'data-catalog-action="deploy"',

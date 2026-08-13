@@ -182,16 +182,18 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
     assert 'readStep()===14 && status==="enabled") goToStep(15)' in adapter
-    assert 'title:"Detection enabled — know where to manage it"' in adapter
-    assert "Splunk Settings → Searches, reports, and alerts" in adapter
-    assert "Enterprise Security → Content Management" in adapter
+    assert 'title:"Detection enabled — workflow complete"' in adapter
+    assert "Splunk saved searches: Settings → Searches, Reports, and Alerts" in adapter
+    assert "Enterprise Security detections: Configure → Content → Content Management" in adapter
     assert "step.completion ? 'Finish' : 'Show me'" in react_source
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
     assert 'action==="return_draft"&&readStep()>=9&&readStep()<=12' in adapter
-    assert 'target:\'[data-action="return_draft"]\'' in adapter
-    assert "reviewReturnMode=true" in adapter
-    assert "onClick={onContinueReview}>Continue review" in react_source
+    assert 'focusTarget:"#catalog-external-id"' in adapter
+    assert 'target:"#catalog-external-id-field"' in adapter
+    assert "reviewReturnMode" not in adapter
+    assert "onContinueReview" not in react_source
+    assert "step.lockBack" in react_source
     assert 'index===7 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
@@ -261,7 +263,7 @@ def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
         (builder, 'id="builder-generate"'),
         (builder, 'id="builder-run-validation"'),
         (builder, 'id="lifecycle-action-comment"'),
-        (catalog, 'id="catalog-external-id"'),
+        (catalog, 'id="catalog-external-id-field"'),
         (catalog, 'data-catalog-action="deploy"'),
         (catalog, 'id="catalog-action-panel"'),
     )
@@ -270,3 +272,17 @@ def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
     assert 'action:"submit_review"' in builder
     assert 'action:"approve_review"' in builder
     assert "data-action=\"'+esc" in builder
+
+
+def test_approved_review_has_one_clear_catalog_deployment_handoff():
+    lifecycle = _source("detection_lifecycle_v3.js")
+    guide = _source("dei_guide_adapter_v5.js")
+    catalog = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
+    assert 'action:"open_catalog"' in lifecycle
+    assert 'window.location.href="detection_catalog?detection="' in lifecycle
+    assert "Deployment is completed once in Detection Catalog" in lifecycle
+    assert 'id="lifecycle-external-id"' not in lifecycle
+    assert 'id="catalog-external-id-field"' in catalog
+    assert 'focusTarget:"#catalog-external-id"' in guide
+    assert 'lockBack:true' in guide
+    assert "selection.removeAllRanges" in guide

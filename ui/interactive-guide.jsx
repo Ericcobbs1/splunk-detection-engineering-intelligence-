@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import Button from '@splunk/react-ui/Button';
 import SplunkThemeProvider from '@splunk/themes/SplunkThemeProvider';
 
-function AnalystGuide({step, stepNumber, totalSteps, onBack, onContinueReview, onClose, onFocusTarget}) {
+function AnalystGuide({step, stepNumber, totalSteps, onBack, onClose, onFocusTarget}) {
   const progress = `${Math.round((stepNumber / totalSteps) * 100)}%`;
   return (
     <section className="dei-next-guide" role="dialog" aria-modal="false" aria-labelledby="dei-guide-title" aria-describedby="dei-guide-instruction">
@@ -27,8 +27,8 @@ function AnalystGuide({step, stepNumber, totalSteps, onBack, onContinueReview, o
         <span style={{width: progress}} />
       </div>
       <footer className="dei-next-guide-footer">
-        <Button appearance="secondary" disabled={stepNumber === 1} onClick={onBack}>Back</Button>
-        {step.reviewReturn ? <><Button appearance="secondary" onClick={onFocusTarget}>Show me</Button><Button appearance="primary" onClick={onContinueReview}>Continue review</Button></> : <Button appearance="primary" onClick={step.completion ? onClose : onFocusTarget}>{step.completion ? 'Finish' : 'Show me'}</Button>}
+        <Button appearance="secondary" disabled={stepNumber === 1 || step.lockBack} onClick={onBack}>Back</Button>
+        <Button appearance="primary" onClick={step.completion ? onClose : onFocusTarget}>{step.completion ? 'Finish' : 'Show me'}</Button>
       </footer>
       <p className="dei-next-guide-hint">{step.completion ? 'You can restart this guide from the Home page at any time.' : 'The guide advances automatically after you complete the highlighted action. Press Esc to exit.'}</p>
     </section>
