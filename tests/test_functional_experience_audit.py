@@ -149,14 +149,14 @@ def test_core_action_controls_have_implementation_bindings():
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     adapter = _source("dei_guide_adapter_v5.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    assert adapter.count("actionLabel:") == 15
+    assert adapter.count("actionLabel:") == 16
     for target in (
-        ".dei-open-environment-discovery", "#dei-open-environment-insights",
+        ".dei-open-environment-discovery", "#dei-analyze", "#dei-open-environment-insights",
         ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
         ".dei-advisor-item", "#builder-detection-select", "#builder-generate",
         "#builder-run-validation", "#lifecycle-action-comment",
         '[data-action="submit_review"]', '[data-action="approve_review"]',
-        "#catalog-external-id", '[data-catalog-action="enable"]',
+        "#catalog-external-id", '[data-catalog-action="deploy"]',
     ):
         assert target in adapter
     assert "Waiting for this action to complete" in react_source
@@ -181,21 +181,21 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'readStep()===13 && status==="enabled") goToStep(14)' in adapter
+    assert 'readStep()===14 && status==="enabled") goToStep(15)' in adapter
     assert 'title:"Detection enabled — know where to manage it"' in adapter
     assert "Splunk Settings → Searches, reports, and alerts" in adapter
     assert "Enterprise Security → Content Management" in adapter
     assert "step.completion ? 'Finish' : 'Show me'" in react_source
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
-    assert 'action==="return_draft"&&readStep()>=8&&readStep()<=11' in adapter
+    assert 'action==="return_draft"&&readStep()>=9&&readStep()<=12' in adapter
     assert 'target:\'[data-action="return_draft"]\'' in adapter
     assert "reviewReturnMode=true" in adapter
     assert "onClick={onContinueReview}>Continue review" in react_source
-    assert 'index===6 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
+    assert 'index===7 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
-    assert "if(readStep()<=6)" in adapter
+    assert "if(readStep()<=7)" in adapter
     assert 'if (page()!==step.page) { close(false); return; }' in adapter
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
@@ -216,3 +216,57 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert "body.dei-guide-focus-mode .dei-onboarding-dialog" in stylesheet
     assert "#dei-guide-return" in stylesheet
     assert 'content:"↓"' in stylesheet
+
+
+def test_tutorial_state_machine_covers_every_required_action_through_completion():
+    adapter = _source("dei_guide_adapter_v5.js")
+    transitions = (
+        'readStep()===0) goToStep(1)',
+        'readStep()===1 && status.stage==="complete") advance()',
+        'readStep()===2) advance()',
+        'readStep()===3) advance()',
+        'readStep()===4 && $(this).val()!=="all"',
+        'if(readStep()===5)',
+        'readStep()===6 && $(this).val()',
+        'readStep()===8 && validation && validation.status==="passed"',
+        '(step===9||step===11)',
+        'readStep()===10&&action==="submit_review") goToStep(11)',
+        'readStep()===12&&action==="approve_review") goToStep(13)',
+        'readStep()===13 && String($(this).val()||"").trim()) goToStep(14)',
+        'readStep()===14 && status==="enabled") goToStep(15)',
+    )
+    for transition in transitions:
+        assert transition in adapter
+    assert '$(document).on("change", "#lifecycle-action-comment"' in adapter
+    assert '$(document).on("change", "#catalog-external-id"' in adapter
+    assert '$(document).on("input change", "#lifecycle-action-comment"' not in adapter
+    assert '$(document).on("input change", "#catalog-external-id"' not in adapter
+
+
+def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
+    home = (VIEWS / "dei_home.xml").read_text(encoding="utf-8")
+    discovery = (VIEWS / "command_center.xml").read_text(encoding="utf-8")
+    insights = (VIEWS / "environment_insights.xml").read_text(encoding="utf-8")
+    mitre = (VIEWS / "mitre_coverage.xml").read_text(encoding="utf-8") + _source("mitre_workspace_v3.js")
+    builder = (VIEWS / "detection_workflow.xml").read_text(encoding="utf-8") + _source("detection_lifecycle_v3.js")
+    catalog = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8") + _source("detection_catalog_v2.js")
+    expected = (
+        (home, 'class="dei-home-flow-link dei-open-environment-discovery"'),
+        (discovery, 'id="dei-analyze"'),
+        (discovery, 'id="dei-open-environment-insights"'),
+        (insights, 'class="dei-mitre-glow-button"'),
+        (mitre, 'id="mitre-sourcetype-filter"'),
+        (mitre, 'class="dei-advisor-item '),
+        (builder, 'id="builder-detection-select"'),
+        (builder, 'id="builder-generate"'),
+        (builder, 'id="builder-run-validation"'),
+        (builder, 'id="lifecycle-action-comment"'),
+        (catalog, 'id="catalog-external-id"'),
+        (catalog, 'data-catalog-action="deploy"'),
+        (catalog, 'id="catalog-action-panel"'),
+    )
+    for source, target in expected:
+        assert target in source, target
+    assert 'action:"submit_review"' in builder
+    assert 'action:"approve_review"' in builder
+    assert "data-action=\"'+esc" in builder

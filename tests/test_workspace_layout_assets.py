@@ -328,7 +328,7 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert 'OVERLAY_ID="dei-next-guide-overlay"' in javascript
     assert "window.MutationObserver" in javascript
     assert "#catalog-external-id" in javascript
-    assert '[data-catalog-action="enable"]' in javascript
+    assert '[data-catalog-action="deploy"]' in javascript
     assert "#dei-guide-action-marker" in stylesheet
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-next-guide-dialog" in stylesheet
