@@ -5,6 +5,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
   var REPORT_KEY = "dei.latestRecommendationReport";
   var SELECTED_DETECTION_KEY = "dei.selectedDetectionDraft";
+  var TUTORIAL_HANDOFF_KEY = "dei.tutorialDetectionHandoff";
   var VALIDATION_RESULT_LIMIT = 25;
   var VALIDATION_TIMEOUT_MS = 60000;
   var ATTACK_SNAPSHOT = "MITRE ATT&CK Enterprise bundled reference reviewed 2026-08-07";
@@ -782,7 +783,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (match) {
       try { return decodeURIComponent(match[1].replace(/\+/g, " ")); } catch (error) { return match[1]; }
     }
-    return "";
+    try {
+      var handoff=String(window.sessionStorage.getItem(TUTORIAL_HANDOFF_KEY) || "");
+      if(handoff) window.sessionStorage.removeItem(TUTORIAL_HANDOFF_KEY);
+      return handoff;
+    } catch (error) { return ""; }
   }
 
   function resetDraftWorkspace(message) {
@@ -838,6 +843,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $("#builder-generate").prop("disabled", false);
       setStartFeedback("Ready to generate a clean detection draft.", "ready");
       resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.");
+      $("#builder-detection-select").trigger("change");
     } else {
       resetDraftWorkspace("Select a detection, then choose Generate detection draft to start.");
       setStartFeedback("Select a detection to enable draft generation.", "ready");
