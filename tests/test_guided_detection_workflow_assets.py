@@ -55,6 +55,18 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
 
 
+def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -> None:
+    javascript = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    assert "window.location.search" in javascript
+    assert 'TUTORIAL_HANDOFF_KEY = "dei.tutorialDetectionHandoff"' in javascript
+    assert "window.sessionStorage.getItem(TUTORIAL_HANDOFF_KEY)" in javascript
+    assert "window.sessionStorage.removeItem(TUTORIAL_HANDOFF_KEY)" in javascript
+    assert '$("#builder-detection-select").val(requested)' in javascript
+    assert '$("#builder-detection-select").trigger("change")' in javascript
+    guide = (STATIC / "dei_guide_adapter_v5.js").read_text(encoding="utf-8")
+    assert 'window.sessionStorage.setItem("dei.tutorialDetectionHandoff",selectedDetection)' in guide
+
+
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
     javascript = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     for destination in ("#detection-generator", "#lifecycle-action-center", "detection_action_center?category=telemetry"):

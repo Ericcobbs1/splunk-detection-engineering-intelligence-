@@ -244,7 +244,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("click", "#dei-open-environment-insights", function(){ if(readStep()===2) advance(); });
   $(document).on("click", ".dei-mitre-glow-button", function(){ if(readStep()===3) advance(); });
   $(document).on("change", "#mitre-sourcetype-filter", function(){ if(readStep()===4 && $(this).val()!=="all") window.setTimeout(advance,0); });
-  $(document).on("dei:advisor-detection-selected", function(_event,id){ if(readStep()===5){ selectedDetection=String(id||""); if(selectedDetection) window.localStorage.setItem("dei.selectedDetectionDraft",selectedDetection); advance(); } });
+  $(document).on("dei:advisor-detection-selected", function(_event,id){ if(readStep()===5){ selectedDetection=String(id||""); if(selectedDetection){ window.localStorage.setItem("dei.selectedDetectionDraft",selectedDetection); window.sessionStorage.setItem("dei.tutorialDetectionHandoff",selectedDetection); } advance(); } });
   $(document).on("change", "#builder-detection-select", function(){ if(readStep()===6 && $(this).val()) advance(); });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
   $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===8 && validation && validation.status==="passed") advance(); });
