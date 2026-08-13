@@ -2,6 +2,7 @@
 body.dei-onboarding-open{overflow:auto}
 body.dei-onboarding-open .dei-onboarding-overlay{z-index:10002;display:block;padding:0;background:transparent;backdrop-filter:none;pointer-events:none}
 body.dei-onboarding-open .dei-onboarding-dialog{position:fixed;z-index:1;top:16px;bottom:16px;width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:24px;border-color:rgba(92,225,194,.62);box-shadow:0 34px 90px rgba(0,0,0,.72),0 0 0 1px rgba(110,168,255,.18),inset 0 1px rgba(255,255,255,.06);pointer-events:auto;transition:left .2s ease,right .2s ease,top .2s ease,bottom .2s ease}
+body.dei-guide-focus-mode .dei-onboarding-dialog{visibility:hidden;opacity:0;pointer-events:none;transform:translateY(-10px)}
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="right"]{right:16px;left:auto}
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="left"]{right:auto;left:16px}
 body.dei-onboarding-open .dei-onboarding-dialog::before{content:"";position:absolute;top:46%;width:16px;height:16px;border:1px solid rgba(92,225,194,.62);background:#0a1724;transform:rotate(45deg)}
@@ -12,12 +13,16 @@ body.dei-onboarding-open .dei-onboarding-target{outline:3px solid #70ffe0!import
 body.dei-onboarding-open .dei-onboarding-target.dei-guide-focus-pulse{animation:deiGuideShowMe 1.8s ease-out 1!important}
 #dei-guide-action-marker{position:fixed;z-index:10003;display:grid;place-items:center;min-width:98px;height:26px;border:1px solid rgba(112,255,224,.92);border-radius:999px;background:#0b2b28;color:#baffef;padding:0 10px;font-size:9px;font-weight:900;letter-spacing:.11em;line-height:1;pointer-events:none;transform:translateY(-50%);box-shadow:0 0 0 0 rgba(92,225,194,.64),0 0 24px rgba(92,225,194,.82);animation:deiGuideMarkerPulse 1.1s ease-out infinite}
 #dei-guide-action-marker.dei-guide-marker-focus{background:#175b4d;color:#fff;border-color:#fff;animation:deiGuideShowMarker 1.8s ease-out 1}
+#dei-guide-action-marker.dei-guide-marker-focus::before{content:"↓";position:absolute;top:27px;left:50%;color:#fff;font-size:30px;line-height:1;transform:translateX(-50%);filter:drop-shadow(0 0 8px #5ce1c2)}
 #dei-guide-action-marker::after{content:"";position:absolute;right:16px;bottom:-7px;width:12px;height:12px;border-right:1px solid rgba(112,255,224,.92);border-bottom:1px solid rgba(112,255,224,.92);background:#0b2b28;transform:rotate(45deg)}
 @keyframes deiGuideTargetPulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 3px rgba(92,225,194,.16),0 0 20px rgba(92,225,194,.66),0 0 38px rgba(110,168,255,.34)!important}50%{filter:brightness(1.16);box-shadow:0 0 0 7px rgba(92,225,194,.08),0 0 36px rgba(92,225,194,1),0 0 68px rgba(110,168,255,.68)!important}}
 @keyframes deiGuideMarkerPulse{0%{box-shadow:0 0 0 0 rgba(92,225,194,.62),0 0 20px rgba(92,225,194,.72)}70%{box-shadow:0 0 0 10px rgba(92,225,194,0),0 0 34px rgba(92,225,194,.96)}100%{box-shadow:0 0 0 0 rgba(92,225,194,0),0 0 20px rgba(92,225,194,.72)}}
 @keyframes deiGuideShowMe{0%{outline-width:3px;filter:brightness(1)}20%{outline-width:7px;filter:brightness(1.55);box-shadow:0 0 0 12px rgba(92,225,194,.3),0 0 58px #5ce1c2,0 0 96px #6ea8ff!important}100%{outline-width:3px;filter:brightness(1)}}
 @keyframes deiGuideShowMarker{0%{transform:translateY(-50%) scale(1)}20%{transform:translateY(-50%) scale(1.18);box-shadow:0 0 0 12px rgba(92,225,194,.2),0 0 38px #5ce1c2}100%{transform:translateY(-50%) scale(1)}}
 @media(prefers-reduced-motion:reduce){body.dei-onboarding-open .dei-onboarding-target,#dei-guide-action-marker{animation:none!important}}
+#dei-guide-return{position:fixed;z-index:10005;top:18px;right:18px;min-height:42px;padding:0 17px;border:1px solid #70ffe0;border-radius:9px;background:#0b2b28;color:#eafff9;font-family:inherit;font-size:12px;font-weight:850;cursor:pointer;pointer-events:auto;box-shadow:0 0 0 2px rgba(92,225,194,.18),0 12px 32px rgba(0,0,0,.5)}
+#dei-guide-return:hover,#dei-guide-return:focus-visible{outline:3px solid #6ea8ff;outline-offset:3px;filter:brightness(1.18)}
+.dei-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 #dei-onboarding-back,#dei-onboarding-next{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
 #dei-onboarding-back{border:1px solid rgba(168,190,214,.28);background:#0a1622;color:#b8cad8}
 #dei-onboarding-next{border:1px solid rgba(92,225,194,.54);background:rgba(92,225,194,.14);color:#9af4de}

@@ -96,7 +96,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var rect=target[0].getBoundingClientRect();
     marker.css({top:Math.max(8,rect.top-13),left:Math.min(window.innerWidth-112,Math.max(8,rect.right-98))});
   }
-  function focusTarget() {
+  function restoreGuide(moveFocus) {
+    $("body").removeClass("dei-guide-focus-mode");
+    $(".dei-onboarding-dialog").removeAttr("aria-hidden");
+    $("#dei-guide-return,#dei-guide-focus-status").remove();
+    $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
+    if(moveFocus){
+      window.setTimeout(function(){
+        $(".dei-next-guide-footer button").filter(function(){ return $(this).text().trim()==="Show me"; }).first().trigger("focus");
+      },0);
+    }
+  }
+  function focusTarget(showTargetMode) {
     var target=targetFor(activeStep(readStep()));
     var status=$(".dei-next-guide-status span");
     if (!target.length) {
@@ -110,12 +121,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     void target[0].offsetWidth;
     target.addClass("dei-guide-focus-pulse");
     updateMarker(target);
-    $("#dei-guide-action-marker").text("DO THIS HERE").addClass("dei-guide-marker-focus");
-    status.text("Target highlighted — complete the glowing action in the workspace.");
+    if(showTargetMode){
+      $("body").addClass("dei-guide-focus-mode");
+      $(".dei-onboarding-dialog").attr("aria-hidden","true");
+      if(!$("#dei-guide-return").length){
+        $('<button id="dei-guide-return" type="button">Return to tutorial</button>').appendTo("body");
+        $('<span id="dei-guide-focus-status" class="dei-visually-hidden" role="status" aria-live="assertive">The tutorial is collapsed. The required action is centered and marked Click Here. Use Return to tutorial to reopen the instructions.</span>').appendTo("body");
+      }
+      $("#dei-guide-action-marker").text("CLICK HERE").addClass("dei-guide-marker-focus");
+      status.text("Target highlighted — complete the glowing action in the workspace.");
+    } else {
+      $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
+    }
     window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").trigger("focus"); },320);
     focusPulseTimer=window.setTimeout(function(){
       target.removeClass("dei-guide-focus-pulse");
-      $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
     },1800);
     return true;
   }
@@ -130,13 +150,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
     window.clearTimeout(renderTimer);
     window.clearTimeout(focusPulseTimer);
+    restoreGuide(false);
     if(targetObserver){ targetObserver.disconnect(); targetObserver=null; }
     renderedStep=-1;
     activeTarget=null;
     if (window.DEIInteractiveGuide) window.DEIInteractiveGuide.unmount();
-    $("#"+OVERLAY_ID+",#dei-guide-action-marker").remove();
+    $("#"+OVERLAY_ID+",#dei-guide-action-marker,#dei-guide-return,#dei-guide-focus-status").remove();
     $(".dei-onboarding-target,.dei-guide-focus-pulse").removeClass("dei-onboarding-target dei-guide-focus-pulse").removeAttr("aria-describedby");
-    $("body").removeClass("dei-onboarding-open");
+    $("body").removeClass("dei-onboarding-open dei-guide-focus-mode");
   }
   function render() {
     if(!window.DEIInteractiveGuide){ loadGuide(function(ready){ if(ready) render(); }); return; }
@@ -159,13 +180,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onContinueReview:function(){ reviewReturnMode=false; renderedStep=-1; render();},onClose:function(){close(true);},onFocusTarget:focusTarget});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onContinueReview:function(){ reviewReturnMode=false; renderedStep=-1; render();},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); }});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
-    if(stepChanged) focusTarget();
+    if(stepChanged) focusTarget(false);
   }
   function goToStep(index) {
+    restoreGuide(false);
     reviewReturnMode=false;
     writeStep(index);
     renderedStep=-1;
@@ -192,6 +214,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
   window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft};
+  $(document).on("click", "#dei-guide-return", function(event){ event.preventDefault(); restoreGuide(true); });
   $(document).on("click", "#dei-home-tour", function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(); });
   $(document).on("dei:scan-progress", function (_event,status) { if(readStep()===0 && status.stage==="complete") advance(); });
   $(document).on("click", "#dei-open-environment-insights", function(){ if(readStep()===1) advance(); });
@@ -209,7 +232,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("input change", "#catalog-external-id", function(){ if(readStep()===12 && String($(this).val()||"").trim()) goToStep(13); });
   $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===13 && status==="enabled") goToStep(14); });
-  $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
+  $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
 });
