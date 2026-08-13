@@ -1,4 +1,5 @@
 window.DEIReactGuideConfigured=true;
+window.DEIGuideAssetVersion="v7";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -50,7 +51,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"builder",target:'[data-action="approve_review"]',tab:"#workflow-tab-change-control",title:"Approve and continue to deployment",instruction:"Approve this version. The deployment form will open below without leaving this workspace.",actionLabel:"Select Approve version",lockBack:true},
     {page:"builder",target:"#lifecycle-external-id",tab:"#workflow-tab-change-control",title:"Record the production object",instruction:"Keep Production selected and enter the exact saved-search, ES detection, or external object name that was deployed.",actionLabel:"Enter the exact deployed object name",lockBack:true},
     {page:"builder",target:'[data-action="record_deployment"]',tab:"#workflow-tab-change-control",title:"Enable the approved detection",instruction:"Review the target, environment, and object name once, then record deployment to enter Production.",actionLabel:"Select Record deployment and enter Production",lockBack:true},
-    {page:"builder",target:"#lifecycle-action-center",title:"Detection enabled — workflow complete",instruction:"The full engineering workflow is complete without leaving this workspace.",actionLabel:"Tutorial complete",completion:true,lockBack:true,details:["Detection Catalog: manage the operational portfolio after enablement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
+    {page:"builder",phase:"Production checkpoint",title:"The core deployment workflow is complete",instruction:"The detection is now governed in Production. Finish here, or continue into the optional operational walkthrough to learn monitoring, evidence-based tuning, revalidation, and redeployment.",actionLabel:"Choose whether to continue",operationsChoice:true,lockBack:true,details:["Continue only with real operational evidence; do not enter sample values merely to advance the guide.","Tuning is not required after every deployment. A healthy detection can remain in Monitoring.","The operational walkthrough creates a new governed version and preserves the deployed version in history."]},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-review-period",tab:"#workflow-tab-change-control",title:"Establish monitoring evidence",instruction:"Define the period represented by this review, then enter evidence from Splunk search history, Job Inspector, scheduler health, and analyst outcomes.",actionLabel:"Review and complete the monitoring evidence",lockBack:true,details:["Confirm the scheduled search ran without skips or errors and that required source data remained fresh.","Result volume and runtime come from search history or Job Inspector; verify downstream findings, notables, or risk events were created when expected.","True and false positives come from analyst disposition during this review period.","Zero results can be healthy, but the operational note must explain why zero was expected and how data coverage was verified."]},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document where the evidence came from",instruction:"Record the scheduler or search-history evidence, data-freshness check, analyst outcomes, and downstream-action verification represented by this checkpoint.",actionLabel:"Enter the monitoring evidence note",lockBack:true,details:["Do not enter fabricated values to advance the tutorial.","If result volume is zero, explain why that is expected and how you confirmed the source data was present.","If health is degraded or failing, identify the owner and next corrective action."]},
+    {page:"builder",phase:"Operate and improve",target:'[data-action="record_health"]',tab:"#workflow-tab-change-control",title:"Record the operational health checkpoint",instruction:"Confirm the evidence represents one review period. Recording it preserves an auditable health checkpoint and moves the detection into continuous Monitoring.",actionLabel:"Select Record health",lockBack:true},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Decide whether tuning is justified",instruction:"A healthy detection can remain in Monitoring. For this optional walkthrough, document a real tuning objective only when evidence shows a coverage, fidelity, or performance problem.",actionLabel:"Enter the evidence-based tuning objective",lockBack:true,details:["Use this structure: observed problem; supporting evidence; proposed change; measurable expected result; rollback condition.","Possible controls include SPL, thresholds, time windows, schedules, allowlists, suppression or throttling, risk settings, and response actions.","The currently deployed version and its evidence remain in history."]},
+    {page:"builder",phase:"Operate and improve",target:'[data-action="start_tuning"]',tab:"#workflow-tab-change-control",title:"Open a new tuning version",instruction:"Start Tuning to archive the current operational version and unlock a new editable version in the same workspace.",actionLabel:"Select Start tuning version",lockBack:true},
+    {page:"builder",phase:"Operate and improve",target:"#generator-spl",tab:"#workflow-tab-artifact",title:"Apply the controlled tuning change",instruction:"Apply the documented objective to the editable analytic. This workspace exposes SPL; operational changes to schedules, thresholds, suppression, risk, or response actions must also be applied and recorded in the deployed Splunk object.",actionLabel:"Edit the SPL for the tuning objective",lockBack:true,details:["Preserve required result fields and recheck ATT&CK mappings after the change.","Make a meaningful change tied to the objective; whitespace or cosmetic edits are not tuning.","Keep a rollback path to the archived production version."]},
+    {page:"builder",phase:"Operate and improve",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the tuned version",instruction:"Run fresh validation. Prior validation does not carry forward because tuning created a new version of the analytic.",actionLabel:"Select Run validation",lockBack:true,details:["Confirm an expected positive case matches and a known benign or negative case does not.","Verify required output fields, time bounds, result volume, and runtime.","Confirm the result meets the measurable tuning objective before review."]},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document the tuned-version handoff",instruction:"Summarize what changed, the monitoring evidence that justified it, the validation result, and the expected improvement.",actionLabel:"Enter the tuned-version review note",lockBack:true},
+    {page:"builder",phase:"Operate and improve",target:'[data-action="submit_review"]',tab:"#workflow-tab-change-control",title:"Submit the tuned version for review",instruction:"Send the newly validated version through the same independent review gate as the original detection.",actionLabel:"Select Submit for peer review",lockBack:true},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Review the tuning decision",instruction:"A reviewer other than the submitter should verify the version difference and record why the change resolves the objective without unacceptable coverage or operational risk.",actionLabel:"Enter the tuned-version approval rationale",lockBack:true,details:["Review logic, source and field availability, time bounds, schedule, suppression, actions, ATT&CK mapping, and rollback.","If this environment cannot enforce a separate reviewer, treat separation of duties as a required procedural control."]},
+    {page:"builder",phase:"Operate and improve",target:'[data-action="approve_review"]',tab:"#workflow-tab-change-control",title:"Approve the tuned version",instruction:"Approve this exact revised version. Deployment evidence must be recorded again because approval alone does not change the live Splunk object.",actionLabel:"Select Approve version",lockBack:true},
+    {page:"builder",phase:"Operate and improve",target:"#lifecycle-external-id",tab:"#workflow-tab-change-control",title:"Record the updated production object",instruction:"Deploy the approved tuning through the normal change process, then record the exact updated saved-search, ES detection, or external object name.",actionLabel:"Enter the updated deployed object name",lockBack:true,details:["Verify app context, owner, schedule and time range, enablement state, actions, and ATT&CK annotations.","For Enterprise Security, verify whether the object is an event-based or finding-based detection and confirm the expected notable, finding, or risk output.","Test safely before full enablement and retain the prior version as the rollback reference."]},
+    {page:"builder",phase:"Operate and improve",target:'[data-action="record_deployment"]',tab:"#workflow-tab-change-control",title:"Return the tuned detection to Production",instruction:"Record the updated deployment to close the tuning loop and return this version to governed Production.",actionLabel:"Select Record deployment and enter Production",lockBack:true},
+    {page:"builder",phase:"Lifecycle complete",target:"#lifecycle-action-center",title:"Detection lifecycle tutorial complete",instruction:"You built, validated, reviewed, deployed, monitored, tuned, revalidated, and redeployed one governed detection without leaving the workspace.",actionLabel:"Tutorial complete",completion:true,lockBack:true,details:["Continue recording health on the cadence required by your organization; tune only when evidence justifies a change.","Retire is optional: confirm a replacement or accepted coverage gap, document the reason, disable the actual Splunk object separately, and retain the audit history. DEI retirement does not disable the saved search.","Detection Catalog manages the operational portfolio after enablement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
   ];
 
   function page() {
@@ -81,7 +96,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(tab.length&&tab.attr("aria-selected")!=="true") tab.trigger("click");
   }
   function targetFor(step) {
-    if(step.completion) return $();
+    if(step.completion||step.operationsChoice) return $();
     var target=$(step.target).filter(":visible").filter(function(){ var rect=this.getBoundingClientRect(); return rect.width>0&&rect.height>0; }).first();
     if(!target.length) return target;
     if(!target.is("button,input,select,textarea,a,[role='button']")) return $();
@@ -90,13 +105,24 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function reconcileCompletedStep(index) {
     var lifecycleState=String($("#lifecycle-action-state").text()||"").toLowerCase();
-    if(index>=6&&index<=11&&/(production|monitoring|tuning|retired)/.test(lifecycleState)){ goToStep(12); return true; }
+    if(index>=6&&index<=11&&lifecycleState.indexOf("production")!==-1){ goToStep(12); return true; }
+    if(index>=6&&index<=15&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
+    if(index>=6&&index<=17&&lifecycleState.indexOf("tuning")!==-1){ goToStep(18); return true; }
+    if(index<26&&lifecycleState.indexOf("retired")!==-1){ goToStep(26); return true; }
     if(index>=6&&index<=9&&$("#lifecycle-external-id:visible").length){ goToStep(10); return true; }
     if(index===5&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(6); return true; }
     if((index===6||index===7)&&$('[data-action="approve_review"]:visible').length){ goToStep(8); return true; }
     if(index===8&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(9); return true; }
     if(index===10&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(11); return true; }
-    if(index===11&&!$('[data-action="record_deployment"]:visible').length&&String($("#lifecycle-action-state").text()||"").toLowerCase().indexOf("production")!==-1){ goToStep(12); return true; }
+    if(index===11&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(12); return true; }
+    if(index===13&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
+    if((index===14||index===15)&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
+    if(index===18&&String($("#generator-spl").val()||"").trim()!==String($("#generator-spl").attr("data-dei-guide-original")||"").trim()&&$("#generator-spl").attr("data-dei-guide-original")!==undefined){ goToStep(19); return true; }
+    if(index===19&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(20); return true; }
+    if((index===20||index===21)&&$('[data-action="approve_review"]:visible').length){ goToStep(22); return true; }
+    if(index===22&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(23); return true; }
+    if(index===24&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(25); return true; }
+    if(index===25&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(26); return true; }
     return false;
   }
   function focusFor(step,target) { var focus=step.focusTarget?$(step.focusTarget).filter(":visible").first():target; return focus.length?focus:target; }
@@ -209,11 +235,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var index=readStep(),step=activeStep(index);
     if (page()!==step.page) { close(false); return; }
     prepareStep(step);
+    if(index===18&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
     if(index===3 && $("#workflow-detection-select").val()){ writeStep(4); scheduleRender(0); return; }
     if(index===4 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(5); scheduleRender(0); return; }
     if(reconcileCompletedStep(index)) return;
     var target=targetFor(step);
-    if (!target.length&&!step.completion) { scheduleRender(180); return; }
+    if (!target.length&&!step.completion&&!step.operationsChoice) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
     var targetChanged=(target[0]||null)!==activeTarget;
     if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); applySavedGuidePosition(); }
@@ -230,11 +257,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); }});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,onBack:function(){ guideBack(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); },onContinueOperations:function(){ goToStep(13); },onFinishCore:function(){ close(true); }});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
-    if(stepChanged&&!step.completion) focusTarget(false);
+    if(stepChanged&&!step.completion&&!step.operationsChoice) focusTarget(false);
   }
   function goToStep(index) {
     restoreGuide(false);
@@ -282,12 +309,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("click", "#dei-open-environment-insights", function(){ if(readStep()===2) advance(); });
   $(document).on("change", "#workflow-detection-select", function(){ if(readStep()===3 && $(this).val()) advance(); });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
-  $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===5 && validation && validation.status==="passed") advance(); });
-  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===6||step===8)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("dei:detection-validation-complete", function(_event,validation){ var step=readStep(); if((step===5||step===19)&&validation&&validation.status==="passed") advance(); });
+  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===6||step===8||step===14||step===16||step===20||step===22)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("change", "#lifecycle-review-period,#lifecycle-health,#lifecycle-result-volume,#lifecycle-runtime,#lifecycle-true-positives,#lifecycle-false-positives", function(){
+    if(readStep()!==13) return;
+    var values=["#lifecycle-result-volume","#lifecycle-runtime","#lifecycle-true-positives","#lifecycle-false-positives"].map(function(selector){return Number($(selector).val());});
+    if(String($("#lifecycle-review-period").val()||"").trim()&&values.every(function(value){return isFinite(value)&&value>=0;})) advance();
+  });
+  $(document).on("input", "#generator-spl", function(){ if(readStep()===18&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) goToStep(19); });
   $(document).on("dei:lifecycle-action-complete", function(_event,action){
     if(readStep()===7&&action==="submit_review") goToStep(8);
     if(readStep()===9&&action==="approve_review") goToStep(10);
     if(readStep()===11&&action==="record_deployment") goToStep(12);
+    if(readStep()===15&&action==="record_health") goToStep(16);
+    if(readStep()===17&&action==="start_tuning") goToStep(18);
+    if(readStep()===21&&action==="submit_review") goToStep(22);
+    if(readStep()===23&&action==="approve_review") goToStep(24);
+    if(readStep()===25&&action==="record_deployment") goToStep(26);
     if(action==="return_draft"&&readStep()>=6&&readStep()<=9) goToStep(5);
   });
   $(document).on("change", "#lifecycle-external-id", function(){ if(readStep()===10 && String($(this).val()||"").trim()) goToStep(11); });

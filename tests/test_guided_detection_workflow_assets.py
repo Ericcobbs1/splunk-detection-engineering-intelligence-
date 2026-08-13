@@ -63,7 +63,7 @@ def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -
     assert "window.sessionStorage.removeItem(TUTORIAL_HANDOFF_KEY)" in javascript
     assert '$("#builder-detection-select").val(requested)' in javascript
     assert '$("#builder-detection-select").trigger("change")' in javascript
-    guide = (STATIC / "dei_guide_adapter_v5.js").read_text(encoding="utf-8")
+    guide = (STATIC / "dei_guide_adapter_v7.js").read_text(encoding="utf-8")
     assert 'target:"#workflow-detection-select"' in guide
     assert 'page:"environment",target:"#dei-open-environment-insights"' in guide
 
@@ -205,6 +205,15 @@ def test_tuning_opens_an_editable_version_with_visible_guidance() -> None:
     assert 'Tuning version opened. Revise the editable artifact, then run fresh validation.' in lifecycle
     assert 'id="lifecycle-inline-error"' in lifecycle
     assert "Full workflow" in view
+
+
+def test_monitoring_requires_traceable_operational_evidence() -> None:
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
+    assert "Monitoring evidence note *" in lifecycle
+    assert "scheduler/search-history evidence" in lifecycle
+    assert "source-data freshness" in lifecycle
+    assert "Explain zero results" in lifecycle
+    assert 'if (!comment) { actionError("Document the evidence source' in lifecycle
 
 
 def test_failed_validation_can_edit_spl_without_page_scroll_lock() -> None:
