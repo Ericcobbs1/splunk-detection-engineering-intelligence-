@@ -189,8 +189,8 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
     assert 'action==="return_draft"&&readStep()>=9&&readStep()<=12' in adapter
-    assert 'focusTarget:"#catalog-external-id"' in adapter
-    assert 'target:"#catalog-external-id-field"' in adapter
+    assert 'target:"#catalog-external-id"' in adapter
+    assert 'focusTarget:"#catalog-external-id"' not in adapter
     assert "reviewReturnMode" not in adapter
     assert "onContinueReview" not in react_source
     assert "step.lockBack" in react_source
@@ -212,12 +212,38 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'aria-live="assertive"' in adapter
     assert 'restoreGuide(true)' in adapter
     assert 'hasClass("dei-guide-focus-mode")) restoreGuide(true)' in adapter
-    assert '.trigger("click")' not in adapter
+    assert 'target.trigger("click")' not in adapter
     assert "deiGuideShowMe" in stylesheet
     assert "deiGuideShowMarker" in stylesheet
     assert "body.dei-guide-focus-mode .dei-onboarding-dialog" in stylesheet
     assert "#dei-guide-return" in stylesheet
     assert 'content:"↓"' in stylesheet
+
+
+def test_show_me_centers_then_reanchors_marker_to_the_actual_control():
+    adapter = _source("dei_guide_adapter_v5.js")
+    assert 'scrollIntoView({behavior:"auto",block:"center",inline:"center"})' in adapter
+    assert "rect.left+(rect.width-markerWidth)/2" in adapter
+    assert "function settleTarget(step,target)" in adapter
+    assert "window.requestAnimationFrame(function()" in adapter
+    assert "current[0]!==target[0]" in adapter
+    assert "settleTarget(step,target)" in adapter
+    assert 'scrollIntoView({behavior:"smooth"' not in adapter
+
+
+def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame():
+    adapter = _source("dei_guide_adapter_v5.js")
+    stylesheet = _source("dei_guided_tour_v6.css")
+    assert "function prepareStep(step)" in adapter
+    assert 'tab:"#workflow-tab-artifact"' in adapter
+    assert 'tab:"#workflow-tab-change-control"' in adapter
+    assert 'tab.trigger("click")' in adapter
+    assert "rect.width>0&&rect.height>0" in adapter
+    assert 'target.is("button,input,select,textarea,a,[role=\'button\']")' in adapter
+    assert 'target:"#catalog-external-id"' in adapter
+    assert 'id="dei-guide-action-frame"' in adapter
+    assert "frame.css({top:rect.top-6,left:rect.left-6,width:rect.width+12,height:rect.height+12})" in adapter
+    assert "#dei-guide-action-frame" in stylesheet
 
 
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
@@ -283,6 +309,6 @@ def test_approved_review_has_one_clear_catalog_deployment_handoff():
     assert "Deployment is completed once in Detection Catalog" in lifecycle
     assert 'id="lifecycle-external-id"' not in lifecycle
     assert 'id="catalog-external-id-field"' in catalog
-    assert 'focusTarget:"#catalog-external-id"' in guide
+    assert 'target:"#catalog-external-id"' in guide
     assert 'lockBack:true' in guide
     assert "selection.removeAllRanges" in guide
