@@ -265,7 +265,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     lifecycle.off("click.deiHomeLifecycle").on("click.deiHomeLifecycle",function (event) {
       event.preventDefault();
       announceAction("Opening the detection lifecycle workspace…","info");
-      window.location.assign(String($(this).attr("href") || "detection_lifecycle"));
+      window.location.assign(String($(this).attr("href") || "detection_catalog#lifecycle-map"));
     });
   }
 
@@ -278,7 +278,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"command_center#dei-telemetry",action:"Run intelligence scan"},
       building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_catalog",action:"Open lifecycle work queue"},
       healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_catalog",action:"Review monitoring evidence"}
-    }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_lifecycle",action:"Open lifecycle workspace"};
+    }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_catalog#lifecycle-map",action:"Open lifecycle workspace"};
     $("#dei-home-health-action").attr("href",empty.href).text(empty.action+" →");
   }
 
@@ -758,7 +758,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var destination={discover:"command_center#dei-telemetry",profile:"detection_catalog?pipeline=profile",
       qualify:"detection_catalog?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
       design:"detection_catalog?pipeline=design",generate:"detection_workflow#guided-builder-workspace",
-      validate:"detection_workflow#builder-validation-title"}[stage] || "detection_lifecycle";
+      validate:"detection_workflow#builder-validation-title"}[stage] || "detection_catalog#lifecycle-map";
     var detection=homeStageDetection(stage);
     if (detection) {
       destination="detection_workflow?detection="+encodeURIComponent(detection)+
@@ -842,7 +842,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(window).on("resize.deiOnboarding", function () { positionOnboardingDialog($(ONBOARDING_STEPS[onboardingStep].target).first()); });
   $(document).on("click", "#dei-home-tour", restartOnboarding);
   $(document).on("click", "#dei-topology-core-action", function () {
-    window.location.href=String($(this).attr("data-health-destination") || "detection_lifecycle");
+    window.location.href=String($(this).attr("data-health-destination") || "detection_catalog#lifecycle-map");
   });
   $(document).on("click", "#dei-onboarding-back", function () { if (onboardingStep>0) { onboardingStep-=1; renderOnboardingStep(); } });
   $(document).on("click", "#dei-onboarding-next", function () { if (onboardingStep<ONBOARDING_STEPS.length-1) { onboardingStep+=1; renderOnboardingStep(); } else { closeOnboarding(); } });

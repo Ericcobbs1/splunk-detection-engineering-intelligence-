@@ -13,7 +13,7 @@ def _source(name: str) -> str:
 def test_every_workspace_loads_the_shared_scan_service():
     for view in VIEWS.glob("*.xml"):
         root = ElementTree.parse(view).getroot()
-        if view.name in {"detection_lifecycle.xml", "detection_operations.xml"}:
+        if view.name in {"detection_builder.xml", "detection_lifecycle.xml", "detection_operations.xml"}:
             assert "redirect_v1.js" in root.attrib["script"]
             continue
         assert "dei_environment_scan_v1.js" in root.attrib["script"].split(","), view.name
@@ -73,7 +73,7 @@ def test_react_bundle_is_progressive_enhancement_not_a_dashboard_dependency():
     for view in VIEWS.glob("*.xml"):
         scripts = ElementTree.parse(view).getroot().attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts, view.name
-        if view.name in {"detection_lifecycle.xml", "detection_operations.xml"}:
+        if view.name in {"detection_builder.xml", "detection_lifecycle.xml", "detection_operations.xml"}:
             continue
         assert "dei_guide_adapter_v5.js" in scripts, view.name
     adapter = _source("dei_guide_adapter_v5.js")
@@ -93,9 +93,8 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
     assert ".dei-next-guide-action" in tour_styles
     for view in (
         "dei_home.xml", "command_center.xml", "environment_insights.xml",
-        "mitre_coverage.xml", "detection_workflow.xml", "detection_operations.xml",
-        "detection_lifecycle.xml", "detection_health.xml", "detection_catalog.xml",
-        "detection_builder.xml", "detection_action_center.xml",
+            "mitre_coverage.xml", "detection_workflow.xml",
+            "detection_health.xml", "detection_catalog.xml", "detection_action_center.xml",
     ):
         root = ElementTree.parse(VIEWS / view).getroot()
         assert "dei_guided_tour_v6.css" in root.attrib["stylesheet"].split(",")

@@ -39,11 +39,11 @@ def test_customer_pages_load_shared_readable_design_system() -> None:
 
 def test_high_density_reference_content_uses_progressive_disclosure() -> None:
     environment = ElementTree.parse(VIEWS / "environment_insights.xml").getroot()
-    lifecycle = ElementTree.parse(VIEWS / "detection_lifecycle.xml").getroot()
+    lifecycle = ElementTree.parse(VIEWS / "detection_catalog.xml").getroot()
     assert environment.find(".//details[@id='dei-telemetry-change-section']") is not None
     assert environment.find(".//details[@id='dei-portfolio-section']") is not None
-    assert lifecycle.find(".//details[@class='dei-workspace-disclosure dei-lifecycle-evidence-summary']") is not None
-    assert lifecycle.find(".//section[@class='dei-lifecycle-metrics dei-lifecycle-core-metrics']") is not None
+    assert lifecycle.find(".//details[@class='dei-workspace-disclosure dei-lifecycle-map']") is not None
+    assert lifecycle.find(".//details[@class='dei-workspace-disclosure dei-catalog-troubleshooting']") is not None
 
 
 def test_operate_pages_do_not_duplicate_navigation_with_a_view_dropdown() -> None:

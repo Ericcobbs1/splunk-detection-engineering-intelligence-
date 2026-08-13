@@ -14,7 +14,7 @@
 
           <header class="dei-workflow-hero">
             <div><p class="dei-eyebrow">Guided Detection Builder</p><h1>Move one detection from idea to operation.</h1><p>Select a detection. DEI will show its lifecycle position and keep generation, validation, approval, enablement, and monitoring actions on this page.</p></div>
-            <a href="detection_lifecycle">View lifecycle overview →</a>
+            <a href="detection_catalog#lifecycle-map">View lifecycle overview →</a>
           </header>
 
           <section class="dei-workflow-selector" aria-labelledby="workflow-selector-title">

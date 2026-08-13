@@ -8,6 +8,15 @@
   var FALLBACK_KEY = "dei.detectionDraftArtifacts";
   var mode = "loading";
 
+  function persistenceWarning(operation, detail) {
+    mode = "browser fallback";
+    $(document).trigger("dei:persistence-warning", [{
+      collection:COLLECTION, operation:operation, mode:mode,
+      message:"Splunk KV Store is unavailable. Changes are saved only in this browser and are not shared or governed.",
+      detail:detail || ""
+    }]);
+  }
+
   function safeJson(value, fallback) {
     try { return JSON.parse(value || "null") || fallback; } catch (error) { return fallback; }
   }
@@ -40,7 +49,8 @@
     });
     records.push(record);
     root.localStorage.setItem(FALLBACK_KEY, JSON.stringify(records));
-    mode = "browser fallback";
+    persistenceWarning("write");
+    record._persistence = {durable:false, mode:mode};
     return record;
   }
 
@@ -51,8 +61,8 @@
         mode = "Splunk KV Store";
         deferred.resolve(Array.isArray(records) ? records : []);
       })
-      .fail(function () {
-        mode = "browser fallback";
+      .fail(function (xhr) {
+        persistenceWarning("load", xhr&&xhr.status||"");
         deferred.resolve(fallbackRecords());
       });
     return deferred.promise();
@@ -67,12 +77,12 @@
     delete updatePayload._key;
     $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(updatePayload), dataType:"json",
       timeout:15000, headers:headers()})
-      .done(function () { mode = "Splunk KV Store"; deferred.resolve(payload); })
+      .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
       .fail(function (xhr) {
         if (xhr && xhr.status === 404) {
           $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
             timeout:15000, headers:headers()})
-            .done(function () { mode = "Splunk KV Store"; deferred.resolve(payload); })
+            .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
             .fail(function () { deferred.resolve(saveFallback(payload)); });
         } else {
           deferred.resolve(saveFallback(payload));
@@ -92,11 +102,12 @@
     var deferred = $.Deferred();
     $.ajax({url:endpoint(key), method:"DELETE", timeout:15000, headers:headers()})
       .done(function () { deferred.resolve(); })
-      .fail(function () {
+      .fail(function (xhr) {
         var records = fallbackRecords().filter(function (item) {
           return String(item._key || item.id) !== String(key);
         });
         root.localStorage.setItem(FALLBACK_KEY, JSON.stringify(records));
+        persistenceWarning("remove", xhr&&xhr.status||"");
         deferred.resolve();
       });
     return deferred.promise();

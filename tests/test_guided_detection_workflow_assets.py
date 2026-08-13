@@ -77,7 +77,7 @@ def test_guided_workflow_is_primary_but_advanced_workspaces_remain_available() -
     assert nav.find(".//view[@name='detection_workflow']") is not None
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     assert home.find(".//*[@class='dei-product-bar']") is None
-    for view_name in ("detection_lifecycle", "detection_catalog", "detection_catalog"):
+    for view_name in ("detection_catalog",):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
         assert root.find(".//a[@href='detection_workflow']") is not None
         assert root.find(".//a[@href='detection_catalog']") is not None
