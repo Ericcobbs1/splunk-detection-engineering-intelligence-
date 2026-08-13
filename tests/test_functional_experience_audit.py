@@ -43,9 +43,9 @@ def test_home_scan_is_consolidated_into_environment_discovery():
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    bundle = _source("dei_interactive_guide_v2.js")
+    bundle = _source("dei_interactive_guide_v3.js")
     for page in ("home", "environment", "builder"):
         assert f'page:"{page}"' in adapter
     for event in (
@@ -72,11 +72,11 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
 def test_react_bundle_is_progressive_enhancement_not_a_dashboard_dependency():
     for view in VIEWS.glob("*.xml"):
         scripts = ElementTree.parse(view).getroot().attrib["script"].split(",")
-        assert "dei_interactive_guide_v2.js" not in scripts, view.name
+        assert "dei_interactive_guide_v3.js" not in scripts, view.name
         if view.name in {"detection_builder.xml", "detection_lifecycle.xml", "detection_operations.xml"}:
             continue
-        assert "dei_guide_adapter_v7.js" in scripts, view.name
-    adapter = _source("dei_guide_adapter_v7.js")
+        assert "dei_guide_adapter_v8.js" in scripts, view.name
+    adapter = _source("dei_guide_adapter_v8.js")
     assert "finishGuideLoad(false)" in adapter
     assert "dashboard remains available" in adapter
 
@@ -147,7 +147,7 @@ def test_core_action_controls_have_implementation_bindings():
 
 
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert adapter.count("actionLabel:") == 27
     for target in (
@@ -170,7 +170,7 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
 
 
 def test_post_scan_tutorial_stays_in_the_detection_engineering_workspace():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     steps_source = adapter.split("var steps=[", 1)[1].split("];", 1)[0]
     assert steps_source.count('page:"builder"') == 24
     assert 'page:"environment_insights"' not in steps_source
@@ -182,7 +182,7 @@ def test_post_scan_tutorial_stays_in_the_detection_engineering_workspace():
 
 
 def test_tutorial_teaches_the_operational_tuning_loop_end_to_end():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     for target in (
         '#lifecycle-review-period', '[data-action="record_health"]',
@@ -218,7 +218,7 @@ def test_tutorial_teaches_the_operational_tuning_loop_end_to_end():
 
 
 def test_guide_is_compact_collapsible_and_pointer_draggable():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     stylesheet = _source("dei_guided_tour_v6.css")
     assert "useState(false)" in react_source
@@ -233,7 +233,7 @@ def test_guide_is_compact_collapsible_and_pointer_draggable():
 
 
 def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     layout = _source("dei_workspace_layout_v14.js")
     stylesheet = _source("dei_guided_tour_v6.css")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
@@ -282,7 +282,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
 
 
 def test_show_me_centers_then_reanchors_marker_to_the_actual_control():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     assert 'scrollIntoView({behavior:"auto",block:"center",inline:"center"})' in adapter
     assert "rect.left+(rect.width-markerWidth)/2" in adapter
     assert "function settleTarget(step,target)" in adapter
@@ -293,7 +293,7 @@ def test_show_me_centers_then_reanchors_marker_to_the_actual_control():
 
 
 def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     stylesheet = _source("dei_guided_tour_v6.css")
     assert "function prepareStep(step)" in adapter
     assert 'tab:"#workflow-tab-artifact"' in adapter
@@ -311,7 +311,7 @@ def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame()
 
 
 def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     assert "function reconcileCompletedStep(index)" in adapter
     assert 'index===5&&($("#builder-validation-state").hasClass("passed")' in adapter
     assert 'String($("#validation-status").text()||"").toLowerCase()==="passed"' in adapter
@@ -329,7 +329,7 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
 
 
 def test_completion_step_never_highlights_the_entire_workspace():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     assert "if(step.completion||step.operationsChoice) return $()" in adapter
     assert "if (!target.length&&!step.completion&&!step.operationsChoice)" in adapter
     assert "if(stepChanged&&!step.completion&&!step.operationsChoice) focusTarget(false)" in adapter
@@ -337,14 +337,28 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
-    adapter = _source("dei_guide_adapter_v7.js")
-    assert 'window.DEIGuideAssetVersion="v7"' in adapter
-    assert not (STATIC / "dei_guide_adapter_v6.js").exists()
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'window.DEIGuideAssetVersion="v8"' in adapter
+    assert not (STATIC / "dei_guide_adapter_v7.js").exists()
+    assert 'dei_interactive_guide_v3.js' in adapter
+    assert 'data-dei-guide-bundle","v3"' in adapter
+    assert (STATIC / "dei_interactive_guide_v3.js").exists()
+    assert not (STATIC / "dei_interactive_guide_v2.js").exists()
     for view in VIEWS.glob("*.xml"):
         source = view.read_text(encoding="utf-8")
         if "dei_guide_adapter_" in source:
-            assert "dei_guide_adapter_v7.js" in source, view.name
-            assert "dei_guide_adapter_v6.js" not in source, view.name
+            assert "dei_guide_adapter_v8.js" in source, view.name
+            assert "dei_guide_adapter_v7.js" not in source, view.name
+
+
+def test_completion_step_uses_finish_instead_of_show_me():
+    adapter = _source("dei_guide_adapter_v8.js")
+    react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
+    bundle = _source("dei_interactive_guide_v3.js")
+    assert 'completion:true' in adapter
+    assert "step.completion ? 'Finish' : 'Show me'" in react_source
+    assert 'e.completion?"Finish":"Show me"' in bundle
+    assert "step.completion ? onClose : onFocusTarget" in react_source
 
 
 def test_deployment_recommendation_is_plain_text_not_selected_code():
@@ -357,7 +371,7 @@ def test_deployment_recommendation_is_plain_text_not_selected_code():
 
 
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
-    adapter = _source("dei_guide_adapter_v7.js")
+    adapter = _source("dei_guide_adapter_v8.js")
     transitions = (
         'readStep()===0) goToStep(1)',
         'readStep()===1 && status.stage==="complete") advance()',
@@ -414,7 +428,7 @@ def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
 
 def test_approved_review_has_one_clear_inline_deployment_handoff():
     lifecycle = _source("detection_lifecycle_v3.js")
-    guide = _source("dei_guide_adapter_v7.js")
+    guide = _source("dei_guide_adapter_v8.js")
     catalog = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
     assert 'action:"record_deployment"' in lifecycle
     assert "Continue below to record deployment without leaving this workspace" in lifecycle

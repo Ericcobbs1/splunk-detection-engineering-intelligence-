@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v7";
+window.DEIGuideAssetVersion="v8";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -18,8 +18,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     guideLoadState="loading";
     var script=document.createElement("script");
     script.async=true;
-    script.src=Splunk.util.make_url("/static/app/splunk_detection_engineering_intelligence/dei_interactive_guide_v2.js");
-    script.setAttribute("data-dei-guide-bundle","v2");
+    script.src=Splunk.util.make_url("/static/app/splunk_detection_engineering_intelligence/dei_interactive_guide_v3.js");
+    script.setAttribute("data-dei-guide-bundle","v3");
     script.onload=function(){
       if(window.DEIInteractiveGuide) finishGuideLoad(true);
       else { window.console.warn("DEI guide bundle loaded without its public API; dashboard remains available."); finishGuideLoad(false); }
