@@ -49,6 +49,8 @@ jobs:
           bash tools/package_app.sh
           package="$(find dist -maxdepth 1 -name '*.spl' -print -quit)"
           tar -tzf "$package" | grep -Fx 'splunk_detection_engineering_intelligence/metadata/default.meta'
+          tar -tzf "$package" | grep -Fx 'splunk_detection_engineering_intelligence/bin/dei_storage_rest.py'
+          tar -tzf "$package" | grep -Fx 'splunk_detection_engineering_intelligence/bin/dei/api/storage_handler.py'
           if tar -tzf "$package" | grep -Eq '(__pycache__|\.pyc$)'; then exit 1; fi
 
       - name: Install project and development tools
