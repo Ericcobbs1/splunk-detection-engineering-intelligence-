@@ -327,8 +327,10 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "dashboard remains available" in javascript
     assert 'OVERLAY_ID="dei-next-guide-overlay"' in javascript
     assert "window.MutationObserver" in javascript
-    assert "#catalog-external-id" in javascript
-    assert '[data-catalog-action="deploy"]' in javascript
+    assert "#lifecycle-external-id" in javascript
+    assert '[data-action="record_deployment"]' in javascript
+    assert "dei-next-guide-collapse" in react_source
+    assert "dei-guide-positioned" in stylesheet
     assert "#dei-guide-action-marker" in stylesheet
     assert ".dei-onboarding-overlay" in stylesheet
     assert ".dei-next-guide-dialog" in stylesheet

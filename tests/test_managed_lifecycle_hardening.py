@@ -91,7 +91,7 @@ def test_unified_lifecycle_workspace_has_fluid_evidence_gated_stage_controls() -
     assert 'label:"Previous · Return to Draft"' in lifecycle
     assert 'label:"Continue · Submit for peer review"' in lifecycle
     assert 'label:"Continue · Approve version"' in lifecycle
-    assert 'label:"Continue · Open Detection Catalog"' in lifecycle
+    assert 'label:"Continue · Record deployment"' in lifecycle
     assert 'data-stage-action=' in lifecycle
     assert 'pendingWorkspaceAction=action' in lifecycle
     assert 'pendingWorkspaceAction!=="return_draft"' in lifecycle

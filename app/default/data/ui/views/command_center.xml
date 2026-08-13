@@ -20,8 +20,8 @@
           </section>
 
           <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title">
-            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to environment intelligence</h2><p>Open the readiness, telemetry DNA, ATT&amp;CK coverage, portfolio, and snapshot details produced by this discovery.</p></div>
-            <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="environment_insights">View intelligence results →</a></div>
+            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to detection engineering</h2><p>Use this saved scan evidence to select, build, validate, review, and govern a detection in one workspace.</p></div>
+            <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="detection_workflow">Open Detection Engineering Workspace →</a></div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>

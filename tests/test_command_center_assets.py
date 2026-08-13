@@ -36,7 +36,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
-    insights_link = root.find(".//a[@href='environment_insights']")
+    insights_link = root.find(".//a[@href='detection_workflow']")
     assert insights_link is not None
 
 

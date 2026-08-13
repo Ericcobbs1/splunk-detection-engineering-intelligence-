@@ -36,23 +36,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var renderedStep=-1;
   var activeTarget=null;
   var renderingGuide=false;
+  var dragState=null;
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
-    {page:"environment",target:"#dei-open-environment-insights",title:"Open the readiness results",instruction:"Continue to the intelligence generated from the completed telemetry scan.",actionLabel:"Select View intelligence results"},
-    {page:"environment_insights",target:".dei-mitre-glow-button",title:"Move from evidence to coverage",instruction:"Use the saved readiness evidence to continue into ATT&CK coverage analysis.",actionLabel:"Open the MITRE workspace"},
-    {page:"mitre",target:"#mitre-sourcetype-filter",title:"Scope the detection opportunities",instruction:"Choose one observed sourcetype so the advisor shows relevant, supportable detections.",actionLabel:"Select a sourcetype"},
-    {page:"mitre",target:".dei-advisor-item",title:"Choose a detection opportunity",instruction:"Select a recommendation to inspect its ATT&CK and telemetry-readiness evidence.",actionLabel:"Select one Detection Advisor result"},
-    {page:"builder",target:"#builder-detection-select",tab:"#workflow-tab-artifact",title:"Load the selected detection",instruction:"Confirm the recommendation you want to engineer through the guided workflow.",actionLabel:"Select the detection in Builder"},
+    {page:"environment",target:"#dei-open-environment-insights",title:"Open the Detection Engineering Workspace",instruction:"The scan is complete. Continue into the single workspace used for every remaining detection action.",actionLabel:"Select Open Detection Engineering Workspace"},
+    {page:"builder",target:"#workflow-detection-select",title:"Choose a detection opportunity",instruction:"Select a scan-supported recommendation. ATT&CK, telemetry readiness, lifecycle position, and required evidence remain visible on this page.",actionLabel:"Select a detection"},
     {page:"builder",target:"#builder-generate",tab:"#workflow-tab-artifact",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
     {page:"builder",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document the validation handoff",instruction:"Summarize the validated analytic intent, expected analyst behavior, evidence, and known limitations for peer review.",actionLabel:"Enter the review submission note"},
     {page:"builder",target:'[data-action="submit_review"]',tab:"#workflow-tab-change-control",title:"Send the validated version to review",instruction:"Submit this exact version and its evidence. The next screen is the independent approval decision.",actionLabel:"Select Submit for peer review"},
     {page:"builder",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document the approval decision",instruction:"As the reviewer, record why this version is safe, scoped, supportable, and operationally actionable.",actionLabel:"Enter the approval rationale",lockBack:true},
-    {page:"builder",target:'[data-action="approve_review"]',tab:"#workflow-tab-change-control",title:"Approve and continue to deployment",instruction:"Approve this version. The tutorial will take you directly to its single deployment workspace in Detection Catalog.",actionLabel:"Select Approve version",lockBack:true},
-    {page:"catalog",target:"#catalog-external-id",title:"Record the production object",instruction:"This is the only deployment form. Keep Production selected and enter the exact saved-search, ES detection, or external object name that was deployed.",actionLabel:"Enter the exact deployed object name",lockBack:true},
-    {page:"catalog",target:'[data-catalog-action="deploy"]',title:"Enable the approved detection",instruction:"Review the target, environment, and object name once, then record the production deployment to enable the detection.",actionLabel:"Select Enable in Production",lockBack:true},
-    {page:"catalog",target:"#catalog-action-panel",title:"Detection enabled — workflow complete",instruction:"The detection is now governed in the Catalog. Continue operational work here without returning to the Builder deployment form.",actionLabel:"Tutorial complete",completion:true,lockBack:true,details:["Detection Catalog: manage status, deployment reference, health, tuning, disablement, and retirement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
+    {page:"builder",target:'[data-action="approve_review"]',tab:"#workflow-tab-change-control",title:"Approve and continue to deployment",instruction:"Approve this version. The deployment form will open below without leaving this workspace.",actionLabel:"Select Approve version",lockBack:true},
+    {page:"builder",target:"#lifecycle-external-id",tab:"#workflow-tab-change-control",title:"Record the production object",instruction:"Keep Production selected and enter the exact saved-search, ES detection, or external object name that was deployed.",actionLabel:"Enter the exact deployed object name",lockBack:true},
+    {page:"builder",target:'[data-action="record_deployment"]',tab:"#workflow-tab-change-control",title:"Enable the approved detection",instruction:"Review the target, environment, and object name once, then record deployment to enter Production.",actionLabel:"Select Record deployment and enter Production",lockBack:true},
+    {page:"builder",target:"#lifecycle-action-center",title:"Detection enabled — workflow complete",instruction:"The full engineering workflow is complete without leaving this workspace.",actionLabel:"Tutorial complete",completion:true,lockBack:true,details:["Detection Catalog: manage the operational portfolio after enablement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
   ];
 
   function page() {
@@ -90,11 +88,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return target;
   }
   function reconcileCompletedStep(index) {
-    if(index===8&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(9); return true; }
-    if((index===9||index===10)&&$('[data-action="approve_review"]:visible').length){ goToStep(11); return true; }
-    if(index===11&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(12); return true; }
-    if(index===13&&String($("#catalog-external-id").val()||"").trim()){ goToStep(14); return true; }
-    if(index===14&&!$('[data-catalog-action="deploy"]:visible').length&&$("#catalog-action-panel:visible").length){ goToStep(15); return true; }
+    if(index===5&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(6); return true; }
+    if((index===6||index===7)&&$('[data-action="approve_review"]:visible').length){ goToStep(8); return true; }
+    if(index===8&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(9); return true; }
+    if(index===10&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(11); return true; }
+    if(index===11&&!$('[data-action="record_deployment"]:visible').length&&String($("#lifecycle-action-state").text()||"").toLowerCase().indexOf("production")!==-1){ goToStep(12); return true; }
     return false;
   }
   function focusFor(step,target) { var focus=step.focusTarget?$(step.focusTarget).filter(":visible").first():target; return focus.length?focus:target; }
@@ -174,11 +172,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return true;
   }
   function position(target) {
-    var dialog=$(".dei-onboarding-dialog"); if (!dialog.length) return;
+    var dialog=$(".dei-onboarding-dialog"); if (!dialog.length||dialog.hasClass("dei-guide-positioned")) return;
     var placement="right";
     if (target.length && window.innerWidth>900) { var rect=target[0].getBoundingClientRect(); placement=(rect.left+rect.width/2)<window.innerWidth/2?"right":"left"; }
     else if (target.length) { placement=target[0].getBoundingClientRect().top>window.innerHeight/2?"top":"bottom"; }
     dialog.attr("data-placement",placement);
+  }
+  function savedGuidePosition() {
+    try { return JSON.parse(window.sessionStorage.getItem("dei.guide.position")||"null"); } catch(error) { return null; }
+  }
+  function applySavedGuidePosition() {
+    var position=savedGuidePosition(),dialog=$(".dei-onboarding-dialog");
+    if(!position||!dialog.length) return;
+    dialog.addClass("dei-guide-positioned").css({left:Math.max(8,Math.min(window.innerWidth-dialog.outerWidth()-8,position.left)),top:Math.max(8,Math.min(window.innerHeight-dialog.outerHeight()-8,position.top)),right:"auto",bottom:"auto"});
   }
   function close(markSeen) {
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
@@ -198,14 +204,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var index=readStep(),step=activeStep(index);
     if (page()!==step.page) { close(false); return; }
     prepareStep(step);
-    if(index===6 && $("#builder-detection-select").val()){ writeStep(7); scheduleRender(0); return; }
-    if(index===7 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(8); scheduleRender(0); return; }
+    if(index===3 && $("#workflow-detection-select").val()){ writeStep(4); scheduleRender(0); return; }
+    if(index===4 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(5); scheduleRender(0); return; }
     if(reconcileCompletedStep(index)) return;
     var target=targetFor(step);
     if (!target.length) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
     var targetChanged=target[0]!==activeTarget;
-    if (!$("#"+OVERLAY_ID).length) $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open");
+    if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); applySavedGuidePosition(); }
     observeTargets();
     if(targetChanged){
       $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
@@ -237,36 +243,46 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function completeDraft(id,record) {
     if(!id||!record||page()!=="builder") return false;
     selectedDetection=String(id);
-    if(readStep()<=7){
-      writeStep(8);
+    if(readStep()<=4){
+      writeStep(5);
       renderedStep=-1;
       window.clearTimeout(renderTimer);
       renderTimer=window.setTimeout(render,0);
     }
-    return readStep()>=8;
+    return readStep()>=5;
   }
   function start() { close(false); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
   window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft};
   $(document).on("click", "#dei-guide-return", function(event){ event.preventDefault(); restoreGuide(true); });
+  $(document).on("pointerdown", ".dei-next-guide-header", function(event){
+    if($(event.target).closest("button").length) return;
+    var dialog=$(event.currentTarget).closest(".dei-onboarding-dialog"),rect=dialog[0].getBoundingClientRect();
+    dragState={dialog:dialog,offsetX:event.clientX-rect.left,offsetY:event.clientY-rect.top};
+    dialog.addClass("dei-guide-positioned dei-guide-dragging"); event.currentTarget.setPointerCapture(event.pointerId); event.preventDefault();
+  });
+  $(document).on("pointermove", ".dei-next-guide-header", function(event){
+    if(!dragState) return; var dialog=dragState.dialog,left=Math.max(8,Math.min(window.innerWidth-dialog.outerWidth()-8,event.clientX-dragState.offsetX)),top=Math.max(8,Math.min(window.innerHeight-dialog.outerHeight()-8,event.clientY-dragState.offsetY));
+    dialog.css({left:left,top:top,right:"auto",bottom:"auto"});
+  });
+  $(document).on("pointerup pointercancel", ".dei-next-guide-header", function(){
+    if(!dragState) return; var rect=dragState.dialog[0].getBoundingClientRect(); dragState.dialog.removeClass("dei-guide-dragging"); window.sessionStorage.setItem("dei.guide.position",JSON.stringify({left:rect.left,top:rect.top})); dragState=null;
+  });
   $(document).on("click", "#dei-home-tour", function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(); });
   $(document).on("click", ".dei-open-environment-discovery", function(){ if(readStep()===0) goToStep(1); });
   $(document).on("dei:scan-progress", function (_event,status) { if(readStep()===1 && status.stage==="complete") advance(); });
   $(document).on("click", "#dei-open-environment-insights", function(){ if(readStep()===2) advance(); });
-  $(document).on("click", ".dei-mitre-glow-button", function(){ if(readStep()===3) advance(); });
-  $(document).on("change", "#mitre-sourcetype-filter", function(){ if(readStep()===4 && $(this).val()!=="all") window.setTimeout(advance,0); });
-  $(document).on("dei:advisor-detection-selected", function(_event,id){ if(readStep()===5){ selectedDetection=String(id||""); if(selectedDetection){ window.localStorage.setItem("dei.selectedDetectionDraft",selectedDetection); window.sessionStorage.setItem("dei.tutorialDetectionHandoff",selectedDetection); } advance(); } });
-  $(document).on("change", "#builder-detection-select", function(){ if(readStep()===6 && $(this).val()) advance(); });
+  $(document).on("change", "#workflow-detection-select", function(){ if(readStep()===3 && $(this).val()) advance(); });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
-  $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===8 && validation && validation.status==="passed") advance(); });
-  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===9||step===11)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("dei:detection-validation-complete", function(_event,validation){ if(readStep()===5 && validation && validation.status==="passed") advance(); });
+  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===6||step===8)&&String($(this).val()||"").trim()) advance(); });
   $(document).on("dei:lifecycle-action-complete", function(_event,action){
-    if(readStep()===10&&action==="submit_review") goToStep(11);
-    if(readStep()===12&&action==="approve_review") goToStep(13);
-    if(action==="return_draft"&&readStep()>=9&&readStep()<=12) goToStep(8);
+    if(readStep()===7&&action==="submit_review") goToStep(8);
+    if(readStep()===9&&action==="approve_review") goToStep(10);
+    if(readStep()===11&&action==="record_deployment") goToStep(12);
+    if(action==="return_draft"&&readStep()>=6&&readStep()<=9) goToStep(5);
   });
-  $(document).on("change", "#catalog-external-id", function(){ if(readStep()===13 && String($(this).val()||"").trim()) goToStep(14); });
-  $(document).on("dei:catalog-action-complete", function(_event,status){ if(readStep()===14 && status==="enabled") goToStep(15); });
+  $(document).on("change", "#lifecycle-external-id", function(){ if(readStep()===10 && String($(this).val()||"").trim()) goToStep(11); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
