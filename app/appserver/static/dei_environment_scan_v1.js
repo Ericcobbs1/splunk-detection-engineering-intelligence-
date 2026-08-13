@@ -61,7 +61,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function loadLatest() { return $.ajax({url:collectionEndpoint(scanCollection,"latest"),method:"GET",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).then(function(snapshot){return snapshot;},function(){return null;}); }
   function writeRecord(collection,record) {
     var payload=$.extend(true,{},record),key=payload._key; delete payload._key;
-    return $.ajax({url:collectionEndpoint(collection,key),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(payload)}).then(null,function(xhr){ if(!xhr||xhr.status!==404) return $.Deferred().reject(xhr).promise(); payload._key=key; return $.ajax({url:collectionEndpoint(collection),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(payload)}); });
+    var createPayload=$.extend(true,{},payload,{_key:key});
+    return $.ajax({url:collectionEndpoint(collection),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(createPayload)}).then(null,function(xhr){
+      if(!xhr||xhr.status!==409) return $.Deferred().reject(xhr).promise();
+      return $.ajax({url:collectionEndpoint(collection,key),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(payload)});
+    });
   }
   function persistSession(snapshot) {
     try {
