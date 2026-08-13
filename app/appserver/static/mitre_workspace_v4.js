@@ -104,14 +104,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function heatmapRecommendations() {
-    var query=String($("#mitre-filter").val()||"").toLowerCase();
+    var detection=$("#mitre-filter").val()||"all";
     var readiness=$("#mitre-readiness-filter").val()||"all";
     var sourcetype=$("#mitre-sourcetype-filter").val()||"all";
     var selectedCanonical=sourcetype==="all"?[]:canonicalSourcesForObserved(sourcetype);
     return report&&report.recommendations?(report.recommendations||[]).filter(function(item){
-      var text=(item.name+" "+item.capability+" "+(item.mitre_techniques||[]).join(" ")).toLowerCase();
       var observed=(item.observed_sources||[]).map(function(source){return String(source||"").toLowerCase();});
-      return (!query||text.indexOf(query)!==-1)&&(readiness==="all"||item.readiness===readiness)&&(sourcetype==="all"||selectedCanonical.some(function(source){return observed.indexOf(source)!==-1;}));
+      return (detection==="all"||item.detection_id===detection)&&(readiness==="all"||item.readiness===readiness)&&(sourcetype==="all"||selectedCanonical.some(function(source){return observed.indexOf(source)!==-1;}));
     }):[];
   }
 
@@ -260,13 +259,28 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
   }
 
+  function populateDetectionFilter() {
+    var current = $("#mitre-filter").val() || "all";
+    var recommendations = report && report.recommendations ? report.recommendations.slice() : [];
+    recommendations.sort(function (left, right) {
+      return String(left.name || "").localeCompare(String(right.name || ""));
+    });
+    var options = recommendations.map(function (item) {
+      return '<option value="' + escapeHtml(item.detection_id) + '">' + escapeHtml(item.name) + '</option>';
+    }).join("");
+    $("#mitre-filter").html('<option value="all">All detections</option>' + options);
+    if (current === "all" || recommendations.some(function (item) { return item.detection_id === current; })) {
+      $("#mitre-filter").val(current);
+    }
+  }
+
   function renderDetectionList() {
-    var query = String($("#mitre-filter").val() || "").toLowerCase();
+    var detection = $("#mitre-filter").val() || "all";
     var readiness = $("#mitre-readiness-filter").val() || "all";
     var sourcetype = $("#mitre-sourcetype-filter").val() || "all";
     var selectedCanonical = sourcetype === "all" ? [] : canonicalSourcesForObserved(sourcetype);
     var items = report && report.recommendations ? report.recommendations.filter(function (item) {
-      var matchesText = !query || (item.name + " " + item.capability + " " + (item.mitre_techniques || []).join(" ")).toLowerCase().indexOf(query) !== -1;
+      var matchesDetection = detection === "all" || item.detection_id === detection;
       var matchesReadiness = readiness === "all" || item.readiness === readiness;
       var observedCanonical = (item.observed_sources || []).map(function (source) {
         return String(source || "").toLowerCase();
@@ -274,7 +288,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var matchesSourcetype = sourcetype === "all" || selectedCanonical.some(function (source) {
         return observedCanonical.indexOf(source) !== -1;
       });
-      return matchesText && matchesReadiness && matchesSourcetype;
+      return matchesDetection && matchesReadiness && matchesSourcetype;
     }) : [];
 
     if (selected && !items.some(function (item) { return item.detection_id === selected.detection_id; })) {
@@ -307,6 +321,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   loadReport();
+  populateDetectionFilter();
   populateSourcetypeFilter();
   renderPortfolioCoverage();
   renderDetectionList();

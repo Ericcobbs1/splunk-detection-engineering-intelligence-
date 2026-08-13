@@ -103,10 +103,19 @@ def test_mitre_portfolio_heat_map_is_available_as_a_separate_page() -> None:
     assert "mitre_workspace_v4.js" in root.attrib["script"].split(",")
     assert "dei_detection_usability_v2.css" in root.attrib["stylesheet"].split(",")
     assert "MITRE ATT&amp;CK Heat Map" in xml
+    page = root.find(".//*[@id='dei-mitre-page']")
+    assert page is not None
+    assert list(page)[0].attrib["class"] == "dei-mitre-page-head"
     assert 'id="mitre-heatmap"' in xml
+    detection_filter = root.find(".//*[@id='mitre-filter']")
+    assert detection_filter is not None
+    assert detection_filter.tag == "select"
+    assert detection_filter.find("./option[@value='all']").text == "All detections"
     assert 'href="mitre_coverage"' in xml
     assert "Portfolio Heat Map" not in original_xml
     assert 'id="mitre-heatmap"' not in original_xml
     assert "function renderPortfolioHeatmap()" in javascript
+    assert "function populateDetectionFilter()" in javascript
+    assert 'item.detection_id === detection' in javascript
     assert "data-level" in javascript
     assert ".dei-mitre-heatmap-page" in stylesheet
