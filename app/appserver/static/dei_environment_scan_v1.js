@@ -58,15 +58,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(key) parts.push(encodeURIComponent(key));
     return Splunk.util.make_url.apply(Splunk.util,parts);
   }
-  function loadLatest() { return $.ajax({url:collectionEndpoint(scanCollection,"latest"),method:"GET",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).then(function(snapshot){return snapshot;},function(){return null;}); }
-  function writeRecord(collection,record) {
-    var payload=$.extend(true,{},record),key=payload._key; delete payload._key;
-    var createPayload=$.extend(true,{},payload,{_key:key});
-    return $.ajax({url:collectionEndpoint(collection),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(createPayload)}).then(null,function(xhr){
-      if(!xhr||xhr.status!==409) return $.Deferred().reject(xhr).promise();
-      return $.ajax({url:collectionEndpoint(collection,key),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(payload)});
-    });
+  function storage(payload) {
+    var url=Splunk.util.make_url("splunkd","__raw","servicesNS","-",appId,"dei","v1","storage");
+    return $.ajax({url:url,method:"POST",contentType:"application/json",dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify(payload)}).then(function(response){ return response&&typeof response.payload==="string"?JSON.parse(response.payload):response; });
   }
+  function loadLatest() { return storage({resource:"scan",operation:"read"}).then(function(snapshot){return snapshot;},function(){return null;}); }
   function persistSession(snapshot) {
     try {
       window.sessionStorage.setItem("dei.latestRecommendationReport",JSON.stringify(snapshot.report||{}));
@@ -88,7 +84,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     snapshot.change_analysis=compareSnapshots(baseline,snapshot);
     persistSession(snapshot);
     var history=$.extend(true,{},snapshot,{_key:snapshot.assessment_id});
-    return $.when(writeRecord(scanCollection,snapshot),writeRecord(historyCollection,history)).then(
+    return storage({resource:"scan",operation:"upsert",summary:snapshot,history:history}).then(
       function(){ snapshot.persistence={durable:true,mode:"Splunk KV Store"}; return snapshot; },
       function(xhr){ snapshot.persistence={durable:false,mode:"browser session",status:xhr&&xhr.status||0}; emit("warning","Analysis completed in this browser, but the shared assessment and immutable history could not both be saved. Resolve KV Store access before treating this scan as durable.",{assessment_id:snapshot.assessment_id,status:snapshot.persistence.status}); return snapshot; }
     );
