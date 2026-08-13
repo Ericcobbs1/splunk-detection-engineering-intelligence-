@@ -81,13 +81,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(tab.length&&tab.attr("aria-selected")!=="true") tab.trigger("click");
   }
   function targetFor(step) {
+    if(step.completion) return $();
     var target=$(step.target).filter(":visible").filter(function(){ var rect=this.getBoundingClientRect(); return rect.width>0&&rect.height>0; }).first();
-    if(!target.length||step.completion) return target;
+    if(!target.length) return target;
     if(!target.is("button,input,select,textarea,a,[role='button']")) return $();
     if(target.prop("disabled")||target.prop("readonly")||target.attr("aria-disabled")==="true") return $();
     return target;
   }
   function reconcileCompletedStep(index) {
+    var lifecycleState=String($("#lifecycle-action-state").text()||"").toLowerCase();
+    if(index>=6&&index<=11&&/(production|monitoring|tuning|retired)/.test(lifecycleState)){ goToStep(12); return true; }
+    if(index>=6&&index<=9&&$("#lifecycle-external-id:visible").length){ goToStep(10); return true; }
     if(index===5&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(6); return true; }
     if((index===6||index===7)&&$('[data-action="approve_review"]:visible').length){ goToStep(8); return true; }
     if(index===8&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(9); return true; }
@@ -142,7 +146,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var target=targetFor(step);
     var status=$(".dei-next-guide-status span");
     if (!target.length) {
-      status.text("Locating this action…");
+      if(reconcileCompletedStep(readStep())) return false;
+      status.text("Updating to the next available action…");
       scheduleRender(80);
       return false;
     }
@@ -208,15 +213,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(index===4 && $("#detection-generator").attr("data-dei-generated-detection") && String($("#generator-spl").val()||"").trim()){ writeStep(5); scheduleRender(0); return; }
     if(reconcileCompletedStep(index)) return;
     var target=targetFor(step);
-    if (!target.length) { scheduleRender(180); return; }
+    if (!target.length&&!step.completion) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
-    var targetChanged=target[0]!==activeTarget;
+    var targetChanged=(target[0]||null)!==activeTarget;
     if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); applySavedGuidePosition(); }
     observeTargets();
-    if(targetChanged){
+    if(targetChanged&&target.length){
       $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
       target.addClass("dei-onboarding-target").attr("aria-describedby","dei-guide-instruction");
       activeTarget=target[0];
+    } else if(!target.length) {
+      $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
+      activeTarget=null;
     }
     updateMarker(target);
     position(target);
@@ -226,7 +234,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
-    if(stepChanged) focusTarget(false);
+    if(stepChanged&&!step.completion) focusTarget(false);
   }
   function goToStep(index) {
     restoreGuide(false);

@@ -226,7 +226,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     assert 'if (page()!==step.page) { close(false); return; }' in adapter
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
-    assert "if(stepChanged) focusTarget(false)" in adapter
+    assert "if(stepChanged&&!step.completion) focusTarget(false)" in adapter
     assert "onFocusTarget:function(){ focusTarget(true); }" in adapter
     assert 'status.text("Target highlighted — complete the glowing action in the workspace.")' in adapter
     assert 'target.addClass("dei-guide-focus-pulse")' in adapter
@@ -284,6 +284,27 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert 'index===10&&String($("#lifecycle-external-id").val()||"").trim()' in adapter
     assert 'index===11&&!$(\'[data-action="record_deployment"]:visible\').length' in adapter
     assert "if(reconcileCompletedStep(index)) return" in adapter
+    assert 'index>=6&&index<=11&&/(production|monitoring|tuning|retired)/.test(lifecycleState)' in adapter
+    assert 'index>=6&&index<=9&&$("#lifecycle-external-id:visible").length' in adapter
+    assert 'if(reconcileCompletedStep(readStep())) return false' in adapter
+    assert "Updating to the next available action" in adapter
+
+
+def test_completion_step_never_highlights_the_entire_workspace():
+    adapter = _source("dei_guide_adapter_v5.js")
+    assert "if(step.completion) return $()" in adapter
+    assert "if (!target.length&&!step.completion)" in adapter
+    assert "if(stepChanged&&!step.completion) focusTarget(false)" in adapter
+    assert 'else if(!target.length)' in adapter
+
+
+def test_deployment_recommendation_is_plain_text_not_selected_code():
+    usability = _source("dei_detection_usability_v1.js")
+    styles = _source("dei_detection_usability_v1.css")
+    assert "Recommended name:" in usability
+    assert 'class="dei-recommended-object-name"' in usability
+    assert "<code>" not in usability
+    assert ".dei-recommended-object-name" in styles
 
 
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
