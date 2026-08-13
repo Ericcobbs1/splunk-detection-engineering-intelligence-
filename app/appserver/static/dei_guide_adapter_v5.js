@@ -31,6 +31,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var OVERLAY_ID="dei-next-guide-overlay";
   var selectedDetection="";
   var renderTimer=null;
+  var focusPulseTimer=null;
   var targetObserver=null;
   var renderedStep=-1;
   var activeTarget=null;
@@ -95,7 +96,29 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var rect=target[0].getBoundingClientRect();
     marker.css({top:Math.max(8,rect.top-13),left:Math.min(window.innerWidth-112,Math.max(8,rect.right-98))});
   }
-  function focusTarget() { var target=targetFor(activeStep(readStep())); if (!target.length) return; target[0].scrollIntoView({behavior:"smooth",block:"center"}); window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").focus(); },320); }
+  function focusTarget() {
+    var target=targetFor(activeStep(readStep()));
+    var status=$(".dei-next-guide-status span");
+    if (!target.length) {
+      status.text("Locating this action…");
+      scheduleRender(80);
+      return false;
+    }
+    window.clearTimeout(focusPulseTimer);
+    target[0].scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});
+    target.removeClass("dei-guide-focus-pulse");
+    void target[0].offsetWidth;
+    target.addClass("dei-guide-focus-pulse");
+    updateMarker(target);
+    $("#dei-guide-action-marker").text("DO THIS HERE").addClass("dei-guide-marker-focus");
+    status.text("Target highlighted — complete the glowing action in the workspace.");
+    window.setTimeout(function(){ target.attr("tabindex",target.attr("tabindex")||"-1").trigger("focus"); },320);
+    focusPulseTimer=window.setTimeout(function(){
+      target.removeClass("dei-guide-focus-pulse");
+      $("#dei-guide-action-marker").text("NEXT ACTION").removeClass("dei-guide-marker-focus");
+    },1800);
+    return true;
+  }
   function position(target) {
     var dialog=$(".dei-onboarding-dialog"); if (!dialog.length) return;
     var placement="right";
@@ -106,12 +129,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function close(markSeen) {
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
     window.clearTimeout(renderTimer);
+    window.clearTimeout(focusPulseTimer);
     if(targetObserver){ targetObserver.disconnect(); targetObserver=null; }
     renderedStep=-1;
     activeTarget=null;
     if (window.DEIInteractiveGuide) window.DEIInteractiveGuide.unmount();
     $("#"+OVERLAY_ID+",#dei-guide-action-marker").remove();
-    $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
+    $(".dei-onboarding-target,.dei-guide-focus-pulse").removeClass("dei-onboarding-target dei-guide-focus-pulse").removeAttr("aria-describedby");
     $("body").removeClass("dei-onboarding-open");
   }
   function render() {

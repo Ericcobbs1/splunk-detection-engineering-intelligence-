@@ -173,6 +173,7 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
 def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     adapter = _source("dei_guide_adapter_v5.js")
     layout = _source("dei_workspace_layout_v14.js")
+    stylesheet = _source("dei_guided_tour_v6.css")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert "window.MutationObserver" in adapter
     assert "window.setTimeout(advance,0)" in adapter
@@ -199,3 +200,9 @@ def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
     assert "if(stepChanged) focusTarget()" in adapter
+    assert 'status.text("Target highlighted — complete the glowing action in the workspace.")' in adapter
+    assert 'target.addClass("dei-guide-focus-pulse")' in adapter
+    assert '.text("DO THIS HERE").addClass("dei-guide-marker-focus")' in adapter
+    assert 'window.clearTimeout(focusPulseTimer)' in adapter
+    assert "deiGuideShowMe" in stylesheet
+    assert "deiGuideShowMarker" in stylesheet
