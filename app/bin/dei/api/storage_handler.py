@@ -43,7 +43,7 @@ def _session_key(request_data: dict[str, Any]) -> str:
 def _default_request(
     session_key: str, method: str, path: str, payload: Optional[dict[str, Any]]
 ) -> tuple[int, str]:
-    from splunk.rest import simpleRequest
+    from splunk.rest import simpleRequest  # type: ignore[import-not-found]
 
     kwargs: dict[str, Any] = {"sessionKey": session_key, "method": method, "raiseAllErrors": False}
     if payload is not None:
