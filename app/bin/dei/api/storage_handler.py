@@ -32,9 +32,17 @@ def _decode_payload(request_data: dict[str, Any]) -> Optional[dict[str, Any]]:
 
 
 def _session_key(request_data: dict[str, Any]) -> str:
-    for source in (request_data, request_data.get("connection", {})):
+    for source in (
+        request_data,
+        request_data.get("session", {}),
+        request_data.get("connection", {}),
+    ):
         if isinstance(source, dict):
-            value = source.get("sessionKey") or source.get("session_key")
+            value = (
+                source.get("sessionKey")
+                or source.get("session_key")
+                or source.get("authtoken")
+            )
             if isinstance(value, str) and value:
                 return value
     return ""

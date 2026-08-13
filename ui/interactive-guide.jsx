@@ -21,7 +21,7 @@ function AnalystGuide({step, stepNumber, totalSteps, onBack, onContinueReview, o
         <div><small>{step.completion ? 'Workflow complete' : 'Do this now'}</small><strong>{step.actionLabel || step.actionText}</strong></div>
       </div>
       <div className="dei-next-guide-status" role="status" aria-live="polite">
-        <i aria-hidden="true" /> {step.completion ? 'Detection enabled and ready to manage' : 'Waiting for this action to complete'}
+        <i aria-hidden="true" /> <span>{step.completion ? 'Detection enabled and ready to manage' : 'Waiting for this action to complete'}</span>
       </div>
       <div className="dei-next-guide-progress" role="progressbar" aria-valuemin="1" aria-valuemax={totalSteps} aria-valuenow={stepNumber}>
         <span style={{width: progress}} />

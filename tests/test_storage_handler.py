@@ -58,3 +58,19 @@ def test_storage_rejects_missing_session_and_invalid_records() -> None:
     handler = StorageHandler(store_factory=lambda _: FakeStore())
     assert handler.handle(json.dumps({"method": "POST", "payload": {"resource": "scan"}}))["status"] == 401
     assert handler.handle(request({"resource": "scan"}))["status"] == 400
+
+
+def test_storage_accepts_splunk_persistent_connection_session_shape() -> None:
+    received: list[str] = []
+    store = FakeStore()
+    handler = StorageHandler(store_factory=lambda token: received.append(token) or store)
+    runtime_request = json.dumps({
+        "method": "POST",
+        "session": {"authtoken": "runtime-token", "user": "admin"},
+        "payload": json.dumps({"resource": "lifecycle", "operation": "read"}),
+    })
+
+    response = handler.handle(runtime_request)
+
+    assert response["status"] == 200
+    assert received == ["runtime-token"]
