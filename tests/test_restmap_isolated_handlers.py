@@ -14,6 +14,7 @@ def test_each_rest_endpoint_uses_a_distinct_script_module() -> None:
         "dei_health_rest.py": "dei_health_rest.HealthApplication",
         "dei_capabilities_rest.py": "dei_capabilities_rest.CapabilitiesApplication",
         "dei_recommendations_rest.py": "dei_recommendations_rest.RecommendationsApplication",
+        "dei_storage_rest.py": "dei_storage_rest.StorageApplication",
     }
 
     for script, handler in expected.items():

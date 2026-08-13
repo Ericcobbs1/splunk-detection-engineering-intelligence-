@@ -21,8 +21,7 @@ def test_scan_engine_persists_immutable_history_and_latest_snapshot() -> None:
     assert "Profiling telemetry route" in engine
     assert 'search index="' in engine
     assert "_key:snapshot.assessment_id" in engine
-    assert "writeRecord(historyCollection,history)" in engine
-    assert 'writeRecord(scanCollection,snapshot)' in engine
+    assert 'storage({resource:"scan",operation:"upsert",summary:snapshot,history:history})' in engine
 
 
 def test_change_engine_classifies_source_schema_volume_and_detection_impact() -> None:

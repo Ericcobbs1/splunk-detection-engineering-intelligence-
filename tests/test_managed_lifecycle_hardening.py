@@ -28,7 +28,7 @@ def test_shared_lifecycle_collection_and_role_are_packaged() -> None:
 def test_store_uses_kv_with_explicit_browser_fallback() -> None:
     javascript = (STATIC / "dei_lifecycle_store_v1.js").read_text(encoding="utf-8")
     assert 'COLLECTION = "dei_lifecycle_records"' in javascript
-    assert '"storage", "collections", "data", COLLECTION' in javascript
+    assert '"dei", "v1", "storage"' in javascript
     assert "X-Splunk-Form-Key" in javascript
     assert "saveFallback" in javascript
     assert 'mode = "Splunk KV Store"' in javascript

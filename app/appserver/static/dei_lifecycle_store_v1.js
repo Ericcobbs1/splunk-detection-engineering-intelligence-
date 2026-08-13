@@ -26,10 +26,16 @@
   }
 
   function endpoint(key) {
-    var parts = ["splunkd", "__raw", "servicesNS", "nobody",
-      "splunk_detection_engineering_intelligence", "storage", "collections", "data", COLLECTION];
-    if (key) { parts.push(encodeURIComponent(key)); }
+    var parts = ["splunkd", "__raw", "servicesNS", "-",
+      "splunk_detection_engineering_intelligence", "dei", "v1", "storage"];
     return Splunk.util.make_url.apply(Splunk.util, parts);
+  }
+
+  function request(payload) {
+    return $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
+      timeout:30000, headers:headers()}).then(function(response) {
+        return response&&typeof response.payload==="string"?JSON.parse(response.payload):response;
+      });
   }
 
   function headers() {
@@ -56,10 +62,10 @@
 
   function load() {
     var deferred = $.Deferred();
-    $.ajax({url:endpoint(), method:"GET", dataType:"json", timeout:15000, headers:headers()})
-      .done(function (records) {
+    request({resource:"lifecycle", operation:"read"})
+      .done(function (response) {
         mode = "Splunk KV Store";
-        deferred.resolve(Array.isArray(records) ? records : []);
+        deferred.resolve(response&&Array.isArray(response.records) ? response.records : []);
       })
       .fail(function (xhr) {
         persistenceWarning("load", xhr&&xhr.status||"");
@@ -73,21 +79,9 @@
     var key = String(record._key || record.id || "").replace(/^dei-/, "");
     var payload = $.extend(true, {}, record, {_key:key, updated_at:new Date().toISOString(), updated_by:username()});
     if (!payload.created_at) { payload.created_at = payload.updated_at; }
-    var updatePayload = $.extend(true, {}, payload);
-    delete updatePayload._key;
-    $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
-      timeout:15000, headers:headers()})
+    request({resource:"lifecycle", operation:"upsert", record:payload})
       .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
-      .fail(function (xhr) {
-        if (xhr && xhr.status === 409) {
-          $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(updatePayload), dataType:"json",
-            timeout:15000, headers:headers()})
-            .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
-            .fail(function () { deferred.resolve(saveFallback(payload)); });
-        } else {
-          deferred.resolve(saveFallback(payload));
-        }
-      });
+      .fail(function () { deferred.resolve(saveFallback(payload)); });
     return deferred.promise();
   }
 
@@ -100,7 +94,7 @@
 
   function remove(key) {
     var deferred = $.Deferred();
-    $.ajax({url:endpoint(key), method:"DELETE", timeout:15000, headers:headers()})
+    request({resource:"lifecycle", operation:"delete", key:key})
       .done(function () { deferred.resolve(); })
       .fail(function (xhr) {
         var records = fallbackRecords().filter(function (item) {
