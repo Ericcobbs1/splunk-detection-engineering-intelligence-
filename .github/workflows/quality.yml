@@ -32,7 +32,7 @@ jobs:
         run: |
           npm ci
           npm run build:guide
-          git diff --exit-code -- app/appserver/static/dei_interactive_guide_v2.js
+          git diff --exit-code -- app/appserver/static/dei_interactive_guide_v3.js
 
       - name: Validate JavaScript and Simple XML
         run: |
