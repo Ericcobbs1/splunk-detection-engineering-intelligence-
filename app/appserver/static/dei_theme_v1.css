@@ -1,0 +1,35 @@
+/* Final theme layer: Prisma-aligned neutrals, restrained accents, and persistent light/dark modes. */
+:root,[data-dei-theme="dark"]{
+  --dei-bg:#0b0f14;--dei-bg-elevated:#10161e;--dei-surface:#141b24;--dei-surface-2:#18212c;--dei-surface-3:#202b38;--dei-surface-raised:#18212c;--dei-input:#0f151d;
+  --dei-text:#f4f7fa;--dei-text-secondary:#c8d1dc;--dei-muted:#a6b3c2;--dei-soft:#8493a5;
+  --dei-action:#4f8df7;--dei-accent:#4f8df7;--dei-accent-2:#6da5ff;--dei-info:#6da5ff;--dei-success:#42c7a5;--dei-warning:#e8ad4f;--dei-danger:#ef6673;--dei-tuning:#9b82ed;--dei-purple:#9b82ed;
+  --dei-border:rgba(183,199,216,.18);--dei-border-subtle:rgba(183,199,216,.18);--dei-border-strong:rgba(183,199,216,.32);--dei-border-interactive:#60758c;--dei-focus:#78a9ff;
+  --dei-shadow:0 12px 32px rgba(0,0,0,.24);--dei-page-gradient:linear-gradient(180deg,#0b0f14 0,#0e141c 100%)
+}
+[data-dei-theme="light"]{
+  color-scheme:light;--dei-bg:#f4f6f8;--dei-bg-elevated:#eef2f6;--dei-surface:#fff;--dei-surface-2:#f8fafc;--dei-surface-3:#edf2f7;--dei-surface-raised:#fff;--dei-input:#fff;
+  --dei-text:#182230;--dei-text-secondary:#354355;--dei-muted:#526176;--dei-soft:#68778b;
+  --dei-action:#155bd7;--dei-accent:#155bd7;--dei-accent-2:#3977df;--dei-info:#155bd7;--dei-success:#087f67;--dei-warning:#9a6100;--dei-danger:#b42332;--dei-tuning:#6b4bc3;--dei-purple:#6b4bc3;
+  --dei-border:#c8d1dc;--dei-border-subtle:#d7dee7;--dei-border-strong:#aeb9c7;--dei-border-interactive:#7c8da1;--dei-focus:#155bd7;
+  --dei-shadow:0 8px 24px rgba(35,51,70,.12);--dei-page-gradient:linear-gradient(180deg,#f7f9fb 0,#eef2f6 100%)
+}
+html[data-dei-theme] body{background:var(--dei-bg)!important;color:var(--dei-text)!important}
+.dei-shell{background:var(--dei-page-gradient)!important;color:var(--dei-text-secondary)!important}
+.dei-shell h1,.dei-shell h2,.dei-shell h3,.dei-shell h4,.dei-shell strong{color:var(--dei-text)!important}
+.dei-shell p,.dei-shell li,.dei-shell dd,.dei-shell td{color:var(--dei-text-secondary)}
+.dei-shell small,.dei-shell .dei-muted,.dei-shell .dei-subtitle{color:var(--dei-muted)!important}
+.dei-product-bar,.dei-shell section,.dei-shell article,.dei-shell .dei-panel,.dei-shell .dei-control-panel,.dei-shell details,.dei-shell table{border-color:var(--dei-border)!important}
+.dei-product-bar{background:color-mix(in srgb,var(--dei-surface) 96%,transparent)!important;box-shadow:0 4px 18px rgba(0,0,0,.12)!important}
+.dei-shell input,.dei-shell select,.dei-shell textarea{background:var(--dei-input)!important;color:var(--dei-text)!important;border-color:var(--dei-border-interactive)!important}
+.dei-shell button,.dei-shell a.dei-link-button{border-color:var(--dei-border-interactive)}
+.dei-shell :focus-visible{outline-color:var(--dei-focus)!important}
+.dei-theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px!important;padding:7px 11px!important;border:1px solid var(--dei-border-interactive)!important;border-radius:999px!important;background:var(--dei-surface-2)!important;color:var(--dei-text)!important;cursor:pointer}
+.dei-theme-toggle:hover{border-color:var(--dei-action)!important}.dei-theme-toggle span{font-size:16px}.dei-theme-toggle b{font-size:12px}
+.dei-theme-standalone{display:flex;justify-content:flex-end;margin-left:auto;padding:10px 14px}
+[data-dei-theme="light"] .dei-shell{background:var(--dei-page-gradient)!important}
+[data-dei-theme="light"] .dei-hero,[data-dei-theme="light"] .dei-control-panel,[data-dei-theme="light"] .dei-portfolio,[data-dei-theme="light"] .dei-panel,[data-dei-theme="light"] .dei-env-summary-card,[data-dei-theme="light"] .dei-env-detail-card,[data-dei-theme="light"] .dei-mitre-advisor,[data-dei-theme="light"] .dei-mitre-matrix-pane,[data-dei-theme="light"] .dei-mitre-inspector,[data-dei-theme="light"] .dei-coverage-summary,[data-dei-theme="light"] .dei-unified-workspace,[data-dei-theme="light"] .dei-lifecycle-action-center{background:var(--dei-surface)!important;box-shadow:var(--dei-shadow)!important}
+[data-dei-theme="light"] .dei-workspace-disclosure,[data-dei-theme="light"] .dei-metric,[data-dei-theme="light"] .dei-advisor-item,[data-dei-theme="light"] .dei-state-grid article,[data-dei-theme="light"] .dei-pipeline-grid article,[data-dei-theme="light"] .dei-action-field input,[data-dei-theme="light"] .dei-action-field select,[data-dei-theme="light"] .dei-action-field textarea{background:var(--dei-surface-2)!important}
+[data-dei-theme="light"] .dei-shell a{color:#155bd7}
+[data-dei-theme="light"] .dei-brand-mark{color:#075e4d!important;background:#e5f7f2!important;box-shadow:none!important}
+[data-dei-theme="light"] .dei-onboarding-dialog{background:#fff!important;color:#182230!important}
+@media(prefers-reduced-motion:reduce){.dei-theme-toggle{transition:none!important}}
