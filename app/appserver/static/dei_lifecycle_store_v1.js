@@ -75,12 +75,12 @@
     if (!payload.created_at) { payload.created_at = payload.updated_at; }
     var updatePayload = $.extend(true, {}, payload);
     delete updatePayload._key;
-    $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(updatePayload), dataType:"json",
+    $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
       timeout:15000, headers:headers()})
       .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
       .fail(function (xhr) {
-        if (xhr && xhr.status === 404) {
-          $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
+        if (xhr && xhr.status === 409) {
+          $.ajax({url:endpoint(key), method:"POST", data:JSON.stringify(updatePayload), dataType:"json",
             timeout:15000, headers:headers()})
             .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
             .fail(function () { deferred.resolve(saveFallback(payload)); });
