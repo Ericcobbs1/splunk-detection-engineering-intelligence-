@@ -43,10 +43,13 @@ body.dei-onboarding-open .dei-onboarding-target.dei-guide-focus-pulse{animation:
 /* React/Splunk UI action guide: one instruction and one analyst action at a time. */
 body.dei-onboarding-open .dei-next-guide-dialog{width:min(380px,calc(100vw - 32px));height:auto;bottom:auto;max-height:calc(100vh - 32px);padding:0;overflow:visible;background:#081522}
 .dei-next-guide{padding:18px;color:#dfe9f3}
-.dei-next-guide-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.dei-next-guide-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;cursor:move;touch-action:none}
 .dei-next-guide-kicker{display:block;color:#66dfc4;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .dei-next-guide h2{margin:5px 0 0;color:#f3f8fc;font-size:19px;line-height:1.25}
 .dei-next-guide-close{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid rgba(168,190,214,.25);border-radius:7px;background:#0d1c2b;color:#c3d1dd;font-size:20px;cursor:pointer}
+.dei-next-guide-window-actions{display:flex;align-items:center;gap:6px}
+.dei-next-guide-collapse{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid rgba(168,190,214,.25);border-radius:7px;background:#0d1c2b;color:#c3d1dd;font-size:17px;font-weight:800;cursor:pointer}
+.dei-next-guide-close:hover,.dei-next-guide-collapse:hover{border-color:rgba(92,225,194,.62);color:#effffb}
 .dei-next-guide-instruction{margin:12px 0;color:#b7c6d3;font-size:13px;line-height:1.5}
 .dei-next-guide-details{margin:0 0 12px;padding-left:18px;color:#a9bdca;font-size:11px;line-height:1.45}.dei-next-guide-details li+li{margin-top:5px}.dei-next-guide-details li::marker{color:#5ce1c2}
 .dei-next-guide-action{display:grid;grid-template-columns:34px 1fr;align-items:center;gap:10px;padding:11px;border:1px solid rgba(92,225,194,.34);border-radius:9px;background:rgba(92,225,194,.07)}
@@ -55,4 +58,10 @@ body.dei-onboarding-open .dei-next-guide-dialog{width:min(380px,calc(100vw - 32p
 .dei-next-guide-status{display:flex;align-items:center;gap:7px;margin:11px 0;color:#91a8b9;font-size:10px}.dei-next-guide-status i{width:7px;height:7px;border-radius:50%;background:#f5bf6a;box-shadow:0 0 10px rgba(245,191,106,.55)}
 .dei-next-guide-progress{height:3px;overflow:hidden;border-radius:999px;background:#172839}.dei-next-guide-progress span{display:block;height:100%;background:linear-gradient(90deg,#5ce1c2,#6ea8ff);transition:width .22s ease}
 .dei-next-guide-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.dei-next-guide-hint{margin:9px 0 0;color:#71889b;font-size:9px;line-height:1.4}
+.dei-next-guide-dialog.dei-guide-positioned{right:auto!important;bottom:auto!important;transition:none!important}
+.dei-next-guide-dialog.dei-guide-dragging{user-select:none}
+.dei-next-guide.is-collapsed{padding:12px 14px}
+.dei-next-guide.is-collapsed .dei-next-guide-instruction,.dei-next-guide.is-collapsed .dei-next-guide-details,.dei-next-guide.is-collapsed .dei-next-guide-status,.dei-next-guide.is-collapsed .dei-next-guide-progress,.dei-next-guide.is-collapsed .dei-next-guide-hint{display:none}
+.dei-next-guide.is-collapsed .dei-next-guide-action{margin-top:10px;padding:8px}
+.dei-next-guide.is-collapsed .dei-next-guide-footer{margin-top:10px}
 @media(max-width:900px){body.dei-onboarding-open .dei-next-guide-dialog{max-height:calc(100vh - 24px)}}

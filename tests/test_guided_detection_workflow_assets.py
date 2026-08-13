@@ -64,7 +64,8 @@ def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -
     assert '$("#builder-detection-select").val(requested)' in javascript
     assert '$("#builder-detection-select").trigger("change")' in javascript
     guide = (STATIC / "dei_guide_adapter_v5.js").read_text(encoding="utf-8")
-    assert 'window.sessionStorage.setItem("dei.tutorialDetectionHandoff",selectedDetection)' in guide
+    assert 'target:"#workflow-detection-select"' in guide
+    assert 'page:"environment",target:"#dei-open-environment-insights"' in guide
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
@@ -167,7 +168,8 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert '$(document).on("dei:artifact-inspection-requested"' in generator
     assert 'artifact = record ? $.extend(true, {}, record)' in generator
     assert 'window.location.href="detection_catalog?detection="' in lifecycle
-    assert 'action:"open_catalog"' in lifecycle
+    assert 'action:"record_deployment"' in lifecycle
+    assert 'id="lifecycle-external-id"' in lifecycle
     for action in (
         "submit_review", "approve_review", "return_draft", "record_health",
         "start_tuning", "retire",

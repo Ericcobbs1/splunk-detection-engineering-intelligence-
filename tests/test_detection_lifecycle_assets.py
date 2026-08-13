@@ -104,10 +104,11 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     assert "mergedQueue().filter(isEngineeringWork)" in javascript
     assert 'status:"ready"' in javascript
     assert '"added_to_detection_catalog"' in javascript
-    assert "saveAndOpenCatalog" in javascript
+    assert "saveApprovedReview" in javascript
     assert 'window.location.href="detection_catalog?detection="' in javascript
-    assert 'action:"open_catalog"' in javascript
-    assert '"Peer review approved. Record the deployment target in this workspace."' in javascript
+    assert 'action:"record_deployment"' in javascript
+    assert 'id="lifecycle-external-id"' in javascript
+    assert '"Peer review approved. Continue below to record deployment without leaving this workspace."' in javascript
     for contract in (
         "cataloged(record)", '["ready","development","staging"]', 'data-catalog-action="deploy"',
         'production?"production":"peer_review"', 'production?"enabled":environment', "catalog_detection_disabled",

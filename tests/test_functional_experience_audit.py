@@ -46,12 +46,12 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     adapter = _source("dei_guide_adapter_v5.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     bundle = _source("dei_interactive_guide_v2.js")
-    for page in ("home", "environment", "environment_insights", "mitre", "builder", "catalog"):
+    for page in ("home", "environment", "builder"):
         assert f'page:"{page}"' in adapter
     for event in (
-        "dei:scan-progress", "dei:advisor-detection-selected",
+        "dei:scan-progress", "workflow-detection-select",
         "dei:detection-draft-generated", "dei:detection-validation-complete",
-        "dei:lifecycle-action-complete", "dei:catalog-action-complete",
+        "dei:lifecycle-action-complete",
     ):
         assert event in adapter
     assert 'event.key==="Escape"' in adapter
@@ -149,14 +149,13 @@ def test_core_action_controls_have_implementation_bindings():
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     adapter = _source("dei_guide_adapter_v5.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    assert adapter.count("actionLabel:") == 16
+    assert adapter.count("actionLabel:") == 13
     for target in (
         ".dei-open-environment-discovery", "#dei-analyze", "#dei-open-environment-insights",
-        ".dei-mitre-glow-button", "#mitre-sourcetype-filter",
-        ".dei-advisor-item", "#builder-detection-select", "#builder-generate",
+        "#workflow-detection-select", "#builder-generate",
         "#builder-run-validation", "#lifecycle-action-comment",
         '[data-action="submit_review"]', '[data-action="approve_review"]',
-        "#catalog-external-id", '[data-catalog-action="deploy"]',
+        "#lifecycle-external-id", '[data-action="record_deployment"]',
     ):
         assert target in adapter
     assert "Waiting for this action to complete" in react_source
@@ -170,34 +169,60 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     assert "prefers-reduced-motion:reduce" in styles
 
 
-def test_react_guide_survives_dynamic_controls_and_finishes_at_catalog_state():
+def test_post_scan_tutorial_stays_in_the_detection_engineering_workspace():
+    adapter = _source("dei_guide_adapter_v5.js")
+    steps_source = adapter.split("var steps=[", 1)[1].split("];", 1)[0]
+    assert steps_source.count('page:"builder"') == 10
+    assert 'page:"environment_insights"' not in steps_source
+    assert 'page:"mitre"' not in steps_source
+    assert 'page:"catalog"' not in steps_source
+    assert 'target:"#workflow-detection-select"' in steps_source
+    assert 'target:"#lifecycle-external-id"' in steps_source
+    assert 'target:\'[data-action="record_deployment"]\'' in steps_source
+
+
+def test_guide_is_compact_collapsible_and_pointer_draggable():
+    adapter = _source("dei_guide_adapter_v5.js")
+    react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
+    stylesheet = _source("dei_guided_tour_v6.css")
+    assert "useState(false)" in react_source
+    assert "dei-next-guide-collapse" in react_source
+    assert "is-collapsed" in react_source
+    assert '$(document).on("pointerdown", ".dei-next-guide-header"' in adapter
+    assert '$(document).on("pointermove", ".dei-next-guide-header"' in adapter
+    assert 'window.sessionStorage.setItem("dei.guide.position"' in adapter
+    assert "dei-guide-positioned" in stylesheet
+    assert ".dei-next-guide.is-collapsed" in stylesheet
+    assert "width:min(380px" in stylesheet
+
+
+def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     adapter = _source("dei_guide_adapter_v5.js")
     layout = _source("dei_workspace_layout_v14.js")
     stylesheet = _source("dei_guided_tour_v6.css")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     assert "window.MutationObserver" in adapter
-    assert "window.setTimeout(advance,0)" in adapter
+    assert "scheduleRender(60)" in adapter
     assert 'OVERLAY_ID="dei-next-guide-overlay"' in adapter
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'readStep()===14 && status==="enabled") goToStep(15)' in adapter
+    assert 'readStep()===11&&action==="record_deployment") goToStep(12)' in adapter
     assert 'title:"Detection enabled — workflow complete"' in adapter
     assert "Splunk saved searches: Settings → Searches, Reports, and Alerts" in adapter
     assert "Enterprise Security detections: Configure → Content → Content Management" in adapter
     assert "step.completion ? 'Finish' : 'Show me'" in react_source
     assert 'action==="submit_review"' in adapter
     assert 'action==="approve_review"' in adapter
-    assert 'action==="return_draft"&&readStep()>=9&&readStep()<=12' in adapter
-    assert 'target:"#catalog-external-id"' in adapter
-    assert 'focusTarget:"#catalog-external-id"' not in adapter
+    assert 'action==="return_draft"&&readStep()>=6&&readStep()<=9' in adapter
+    assert 'target:"#lifecycle-external-id"' in adapter
     assert "reviewReturnMode" not in adapter
     assert "onContinueReview" not in react_source
     assert "step.lockBack" in react_source
-    assert 'index===7 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
+    assert 'index===4 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
-    assert "if(readStep()<=7)" in adapter
+    assert "if(readStep()<=4)" in adapter
     assert 'if (page()!==step.page) { close(false); return; }' in adapter
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
@@ -243,7 +268,7 @@ def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame()
     assert 'target.prop("disabled")' in adapter
     assert 'target.prop("readonly")' in adapter
     assert 'target.attr("aria-disabled")==="true"' in adapter
-    assert 'target:"#catalog-external-id"' in adapter
+    assert 'target:"#lifecycle-external-id"' in adapter
     assert 'id="dei-guide-action-frame"' in adapter
     assert "frame.css({top:rect.top-6,left:rect.left-6,width:rect.width+12,height:rect.height+12})" in adapter
     assert "#dei-guide-action-frame" in stylesheet
@@ -252,12 +277,12 @@ def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame()
 def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     adapter = _source("dei_guide_adapter_v5.js")
     assert "function reconcileCompletedStep(index)" in adapter
-    assert 'index===8&&($("#builder-validation-state").hasClass("passed")' in adapter
+    assert 'index===5&&($("#builder-validation-state").hasClass("passed")' in adapter
     assert 'String($("#validation-status").text()||"").toLowerCase()==="passed"' in adapter
-    assert "(index===9||index===10)&&$('[data-action=\"approve_review\"]:visible').length" in adapter
-    assert 'index===11&&String($("#lifecycle-action-comment").val()||"").trim()' in adapter
-    assert 'index===13&&String($("#catalog-external-id").val()||"").trim()' in adapter
-    assert 'index===14&&!$(\'[data-catalog-action="deploy"]:visible\').length' in adapter
+    assert "(index===6||index===7)&&$('[data-action=\"approve_review\"]:visible').length" in adapter
+    assert 'index===8&&String($("#lifecycle-action-comment").val()||"").trim()' in adapter
+    assert 'index===10&&String($("#lifecycle-external-id").val()||"").trim()' in adapter
+    assert 'index===11&&!$(\'[data-action="record_deployment"]:visible\').length' in adapter
     assert "if(reconcileCompletedStep(index)) return" in adapter
 
 
@@ -267,23 +292,20 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
         'readStep()===0) goToStep(1)',
         'readStep()===1 && status.stage==="complete") advance()',
         'readStep()===2) advance()',
-        'readStep()===3) advance()',
-        'readStep()===4 && $(this).val()!=="all"',
-        'if(readStep()===5)',
-        'readStep()===6 && $(this).val()',
-        'readStep()===8 && validation && validation.status==="passed"',
-        '(step===9||step===11)',
-        'readStep()===10&&action==="submit_review") goToStep(11)',
-        'readStep()===12&&action==="approve_review") goToStep(13)',
-        'readStep()===13 && String($(this).val()||"").trim()) goToStep(14)',
-        'readStep()===14 && status==="enabled") goToStep(15)',
+        'readStep()===3 && $(this).val()) advance()',
+        'if(readStep()===5 && validation && validation.status==="passed") advance()',
+        '(step===6||step===8)',
+        'readStep()===7&&action==="submit_review") goToStep(8)',
+        'readStep()===9&&action==="approve_review") goToStep(10)',
+        'readStep()===10 && String($(this).val()||"").trim()) goToStep(11)',
+        'readStep()===11&&action==="record_deployment") goToStep(12)',
     )
     for transition in transitions:
         assert transition in adapter
     assert '$(document).on("change", "#lifecycle-action-comment"' in adapter
-    assert '$(document).on("change", "#catalog-external-id"' in adapter
+    assert '$(document).on("change", "#lifecycle-external-id"' in adapter
     assert '$(document).on("input change", "#lifecycle-action-comment"' not in adapter
-    assert '$(document).on("input change", "#catalog-external-id"' not in adapter
+    assert '$(document).on("input change", "#lifecycle-external-id"' not in adapter
 
 
 def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
@@ -315,15 +337,14 @@ def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
     assert "data-action=\"'+esc" in builder
 
 
-def test_approved_review_has_one_clear_catalog_deployment_handoff():
+def test_approved_review_has_one_clear_inline_deployment_handoff():
     lifecycle = _source("detection_lifecycle_v3.js")
     guide = _source("dei_guide_adapter_v5.js")
     catalog = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
-    assert 'action:"open_catalog"' in lifecycle
-    assert 'window.location.href="detection_catalog?detection="' in lifecycle
-    assert "Deployment is completed once in Detection Catalog" in lifecycle
-    assert 'id="lifecycle-external-id"' not in lifecycle
+    assert 'action:"record_deployment"' in lifecycle
+    assert "Continue below to record deployment without leaving this workspace" in lifecycle
+    assert 'id="lifecycle-external-id"' in lifecycle
     assert 'id="catalog-external-id-field"' in catalog
-    assert 'target:"#catalog-external-id"' in guide
+    assert 'target:"#lifecycle-external-id"' in guide
     assert 'lockBack:true' in guide
     assert "selection.removeAllRanges" in guide
