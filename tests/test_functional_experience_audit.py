@@ -240,10 +240,25 @@ def test_every_action_step_resolves_to_a_visible_interactive_control_and_frame()
     assert 'tab.trigger("click")' in adapter
     assert "rect.width>0&&rect.height>0" in adapter
     assert 'target.is("button,input,select,textarea,a,[role=\'button\']")' in adapter
+    assert 'target.prop("disabled")' in adapter
+    assert 'target.prop("readonly")' in adapter
+    assert 'target.attr("aria-disabled")==="true"' in adapter
     assert 'target:"#catalog-external-id"' in adapter
     assert 'id="dei-guide-action-frame"' in adapter
     assert "frame.css({top:rect.top-6,left:rect.left-6,width:rect.width+12,height:rect.height+12})" in adapter
     assert "#dei-guide-action-frame" in stylesheet
+
+
+def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
+    adapter = _source("dei_guide_adapter_v5.js")
+    assert "function reconcileCompletedStep(index)" in adapter
+    assert 'index===8&&($("#builder-validation-state").hasClass("passed")' in adapter
+    assert 'String($("#validation-status").text()||"").toLowerCase()==="passed"' in adapter
+    assert "(index===9||index===10)&&$('[data-action=\"approve_review\"]:visible').length" in adapter
+    assert 'index===11&&String($("#lifecycle-action-comment").val()||"").trim()' in adapter
+    assert 'index===13&&String($("#catalog-external-id").val()||"").trim()' in adapter
+    assert 'index===14&&!$(\'[data-catalog-action="deploy"]:visible\').length' in adapter
+    assert "if(reconcileCompletedStep(index)) return" in adapter
 
 
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
