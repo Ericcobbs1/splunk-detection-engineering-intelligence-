@@ -72,3 +72,54 @@ def test_source_only_requests_remain_backward_compatible(tmp_path: Path) -> None
     recommendation = report.recommendations[0]
     assert recommendation.readiness == "production_ready"
     assert recommendation.field_validation == "not_evaluated"
+
+
+def test_generic_windows_routes_do_not_share_fields_across_channels(tmp_path: Path) -> None:
+    engine = RecommendationEngine.from_catalog(_catalog(tmp_path))
+    report = engine.recommend(
+        ["XmlWinEventLog"],
+        fields_by_source={"XmlWinEventLog": ["EventCode", "TargetUserName", "IpAddress"]},
+        telemetry_routes=[{
+            "index": "powershell", "sourcetype": "XmlWinEventLog",
+            "channels": ["Microsoft-Windows-PowerShell/Operational"],
+            "fields": ["EventCode", "TargetUserName", "IpAddress"],
+        }],
+        include_unsupported=True,
+    )
+    recommendation = report.recommendations[0]
+    assert recommendation.readiness == "unsupported"
+    assert recommendation.observed_sources == ()
+
+
+def test_generic_windows_security_route_is_scored_with_its_own_fields(tmp_path: Path) -> None:
+    engine = RecommendationEngine.from_catalog(_catalog(tmp_path))
+    report = engine.recommend(
+        ["XmlWinEventLog"],
+        telemetry_routes=[{
+            "index": "windows", "sourcetype": "XmlWinEventLog", "channels": ["Security"],
+            "fields": ["EventCode", "TargetUserName", "IpAddress"],
+        }],
+        include_unsupported=True,
+    )
+    recommendation = report.recommendations[0]
+    assert recommendation.readiness == "production_ready"
+    assert recommendation.field_validation == "passed"
+
+
+def test_fields_split_across_routes_do_not_create_false_readiness(tmp_path: Path) -> None:
+    engine = RecommendationEngine.from_catalog(_catalog(tmp_path))
+    report = engine.recommend(
+        ["XmlWinEventLog:Security"],
+        telemetry_routes=[
+            {"index": "one", "sourcetype": "XmlWinEventLog:Security", "channels": [],
+             "fields": ["EventCode", "TargetUserName"]},
+            {"index": "two", "sourcetype": "XmlWinEventLog:Security", "channels": [],
+             "fields": ["IpAddress"]},
+        ],
+        include_unsupported=True,
+    )
+    recommendation = report.recommendations[0]
+    assert recommendation.readiness == "field_gap"
+    assert recommendation.missing_fields == {
+        "XmlWinEventLog:Security": ("required fields are split across telemetry routes",)
+    }

@@ -9,7 +9,7 @@ VIEWS = APP / "default" / "data" / "ui" / "views"
 
 
 def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
-    for view in ("command_center", "environment_insights", "mitre_coverage", "detection_catalog", "detection_builder", "detection_action_center", "detection_workflow"):
+    for view in ("command_center", "environment_insights", "mitre_coverage", "detection_catalog", "detection_action_center", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view}.xml").getroot()
         scripts = root.attrib["script"].split(",")
         assert "dei_interactive_guide_v2.js" not in scripts
@@ -96,9 +96,9 @@ def test_detection_pipeline_motion_is_state_aware_and_reduced_motion_safe() -> N
 def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
     lifecycle_view = ElementTree.parse(VIEWS / "detection_lifecycle.xml").getroot()
-    operations_view = ElementTree.parse(VIEWS / "detection_operations.xml").getroot()
+    operations_view = ElementTree.parse(VIEWS / "detection_catalog.xml").getroot()
     assert lifecycle_view.find(".//*[@class='dei-lifecycle-workspace-grid']") is None
-    assert operations_view.find(".//*[@class='dei-lifecycle-workspace-grid']") is not None
+    assert operations_view.find(".//*[@class='dei-lifecycle-section dei-lifecycle-queue-section']") is not None
     for selector in (
         '.dei-lifecycle-workspace-grid.has-selection',
         '#dei-lifecycle-page[data-dei-workspace-mode="analyst"]',
@@ -130,7 +130,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     lifecycle_action = shell.find(".//*[@class='dei-home-flow-link']")
     assert lifecycle_action is not None
     assert lifecycle_action.text == "Detection Engineering Lifecycle"
-    assert lifecycle_action.attrib["href"] == "detection_lifecycle"
+    assert lifecycle_action.attrib["href"] == "detection_catalog#lifecycle-map"
     assert shell.find(".//*[@id='dei-topology-core-health']") is not None
     core_action = shell.find(".//*[@id='dei-topology-core-action']")
     assert core_action is not None
@@ -158,7 +158,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert '[data-pipeline-health="critical"]' in stylesheet
     assert "refreshHomeLifecycleRecords(true)" in javascript
     assert "bindHomePrimaryActions" in javascript
-    assert 'window.location.assign(String($(this).attr("href") || "detection_lifecycle"))' in javascript
+    assert 'window.location.assign(String($(this).attr("href") || "detection_catalog#lifecycle-map"))' in javascript
     assert 'off("click.deiHomeRefresh").on("click.deiHomeRefresh"' in javascript
     assert '"Pipeline stages populated"' in javascript
     assert '"Current stage: "' in javascript
@@ -263,14 +263,14 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
 def test_removed_home_widgets_remain_available_in_owned_workspaces() -> None:
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     health = ElementTree.parse(VIEWS / "detection_health.xml").getroot()
-    lifecycle = ElementTree.parse(VIEWS / "detection_lifecycle.xml").getroot()
+    lifecycle = ElementTree.parse(VIEWS / "detection_catalog.xml").getroot()
     actions = ElementTree.parse(VIEWS / "detection_action_center.xml").getroot()
     insights = ElementTree.parse(VIEWS / "environment_insights.xml").getroot()
     assert home.find(".//*[@class='dei-flow-health-summary']") is None
     assert home.find(".//*[@class='dei-home-workspaces']") is None
     for element_id in ("health-managed", "health-healthy", "health-attention", "health-failed", "health-refresh"):
         assert health.find(f".//*[@id='{element_id}']") is not None
-    for element_id in ("state-draft", "state-testing", "state-production", "state-monitoring"):
+    for element_id in ("catalog-count-development", "catalog-count-staging", "catalog-count-enabled", "catalog-count-monitoring"):
         assert lifecycle.find(f".//*[@id='{element_id}']") is not None
     for element_id in ("action-count-all", "action-count-critical", "action-count-telemetry", "action-refresh"):
         assert actions.find(f".//*[@id='{element_id}']") is not None

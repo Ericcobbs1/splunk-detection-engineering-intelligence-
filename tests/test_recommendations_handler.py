@@ -11,11 +11,13 @@ from dei.recommendations.engine import RecommendationError, RecommendationReport
 def _report(
     sources: list[str], enterprise_security_enabled: bool,
     include_unsupported: bool, fields_by_source: dict[str, list[str]] | None,
+    telemetry_routes: list[dict[str, object]] | None,
 ) -> RecommendationReport:
     assert sources == ["aws:cloudtrail"]
     assert enterprise_security_enabled is False
     assert include_unsupported is False
     assert fields_by_source in (None, {"aws:cloudtrail": ["eventName"]})
+    assert telemetry_routes is None
     return RecommendationReport(
         observed_source_count=1,
         normalized_source_count=1,
@@ -95,6 +97,7 @@ def test_handler_reports_engine_failure() -> None:
     def fail(
         sources: list[str], enterprise_security_enabled: bool,
         include_unsupported: bool, fields_by_source: dict[str, list[str]] | None,
+        telemetry_routes: list[dict[str, object]] | None,
     ) -> RecommendationReport:
         raise RecommendationError("catalog failed")
 
@@ -105,3 +108,22 @@ def test_handler_reports_engine_failure() -> None:
         "detail": "catalog failed",
         "error": "recommendation engine failed",
     }
+
+
+def test_handler_accepts_route_scoped_inventory() -> None:
+    captured: list[list[dict[str, object]] | None] = []
+
+    def report(
+        sources: list[str], enterprise_security_enabled: bool,
+        include_unsupported: bool, fields_by_source: dict[str, list[str]] | None,
+        telemetry_routes: list[dict[str, object]] | None,
+    ) -> RecommendationReport:
+        captured.append(telemetry_routes)
+        return _report(sources, enterprise_security_enabled, include_unsupported, fields_by_source, None)
+
+    routes = [{"index": "windows", "sourcetype": "XmlWinEventLog", "channels": ["Security"], "fields": ["EventCode"]}]
+    response = RecommendationsHandler(recommendation_factory=report).handle(json.dumps({
+        "method": "POST", "payload": {"sources": ["aws:cloudtrail"], "telemetry_routes": routes}
+    }))
+    assert response["status"] == 200
+    assert captured == [routes]

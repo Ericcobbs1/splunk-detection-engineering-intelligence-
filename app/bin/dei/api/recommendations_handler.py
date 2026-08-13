@@ -15,7 +15,8 @@ from dei.recommendations.engine import (
 )
 
 RecommendationFactory = Callable[
-    [list[str], bool, bool, Optional[dict[str, list[str]]]], RecommendationReport
+    [list[str], bool, bool, Optional[dict[str, list[str]]], Optional[list[dict[str, Any]]]],
+    RecommendationReport,
 ]
 APP_ROOT = Path(__file__).resolve().parents[3]
 CATALOG_PATH = APP_ROOT / "detections" / "catalog.json"
@@ -24,12 +25,14 @@ CATALOG_PATH = APP_ROOT / "detections" / "catalog.json"
 def _default_factory(
     sources: list[str], enterprise_security_enabled: bool,
     include_unsupported: bool, fields_by_source: Optional[dict[str, list[str]]],
+    telemetry_routes: Optional[list[dict[str, Any]]],
 ) -> RecommendationReport:
     return RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
         sources,
         enterprise_security_enabled=enterprise_security_enabled,
         include_unsupported=include_unsupported,
         fields_by_source=fields_by_source,
+        telemetry_routes=telemetry_routes,
     )
 
 
@@ -104,9 +107,28 @@ class RecommendationsHandler:
                         {"error": "fields_by_source must map source names to arrays of strings"},
                     )
 
+        telemetry_routes = payload.get("telemetry_routes")
+        if telemetry_routes is not None:
+            if not isinstance(telemetry_routes, list):
+                return persistent_response(400, {"error": "telemetry_routes must be an array"})
+            for route in telemetry_routes:
+                if not isinstance(route, dict):
+                    return persistent_response(400, {"error": "telemetry_routes must contain objects"})
+                if not all(isinstance(route.get(name, ""), str) for name in ("index", "sourcetype")):
+                    return persistent_response(
+                        400, {"error": "telemetry route index and sourcetype must be strings"}
+                    )
+                for name in ("channels", "fields"):
+                    values = route.get(name, [])
+                    if not isinstance(values, list) or not all(isinstance(item, str) for item in values):
+                        return persistent_response(
+                            400, {"error": f"telemetry route {name} must be an array of strings"}
+                        )
+
         try:
             report = self._recommendation_factory(
-                sources, enterprise_security_enabled, include_unsupported, fields_by_source
+                sources, enterprise_security_enabled, include_unsupported, fields_by_source,
+                telemetry_routes,
             )
         except RecommendationError as exc:
             return persistent_response(500, {"error": "recommendation engine failed", "detail": str(exc)})

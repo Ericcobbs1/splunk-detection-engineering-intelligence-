@@ -22,9 +22,11 @@ dist/splunk_detection_engineering_intelligence-0.1.0.spl
 1. Open **Apps > Manage Apps**.
 2. Select **Install app from file**.
 3. Upload the generated `.spl` package.
-4. Choose **Upgrade app** only when replacing an earlier DEI test installation.
+4. Choose **Upgrade app** when replacing an earlier DEI installation. Do not delete the existing app directory first: an in-place package upgrade preserves KV Store collections and shared scan/lifecycle history.
 5. Restart Splunk if prompted.
 6. Open **Detection Engineering Intelligence** from the Apps menu.
+
+Always deploy the completed `.spl` archive rather than copying a partial `app/` tree. The package includes `metadata/default.meta`, REST configuration, static assets, and KV collection definitions as one validated unit.
 
 ## Review scope
 

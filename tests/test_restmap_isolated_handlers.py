@@ -13,7 +13,6 @@ def test_each_rest_endpoint_uses_a_distinct_script_module() -> None:
     expected = {
         "dei_health_rest.py": "dei_health_rest.HealthApplication",
         "dei_capabilities_rest.py": "dei_capabilities_rest.CapabilitiesApplication",
-        "dei_telemetry_rest.py": "dei_telemetry_rest.TelemetryApplication",
         "dei_recommendations_rest.py": "dei_recommendations_rest.RecommendationsApplication",
     }
 
@@ -21,6 +20,7 @@ def test_each_rest_endpoint_uses_a_distinct_script_module() -> None:
         assert f"script = {script}" in text
         assert f"handler = {handler}" in text
         assert (BIN_DIR / script).is_file()
+    assert "dei_telemetry_rest.py" not in text
 
 
 def test_shared_multiclass_entrypoint_is_not_registered() -> None:

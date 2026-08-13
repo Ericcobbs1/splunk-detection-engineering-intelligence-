@@ -160,14 +160,25 @@ class RecommendationEngine:
         enterprise_security_enabled: bool = False,
         include_unsupported: bool = False,
         fields_by_source: dict[str, list[str]] | None = None,
+        telemetry_routes: list[dict[str, Any]] | None = None,
     ) -> RecommendationReport:
-        normalization = normalize_sources(observed_sources)
+        routed_sources, routed_field_sets = self._route_evidence(telemetry_routes or [])
+        effective_sources = list(observed_sources) + routed_sources
+        normalization = normalize_sources(effective_sources)
         normalized = {source.lower() for source in normalization.canonical_sources}
         for mapping in normalization.mappings:
             normalized.update(source.lower() for source in mapping.additional_canonical_sources)
 
         canonical_fields: dict[str, set[str]] = {}
-        if fields_by_source is not None:
+        effective_fields = fields_by_source
+        if telemetry_routes is not None:
+            # Route evidence is authoritative when supplied. Do not merge the legacy
+            # sourcetype-wide inventory, which can combine distinct routes.
+            effective_fields = {
+                source: sorted(set().union(*route_fields))
+                for source, route_fields in routed_field_sets.items()
+            }
+        if effective_fields is not None:
             mapping_by_observed = {
                 item.observed_source.lower(): (
                     item.canonical_source,
@@ -175,7 +186,7 @@ class RecommendationEngine:
                 )
                 for item in normalization.mappings
             }
-            for source, fields in fields_by_source.items():
+            for source, fields in effective_fields.items():
                 canonical_sources = mapping_by_observed.get(source.lower(), (source,))
                 normalized_fields = {field.lower() for field in fields if field.strip()}
                 for canonical_source in canonical_sources:
@@ -199,7 +210,7 @@ class RecommendationEngine:
             field_validation = "not_evaluated"
             missing_fields: dict[str, tuple[str, ...]] = {}
             unverified_field_sources: tuple[str, ...] = ()
-            if fields_by_source is not None and matched_count == len(required):
+            if effective_fields is not None and matched_count == len(required):
                 unverified = tuple(
                     source
                     for source in opportunity.required_fields
@@ -211,12 +222,18 @@ class RecommendationEngine:
                 else:
                     field_validation = "passed"
                     for source, groups in opportunity.required_fields.items():
-                        available = canonical_fields[source.lower()]
-                        missing_groups = tuple(
-                            " OR ".join(group)
-                            for group in groups
+                        candidates = routed_field_sets.get(source.lower()) if telemetry_routes is not None else None
+                        route_candidates = candidates or [canonical_fields[source.lower()]]
+                        complete_route = next((available for available in route_candidates if all(
+                            any(candidate.lower() in available for candidate in group) for group in groups
+                        )), None)
+                        available = complete_route or set().union(*route_candidates)
+                        missing_groups = () if complete_route is not None else tuple(
+                            " OR ".join(group) for group in groups
                             if not any(candidate.lower() in available for candidate in group)
                         )
+                        if not missing_groups and complete_route is None:
+                            missing_groups = ("required fields are split across telemetry routes",)
                         if missing_groups:
                             missing_fields[source] = missing_groups
                     if missing_fields:
@@ -282,3 +299,34 @@ class RecommendationEngine:
             unmapped_sources=normalization.unmapped_sources,
             recommendations=tuple(recommendations),
         )
+
+    @staticmethod
+    def _route_evidence(
+        routes: list[dict[str, Any]],
+    ) -> tuple[list[str], dict[str, list[set[str]]]]:
+        """Convert scoped telemetry into canonical, non-cross-contaminating evidence."""
+        sources: list[str] = []
+        fields: dict[str, list[set[str]]] = {}
+        channel_aliases = {
+            "security": "XmlWinEventLog:Security",
+            "microsoft-windows-powershell/operational": (
+                "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"
+            ),
+        }
+        for route in routes:
+            sourcetype = str(route.get("sourcetype", "")).strip()
+            route_fields = {
+                str(field).strip().lower() for field in route.get("fields", []) if str(field).strip()
+            }
+            canonical_routes: set[str] = set()
+            if sourcetype.lower() == "xmlwineventlog":
+                for channel in route.get("channels", []):
+                    canonical = channel_aliases.get(str(channel).strip().lower())
+                    if canonical:
+                        canonical_routes.add(canonical)
+            elif sourcetype:
+                canonical_routes.add(sourcetype)
+            for source in canonical_routes:
+                sources.append(source)
+                fields.setdefault(source.lower(), []).append(route_fields)
+        return sources, fields
