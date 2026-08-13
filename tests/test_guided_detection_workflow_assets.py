@@ -63,7 +63,7 @@ def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -
     assert "window.sessionStorage.removeItem(TUTORIAL_HANDOFF_KEY)" in javascript
     assert '$("#builder-detection-select").val(requested)' in javascript
     assert '$("#builder-detection-select").trigger("change")' in javascript
-    guide = (STATIC / "dei_guide_adapter_v5.js").read_text(encoding="utf-8")
+    guide = (STATIC / "dei_guide_adapter_v6.js").read_text(encoding="utf-8")
     assert 'target:"#workflow-detection-select"' in guide
     assert 'page:"environment",target:"#dei-open-environment-insights"' in guide
 

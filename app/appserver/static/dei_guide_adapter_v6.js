@@ -1,4 +1,5 @@
 window.DEIReactGuideConfigured=true;
+window.DEIGuideAssetVersion="v6";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
