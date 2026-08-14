@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dei.recommendations.engine import RecommendationEngine
+from dei_intelligence.recommendations.engine import RecommendationEngine
 
 CATALOG_PATH = Path("app/detections/catalog.json")
 

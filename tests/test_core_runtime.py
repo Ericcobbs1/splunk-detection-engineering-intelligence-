@@ -5,9 +5,9 @@ import logging
 
 import pytest
 
-from dei.core.config import ConfigurationError, RuntimeConfig
-from dei.core.health import HealthService
-from dei.core.logging import JsonFormatter, configure_logger
+from dei_intelligence.core.config import ConfigurationError, RuntimeConfig
+from dei_intelligence.core.health import HealthService
+from dei_intelligence.core.logging import JsonFormatter, configure_logger
 
 
 def test_runtime_config_normalizes_values() -> None:

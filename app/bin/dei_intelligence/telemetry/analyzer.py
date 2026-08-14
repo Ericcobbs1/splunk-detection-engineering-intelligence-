@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from dei.knowledgepacks.models import KnowledgePack
+from dei_intelligence.knowledgepacks.models import KnowledgePack
 
 
 @dataclass(frozen=True)

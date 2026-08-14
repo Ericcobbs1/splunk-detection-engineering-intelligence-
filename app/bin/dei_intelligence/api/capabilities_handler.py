@@ -7,10 +7,10 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
-from dei.api.response import persistent_response
-from dei.core.capabilities import CapabilityInventory, CapabilityService
-from dei.core.config import RuntimeConfig
-from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
+from dei_intelligence.api.response import persistent_response
+from dei_intelligence.core.capabilities import CapabilityInventory, CapabilityService
+from dei_intelligence.core.config import RuntimeConfig
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 
 CapabilityInventoryFactory = Callable[[], CapabilityInventory]
 APP_ROOT = Path(__file__).resolve().parents[3]

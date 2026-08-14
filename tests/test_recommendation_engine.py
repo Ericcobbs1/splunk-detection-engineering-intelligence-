@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from dei.recommendations.engine import RecommendationEngine, RecommendationError
+from dei_intelligence.recommendations.engine import RecommendationEngine, RecommendationError
 
 CATALOG_PATH = Path("app/detections/catalog.json")
 

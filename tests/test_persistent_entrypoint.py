@@ -10,8 +10,8 @@ def test_entrypoint_lazy_loads_dei_handlers() -> None:
     source = ENTRYPOINT.read_text(encoding="utf-8")
 
     assert "importlib.import_module" in source
-    assert "from dei.api" not in source
-    assert 'handler_module = "dei.api.recommendations_handler"' in source
+    assert "from dei_intelligence.api" not in source
+    assert 'handler_module = "dei_intelligence.api.recommendations_handler"' in source
     assert 'handler_name = "RecommendationsHandler"' in source
 
 

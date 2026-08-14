@@ -19,7 +19,7 @@ class HealthApplication(PersistentServerConnectionApplication):
 
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        from dei.api.health_handler import HealthHandler
+        from dei_intelligence.api.health_handler import HealthHandler
 
         self._handler = HealthHandler(command_line, command_arg)
 

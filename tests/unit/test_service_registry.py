@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import pytest
 
-from dei.core.service_registry import ServiceRegistry, ServiceRegistryError
+from dei_intelligence.core.service_registry import ServiceRegistry, ServiceRegistryError
 
 
 class ExampleService(ABC):

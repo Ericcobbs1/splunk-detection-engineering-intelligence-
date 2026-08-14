@@ -56,20 +56,20 @@ class _DelegatingApplication(PersistentServerConnectionApplication):
 
 
 class HealthApplication(_DelegatingApplication):
-    handler_module = "dei.api.health_handler"
+    handler_module = "dei_intelligence.api.health_handler"
     handler_name = "HealthHandler"
 
 
 class CapabilitiesApplication(_DelegatingApplication):
-    handler_module = "dei.api.capabilities_handler"
+    handler_module = "dei_intelligence.api.capabilities_handler"
     handler_name = "CapabilitiesHandler"
 
 
 class TelemetryApplication(_DelegatingApplication):
-    handler_module = "dei.api.telemetry_handler"
+    handler_module = "dei_intelligence.api.telemetry_handler"
     handler_name = "TelemetryHandler"
 
 
 class RecommendationsApplication(_DelegatingApplication):
-    handler_module = "dei.api.recommendations_handler"
+    handler_module = "dei_intelligence.api.recommendations_handler"
     handler_name = "RecommendationsHandler"

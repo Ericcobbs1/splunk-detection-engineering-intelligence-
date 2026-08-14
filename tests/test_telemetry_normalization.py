@@ -1,6 +1,6 @@
 """Tests for DEI telemetry source normalization."""
 
-from dei.telemetry.normalization import normalize_sources
+from dei_intelligence.telemetry.normalization import normalize_sources
 
 
 def test_vendor_aliases_map_to_canonical_capabilities() -> None:

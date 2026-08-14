@@ -1,8 +1,8 @@
 """Tests for the Splunk health REST adapter."""
 
-from dei.api.health_handler import HealthHandler, _default_report_factory
-from dei.core.health import HealthReport
-from dei.knowledgepacks.loader import KnowledgePackError
+from dei_intelligence.api.health_handler import HealthHandler, _default_report_factory
+from dei_intelligence.core.health import HealthReport
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError
 
 
 def _report() -> HealthReport:

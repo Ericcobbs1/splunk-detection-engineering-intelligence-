@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from dei.recommendations.engine import RecommendationEngine
+from dei_intelligence.recommendations.engine import RecommendationEngine
 
 
 def _catalog(tmp_path: Path) -> Path:

@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from dei.knowledgepacks.models import KnowledgePack, KnowledgePackManifest
+from dei_intelligence.knowledgepacks.models import KnowledgePack, KnowledgePackManifest
 
 _SEMVER_PATTERN = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 _ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")

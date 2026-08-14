@@ -1,8 +1,11 @@
 """Tests for the DEI capabilities service and REST adapter."""
 
-from dei.api.capabilities_handler import CapabilitiesHandler, _default_inventory_factory
-from dei.core.capabilities import CapabilityInventory
-from dei.knowledgepacks.loader import KnowledgePackError
+from dei_intelligence.api.capabilities_handler import (
+    CapabilitiesHandler,
+    _default_inventory_factory,
+)
+from dei_intelligence.core.capabilities import CapabilityInventory
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError
 
 
 def test_default_inventory_aggregates_packaged_packs() -> None:

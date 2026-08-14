@@ -7,8 +7,8 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Optional, cast
 
-from dei.api.response import persistent_response
-from dei.recommendations.engine import (
+from dei_intelligence.api.response import persistent_response
+from dei_intelligence.recommendations.engine import (
     RecommendationEngine,
     RecommendationError,
     RecommendationReport,
