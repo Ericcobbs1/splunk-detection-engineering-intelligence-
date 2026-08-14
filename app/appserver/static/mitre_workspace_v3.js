@@ -56,6 +56,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   var report = null;
   var selected = null;
+  var lifecycleRecords = [];
 
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -87,6 +88,48 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (technique) { technique.tactics.forEach(function (tactic) { active[tactic] = true; }); }
     });
     return active;
+  }
+
+  function detectionKey(item) {
+    return String(item && (item.detection_id || item._key || item.id) || "").replace(/^dei-/, "");
+  }
+
+  function allDetections() {
+    var seen = {};
+    var items = report && report.recommendations ? report.recommendations.slice() : [];
+    items.forEach(function (item) { seen[detectionKey(item)] = true; });
+    lifecycleRecords.forEach(function (record) {
+      var key = detectionKey(record);
+      if (!key || seen[key]) { return; }
+      items.push({
+        detection_id:key, name:record.name || key, capability:record.capability || "Persisted detection",
+        severity:record.severity || "medium", readiness:record.source_readiness || "persisted",
+        field_validation:record.validation && record.validation.status || "not evaluated",
+        mitre_techniques:record.mitre_attack || [], sourcetypes:record.sourcetypes || [],
+        observed_sources:record.observed_sources || [], lifecycle_record:record
+      });
+      seen[key] = true;
+    });
+    return items;
+  }
+
+  function enabledLabel(item) {
+    var record = item.lifecycle_record || lifecycleRecords.filter(function (candidate) {
+      return detectionKey(candidate) === detectionKey(item);
+    })[0];
+    var status = record && record.catalog && record.catalog.status;
+    return status === "enabled" || record && /production|monitoring/.test(record.state || "") ? "Enabled" : "Disabled / not deployed";
+  }
+
+  function populateDetectionFilter() {
+    var current = $("#mitre-filter").val() || "all";
+    var items = allDetections().sort(function (left, right) {
+      return String(left.name || "").localeCompare(String(right.name || ""));
+    });
+    $("#mitre-filter").html('<option value="all">All detections · enabled and disabled</option>' + items.map(function (item) {
+      return '<option value="' + escapeHtml(detectionKey(item)) + '">' + escapeHtml((item.name || detectionKey(item)) + " · " + enabledLabel(item)) + '</option>';
+    }).join(""));
+    if (current === "all" || items.some(function (item) { return detectionKey(item) === current; })) { $("#mitre-filter").val(current); }
   }
 
   function renderPortfolioCoverage() {
@@ -208,6 +251,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function observedSourcetypesForDetection(item) {
+    if (item.sourcetypes && item.sourcetypes.length) { return item.sourcetypes; }
     var matched = (item.observed_sources || []).map(function (source) {
       return String(source || "").toLowerCase();
     });
@@ -237,12 +281,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function renderDetectionList() {
-    var query = String($("#mitre-filter").val() || "").toLowerCase();
+    var detection = String($("#mitre-filter").val() || "all");
     var readiness = $("#mitre-readiness-filter").val() || "all";
     var sourcetype = $("#mitre-sourcetype-filter").val() || "all";
     var selectedCanonical = sourcetype === "all" ? [] : canonicalSourcesForObserved(sourcetype);
-    var items = report && report.recommendations ? report.recommendations.filter(function (item) {
-      var matchesText = !query || (item.name + " " + item.capability + " " + (item.mitre_techniques || []).join(" ")).toLowerCase().indexOf(query) !== -1;
+    var items = allDetections().filter(function (item) {
+      var matchesDetection = detection === "all" || detectionKey(item) === detection;
       var matchesReadiness = readiness === "all" || item.readiness === readiness;
       var observedCanonical = (item.observed_sources || []).map(function (source) {
         return String(source || "").toLowerCase();
@@ -250,8 +294,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var matchesSourcetype = sourcetype === "all" || selectedCanonical.some(function (source) {
         return observedCanonical.indexOf(source) !== -1;
       });
-      return matchesText && matchesReadiness && matchesSourcetype;
-    }) : [];
+      return matchesDetection && matchesReadiness && matchesSourcetype;
+    });
 
     if (selected && !items.some(function (item) { return item.detection_id === selected.detection_id; })) {
       selected = items.length ? items[0] : null;
@@ -269,7 +313,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#mitre-filter, #mitre-readiness-filter, #mitre-sourcetype-filter").on("input change", renderDetectionList);
   $("#mitre-detection-list").on("click", ".dei-advisor-item", function () {
     var id = $(this).data("detection");
-    selected = (report.recommendations || []).filter(function (item) { return item.detection_id === id; })[0];
+    selected = allDetections().filter(function (item) { return detectionKey(item) === String(id); })[0];
     renderDetectionList(); renderMatrix(); renderInspector(selected);
     $(document).trigger("dei:advisor-detection-selected",[id]);
   });
@@ -278,9 +322,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   loadReport();
+  populateDetectionFilter();
   populateSourcetypeFilter();
   renderPortfolioCoverage();
   renderDetectionList();
-  if (report && report.recommendations && report.recommendations.length) { selected = report.recommendations[0]; }
+  if (allDetections().length) { selected = allDetections()[0]; }
   renderDetectionList(); renderMatrix(); renderInspector(selected);
+  if (window.DEILifecycleStore && window.DEILifecycleStore.load) {
+    window.DEILifecycleStore.load().done(function (data) {
+      lifecycleRecords = Array.isArray(data) ? data : [];
+      populateDetectionFilter(); renderDetectionList(); renderMatrix(); renderInspector(selected);
+    });
+  }
 });

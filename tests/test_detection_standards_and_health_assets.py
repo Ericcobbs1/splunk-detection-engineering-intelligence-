@@ -29,8 +29,40 @@ def test_detection_health_is_a_real_workspace() -> None:
     for element_id in ("dei-detection-health-page", "health-refresh", "health-managed", "health-healthy", "health-attention", "health-failed", "health-unvalidated", "health-filter", "health-state", "health-records"):
         assert view.find(f".//*[@id='{element_id}']") is not None
     assert nav.find(".//view[@name='detection_health']") is not None
-    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "detection_workflow?detection=", "Run intelligence scan"):
+    for contract in ("DEILifecycleStore", "validation.status", "health_evidence", "record.monitoring", "detection_workflow?detection=", "Run intelligence scan"):
         assert contract in javascript
+
+
+def test_detailed_detection_health_metrics_are_a_dedicated_workspace() -> None:
+    view = ElementTree.parse(VIEWS / "detection_health_detail.xml").getroot()
+    javascript = (STATIC / "detection_health_detail_v1.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_health_detail_v1.css").read_text(encoding="utf-8")
+    nav = ElementTree.parse(APP / "default/data/ui/nav/default.xml").getroot()
+    assert nav.find(".//view[@name='detection_health_detail']") is not None
+    for element_id in (
+        "dei-health-detail-page", "health-detection-filter", "health-metric-managed",
+        "health-metric-enabled", "health-metric-validation", "health-metric-monitoring",
+        "health-metric-freshness", "health-metric-precision", "health-lifecycle-bars",
+        "health-operational-bars", "health-lifecycle-timeline", "health-selected-metrics",
+        "health-selected-guidance", "health-detail-table",
+    ):
+        assert view.find(f".//*[@id='{element_id}']") is not None
+    for contract in (
+        "All detections · enabled and disabled", "STALE_DAYS=30", "true_positives",
+        "false_positives", "runtime_ms", "result_volume", "TP / (TP + FP)",
+        "scheduler/search-history evidence", "source freshness",
+    ):
+        assert contract in javascript or contract in ElementTree.tostring(view, encoding="unicode")
+    assert ".dei-health-lifecycle-timeline" in stylesheet
+    assert ".dei-health-detail-summary" in stylesheet
+
+
+def test_health_records_use_aligned_grid_and_link_to_metrics() -> None:
+    javascript = (STATIC / "detection_health_v1.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    assert 'class="dei-health-record-copy"' in javascript
+    assert "detection_health_detail?detection=" in javascript
+    assert "grid-template-columns:28px minmax(0,1fr) auto" in stylesheet
 
 
 def test_accessible_readability_baseline_is_packaged() -> None:
