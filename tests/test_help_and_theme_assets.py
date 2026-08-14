@@ -21,7 +21,7 @@ def test_help_covers_the_detection_lifecycle_and_recovery() -> None:
     source = (VIEWS / "dei_help.xml").read_text(encoding="utf-8")
     for topic in (
         "help-discovery", "help-build", "help-validate", "help-review",
-        "help-deploy", "help-monitor", "help-tune", "help-retire",
+        "help-deploy", "help-monitor", "help-health-metrics", "help-tune", "help-retire",
         "help-troubleshoot",
     ):
         assert f'id="{topic}"' in source
@@ -31,20 +31,22 @@ def test_help_covers_the_detection_lifecycle_and_recovery() -> None:
         "Zero results can be healthy",
         "does not disable the actual Splunk saved search",
         "observed problem; supporting evidence; proposed change",
+        "enabled or disabled detection",
+        "Signal precision:",
     ):
         assert guidance in source
 
 
-def test_theme_switch_is_persistent_accessible_and_independent_of_workflow() -> None:
+def test_theme_is_locked_to_dark_without_an_appearance_toggle() -> None:
     javascript = (STATIC / "dei_theme_v1.js").read_text(encoding="utf-8")
     stylesheet = (STATIC / "dei_theme_v1.css").read_text(encoding="utf-8")
-    assert 'KEY="dei.colorScheme"' in javascript
-    assert 'window.localStorage.setItem(KEY,value)' in javascript
-    assert 'id="dei-theme-toggle"' in javascript
-    assert 'aria-pressed' in javascript
+    assert 'setAttribute("data-dei-theme", "dark")' in javascript
+    assert 'localStorage.removeItem("dei.colorScheme")' in javascript
+    assert 'localStorage.setItem' not in javascript
+    assert 'id="dei-theme-toggle"' not in javascript
     assert 'data-dei-theme' in javascript
     assert '[data-dei-theme="dark"]' in stylesheet
-    assert '[data-dei-theme="light"]' in stylesheet
+    assert '[data-dei-theme="light"]' not in stylesheet
     assert "--dei-action:#4f8df7" in stylesheet
     assert "--dei-success:#42c7a5" in stylesheet
     assert "--dei-warning:#e8ad4f" in stylesheet
@@ -75,13 +77,11 @@ def test_theme_uses_color_plus_status_contracts() -> None:
     assert ":focus-visible" in design
 
 
-def test_light_theme_overrides_legacy_text_and_surfaces() -> None:
+def test_theme_has_no_obsolete_light_mode_rules() -> None:
     stylesheet = (STATIC / "dei_theme_v1.css").read_text(encoding="utf-8")
-    assert '[data-dei-theme="light"] .dei-shell span' in stylesheet
-    assert '[data-dei-theme="light"] .dei-shell em' in stylesheet
-    assert '[data-dei-theme="light"] .dei-shell strong' in stylesheet
-    assert '[data-dei-theme="light"] .dei-health-workspace' in stylesheet
-    assert '[data-dei-theme="light"] .dei-detection-flow' in stylesheet
+    assert 'color-scheme:light' not in stylesheet
+    assert '.dei-theme-toggle' not in stylesheet
+    assert '.dei-theme-standalone' not in stylesheet
 
 
 def test_health_is_visible_and_restores_summary_visuals() -> None:
@@ -115,6 +115,17 @@ def test_global_workflow_ribbon_is_home_only() -> None:
     javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     assert 'if (!shell().is("#dei-home-page")) { return; }' in javascript
     assert 'if (!$("#dei-guided-workflow").length) { return; }' in javascript
+    assert '#dei-command-center,#dei-environment-insights,#dei-mitre-page,#dei-guided-detection-page' in javascript
+    assert '$("#dei-active-scan-context").remove()' in javascript
+
+
+def test_health_metric_actions_use_the_shared_dark_control_design() -> None:
+    view = (VIEWS / "detection_health_detail.xml").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_health_controls_v1.css").read_text(encoding="utf-8")
+    assert 'class="dei-health-detail-actions"' in view
+    assert "detection_health_controls_v1.css" in view
+    assert ".dei-health-detail-actions #health-detail-refresh" in stylesheet
+    assert "var(--dei-surface-2)" in stylesheet
 
 
 def test_mitre_workspace_is_detection_first_and_recommends_improvements() -> None:

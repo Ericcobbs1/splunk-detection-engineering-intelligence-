@@ -653,7 +653,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function ensureScanContext() {
-    if (shell().is("#dei-home-page")) { return; }
+    if (!shell().is("#dei-command-center,#dei-environment-insights,#dei-mitre-page,#dei-guided-detection-page")) { return; }
     if ($("#dei-active-scan-context").length) { return; }
     shell().find(".dei-product-bar").first().after(
       '<section id="dei-active-scan-context" class="dei-active-scan-context" aria-live="polite"></section>'
@@ -664,7 +664,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
     var timestamp=Number(safeSessionGet("dei.latestRecommendationTime", "0") || 0);
     var sources=Number(report.observed_source_count || 0);
-    if (shell().is("#dei-home-page")) {
+    if (!shell().is("#dei-command-center,#dei-environment-insights,#dei-mitre-page,#dei-guided-detection-page")) {
+      $("#dei-active-scan-context").remove();
       $(".dei-home-flow-actions .dei-open-environment-discovery").text("Open Environment Discovery");
       return;
     }
