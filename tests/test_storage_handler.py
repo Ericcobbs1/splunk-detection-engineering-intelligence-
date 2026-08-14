@@ -3,7 +3,13 @@
 import json
 from typing import Any
 
-from dei.api.storage_handler import LIFECYCLE, SCAN_HISTORY, SCAN_SUMMARIES, StorageHandler
+from dei.api.storage_handler import (
+    LIFECYCLE,
+    SCAN_HISTORY,
+    SCAN_SUMMARIES,
+    USER_PREFERENCES,
+    StorageHandler,
+)
 
 
 class FakeStore:
@@ -74,3 +80,43 @@ def test_storage_accepts_splunk_persistent_connection_session_shape() -> None:
 
     assert response["status"] == 200
     assert received == ["runtime-token"]
+
+
+def test_user_preferences_are_scoped_to_the_requested_user_key() -> None:
+    store = FakeStore()
+    handler = StorageHandler(store_factory=lambda _: store)
+    preference = {"_key": "eric", "filters": {"coverage": {"readiness": "field_gap"}}}
+
+    written = handler.handle(request({"resource": "preferences", "record": preference}))
+    read = handler.handle(request({"resource": "preferences", "operation": "read", "key": "eric"}))
+    missing = handler.handle(request({"resource": "preferences", "operation": "read", "key": "other"}))
+
+    assert written["status"] == 200
+    assert store.records[USER_PREFERENCES]["eric"] == preference
+    assert read["payload"]["preference"] == preference
+    assert missing["payload"]["preference"] == {}
+
+
+def test_user_preferences_require_a_key_and_record() -> None:
+    handler = StorageHandler(store_factory=lambda _: FakeStore())
+    assert handler.handle(request({"resource": "preferences", "operation": "read"}))["status"] == 400
+    assert handler.handle(request({"resource": "preferences", "record": {}}))["status"] == 400
+
+
+def test_runtime_session_user_owns_the_preference_record() -> None:
+    store = FakeStore()
+    handler = StorageHandler(store_factory=lambda _: store)
+    runtime = json.dumps({
+        "method": "POST",
+        "session": {"authtoken": "runtime-token", "user": "eric"},
+        "payload": json.dumps({
+            "resource": "preferences",
+            "record": {"_key": "another-user", "filters": {"health": {"state": "failed"}}},
+        }),
+    })
+
+    response = handler.handle(runtime)
+
+    assert response["status"] == 200
+    assert "eric" in store.records[USER_PREFERENCES]
+    assert "another-user" not in store.records[USER_PREFERENCES]

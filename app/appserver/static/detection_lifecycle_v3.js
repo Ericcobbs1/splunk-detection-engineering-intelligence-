@@ -188,13 +188,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var query=String($("#lifecycle-search").val()||"").toLowerCase();
     var readiness=$("#lifecycle-readiness").val()||"all";
     var stage=$("#lifecycle-stage").val()||"all";
+    var assignment=$("#lifecycle-assignment").val()||"all"; var currentUser=String(Store&&Store.username?Store.username():"").toLowerCase(); var today=new Date().toISOString().slice(0,10);
     var visibleRows=parseInt($("#lifecycle-visible-rows").val(),10)||10;
     var all=mergedQueue().filter(isEngineeringWork);
     var items=all.filter(function (item) {
       var record=item.lifecycle_record; var current=stateFor(item,record);
       var haystack=[item.name,item.capability,item.pack_id,observedSourcetypes(item).join(" "),
         (item.mitre_techniques||[]).join(" "),current].join(" ").toLowerCase();
-      return (!query||haystack.indexOf(query)!==-1) &&
+      var ownership=record&&record.ownership||{}; var assignmentMatch=assignment==="all" ||
+        (assignment==="owner"&&String(ownership.owner||"").toLowerCase()===currentUser) ||
+        (assignment==="reviewer"&&current==="peer_review"&&String(ownership.reviewer||"").toLowerCase()===currentUser) ||
+        (assignment==="overdue"&&((ownership.review_due_at&&ownership.review_due_at<today)||(ownership.health_due_at&&ownership.health_due_at<today)));
+      return (!query||haystack.indexOf(query)!==-1) && assignmentMatch &&
         (readiness==="all"||item.readiness===readiness) && (stage==="all"||current===stage);
     });
     var visibleItems=items.slice(0,visibleRows);
@@ -296,23 +301,33 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return workflowProgress(record)+'<details class="dei-workflow-disclosure dei-gate-disclosure"><summary><span><strong>Gate guidance and ownership</strong><small>'+esc(guide.gate)+'</small></span></summary><div class="dei-gate-guide"><div><span class="dei-generator-label">Current gate</span><h3>'+esc(guide.gate)+'</h3><p>'+esc(guide.required)+'</p><dl><dt>Responsible role</dt><dd>'+esc(guide.owner)+'</dd><dt>Gate outcome</dt><dd>'+esc(guide.outcome)+'</dd></dl></div><div><span class="dei-generator-label">What to do next</span><ol>'+guide.steps.map(function (step) { return "<li>"+esc(step)+"</li>"; }).join("")+"</ol>"+(facts.length?'<div class="dei-gate-facts">'+facts.map(function (fact) { return "<span>"+esc(fact)+"</span>"; }).join("")+"</div>":"")+"</div></div></details>";
   }
 
+  function ownershipMarkup(record) {
+    var ownership=record.ownership||{};
+    return '<details class="dei-workflow-disclosure dei-ownership-fields" open><summary><span><strong>Work ownership and due dates</strong><small>Assign the next accountable roles</small></span></summary><div class="dei-action-fields-row">'+
+      '<label class="dei-action-field"><span>Detection owner</span><input id="lifecycle-owner" type="text" value="'+esc(ownership.owner||Store.username())+'" placeholder="Splunk username or team"/></label>'+
+      '<label class="dei-action-field"><span>Peer reviewer</span><input id="lifecycle-reviewer" type="text" value="'+esc(ownership.reviewer||"")+'" placeholder="Independent reviewer"/></label>'+
+      '<label class="dei-action-field"><span>Review due</span><input id="lifecycle-review-due" type="date" value="'+esc(ownership.review_due_at||"")+'"/></label>'+
+      '<label class="dei-action-field"><span>Next health review</span><input id="lifecycle-health-due" type="date" value="'+esc(ownership.health_due_at||"")+'"/></label></div></details>';
+  }
+
   function fieldMarkup(record) {
+    var ownership=record.state==="retired"?"":ownershipMarkup(record);
     if (record.state==="testing") {
-      return '<label class="dei-action-field"><span id="lifecycle-action-comment-label">Transition rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="For Continue, summarize validation evidence. For Return to Draft, document the required change."></textarea><small id="lifecycle-action-comment-help">This note is required for both forward submission and governed rollback.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
+      return ownership+'<label class="dei-action-field"><span id="lifecycle-action-comment-label">Transition rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="For Continue, summarize validation evidence. For Return to Draft, document the required change."></textarea><small id="lifecycle-action-comment-help">This note is required for both forward submission and governed rollback.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="peer_review") {
       if (record.review && record.review.decision==="approved") {
-        return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" placeholder="Exact deployed object name"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional deployment evidence or change reference."></textarea></label>';
+        return ownership+'<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" placeholder="Exact deployed object name"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional deployment evidence or change reference."></textarea></label>';
       }
-      return '<label class="dei-action-field"><span id="lifecycle-action-comment-label">Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-inline-error" placeholder="Document why this version is approved or list the exact changes required."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
+      return ownership+'<label class="dei-action-field"><span id="lifecycle-action-comment-label">Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-inline-error" placeholder="Document why this version is approved or list the exact changes required."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="production" || record.state==="monitoring") {
       var prior=record.monitoring||{};
-      return '<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health *</span><select id="lifecycle-health"><option value="healthy"'+(prior.health==="healthy"?" selected":"")+'>Healthy</option><option value="degraded"'+(prior.health==="degraded"?" selected":"")+'>Degraded</option><option value="failing"'+(prior.health==="failing"?" selected":"")+'>Failing</option></select></label><label class="dei-action-field"><span>Review period *</span><input id="lifecycle-review-period" type="text" value="'+esc(prior.review_period||"Last 24 hours")+'" placeholder="Example: Last 24 hours"/></label><label class="dei-action-field"><span>Result volume *</span><input id="lifecycle-result-volume" type="number" min="0" value="'+esc(prior.result_volume||0)+'"/></label><label class="dei-action-field"><span>Runtime ms *</span><input id="lifecycle-runtime" type="number" min="0" value="'+esc(prior.runtime_ms||0)+'"/></label><label class="dei-action-field"><span>True positives</span><input id="lifecycle-true-positives" type="number" min="0" value="'+esc(prior.true_positives||0)+'"/></label><label class="dei-action-field"><span>False positives</span><input id="lifecycle-false-positives" type="number" min="0" value="'+esc(prior.false_positives||0)+'"/></label></div><label class="dei-action-field"><span id="lifecycle-action-comment-label">Monitoring evidence note *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="Record scheduler/search-history evidence, source-data freshness, analyst outcomes, downstream actions, and the next corrective action when needed."></textarea><small id="lifecycle-action-comment-help">Use real evidence. Explain zero results, degraded or failing health, and any corrective action. This note also supports a later tuning or retirement decision.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
+      return ownership+'<div class="dei-action-fields-row"><label class="dei-action-field"><span>Health *</span><select id="lifecycle-health"><option value="healthy"'+(prior.health==="healthy"?" selected":"")+'>Healthy</option><option value="degraded"'+(prior.health==="degraded"?" selected":"")+'>Degraded</option><option value="failing"'+(prior.health==="failing"?" selected":"")+'>Failing</option></select></label><label class="dei-action-field"><span>Review period *</span><input id="lifecycle-review-period" type="text" value="'+esc(prior.review_period||"Last 24 hours")+'" placeholder="Example: Last 24 hours"/></label><label class="dei-action-field"><span>Result volume *</span><input id="lifecycle-result-volume" type="number" min="0" value="'+esc(prior.result_volume||0)+'"/></label><label class="dei-action-field"><span>Runtime ms *</span><input id="lifecycle-runtime" type="number" min="0" value="'+esc(prior.runtime_ms||0)+'"/></label><label class="dei-action-field"><span>True positives</span><input id="lifecycle-true-positives" type="number" min="0" value="'+esc(prior.true_positives||0)+'"/></label><label class="dei-action-field"><span>False positives</span><input id="lifecycle-false-positives" type="number" min="0" value="'+esc(prior.false_positives||0)+'"/></label></div><label class="dei-action-field"><span id="lifecycle-action-comment-label">Monitoring evidence note *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-action-comment-help lifecycle-inline-error" placeholder="Record scheduler/search-history evidence, source-data freshness, analyst outcomes, downstream actions, and the next corrective action when needed."></textarea><small id="lifecycle-action-comment-help">Use real evidence. Explain zero results, degraded or failing health, and any corrective action. This note also supports a later tuning or retirement decision.</small></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
-    if (record.state==="tuning") { return '<label class="dei-action-field"><span>Tuning or retirement note *</span><textarea id="lifecycle-action-comment" placeholder="Document the revision objective before opening Builder, or provide the retirement reason."></textarea></label>'; }
+    if (record.state==="tuning") { return ownership+'<label class="dei-action-field"><span>Tuning or retirement note *</span><textarea id="lifecycle-action-comment" placeholder="Document the revision objective before opening Builder, or provide the retirement reason."></textarea></label>'; }
     if (record.state==="retired") { return '<p class="dei-empty">This lifecycle record is complete and immutable. Deployment, monitoring, decisions, and retirement evidence remain available in Audit history.</p>'; }
-    return '<label class="dei-action-field"><span>Lifecycle note</span><textarea id="lifecycle-action-comment" placeholder="Document the engineering decision."></textarea></label>';
+    return ownership+'<label class="dei-action-field"><span>Lifecycle note</span><textarea id="lifecycle-action-comment" placeholder="Document the engineering decision."></textarea></label>';
   }
 
   function buttonMarkup(record) {
@@ -320,6 +335,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     markup+=controls.previous?'<button type="button" class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
     if (controls.edit) { markup+='<button type="button" data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
     if (controls.next) { markup+='<button type="button" class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
+    markup+='<button type="button" data-action="save_assignment">Save assignment</button>';
     if (["testing","peer_review"].indexOf(record.state)!==-1) { markup+='<button type="button" class="restart" data-action="restart_recommendation">↶ Restart from recommendation</button>'; }
     markup+='</div>';
     if (record.state==="draft") { return '<button type="button" class="primary" data-action="open_builder">Open guided builder</button>'; }
@@ -354,6 +370,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function note() { return String($("#lifecycle-action-comment").val()||"").trim(); }
+  function applyOwnership(record) {
+    if (!$("#lifecycle-owner").length) { return record; }
+    record.ownership={owner:String($("#lifecycle-owner").val()||"").trim(),reviewer:String($("#lifecycle-reviewer").val()||"").trim(),review_due_at:String($("#lifecycle-review-due").val()||""),health_due_at:String($("#lifecycle-health-due").val()||"")};
+    return record;
+  }
   function actionError(message,label) {
     var field=$("#lifecycle-action-comment"); var inline=$("#lifecycle-inline-error");
     if (label) { $("#lifecycle-action-comment-label").text(label); }
@@ -407,7 +428,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function handleAction(action) {
-    var record=$.extend(true,{},selectedRecord); var comment=note();
+    var record=applyOwnership($.extend(true,{},selectedRecord)); var comment=note();
     if (!record) { return; }
     if (action==="open_builder") {
       window.localStorage.setItem(SELECTED_DETECTION_KEY,recordKey(record));
@@ -418,6 +439,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (action==="open_catalog") {
       window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
       return;
+    }
+    if (action==="save_assignment") {
+      record=Store.appendHistory(record,"work_assignment_updated","Owner: "+(record.ownership.owner||"unassigned")+" · Reviewer: "+(record.ownership.reviewer||"unassigned"));
+      saveAndReload(Store.write(record),"Ownership and due dates saved.",action); return;
     }
     if (action==="submit_review") {
       if (!record.validation || record.validation.status!=="passed") { actionError("Passed validation evidence is required before submitting this version for peer review."); return; }
@@ -604,8 +629,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!reason) { $("#builder-start-feedback").removeClass("ready success").addClass("error").text("A restart reason is required."); $("#builder-restart-reason").trigger("focus"); return; }
     selectedRecord=record; saveAndReload(restartFromRecommendation(record,reason),"Current version archived. Detection returned to Recommendation.","restart_recommendation");
   });
-  $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
-  $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage").on("input change",renderQueue);
+  $("#lifecycle-reset-filters").on("click",function () { $("#lifecycle-search").val(""); $("#lifecycle-readiness,#lifecycle-stage,#lifecycle-assignment").val("all"); $("#lifecycle-visible-rows").val("10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows","10"); renderQueue(); });
+  $("#lifecycle-search,#lifecycle-readiness,#lifecycle-stage,#lifecycle-assignment").on("input change",renderQueue);
   $("#lifecycle-visible-rows").on("change",function () { var rows=String($(this).val()||"10"); $(".dei-lifecycle-queue-section").attr("data-visible-rows",rows==="25"?"25":"10"); renderQueue(); });
   $(window).on("storage",function (event) { if(!event.originalEvent||event.originalEvent.key===REPORT_KEY){render();} });
   initialize(0);

@@ -6,6 +6,175 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var MODES = ["analyst", "coverage", "engineering"];
   var homeLifecycleRecords = null;
   var homeLifecycleLoading = false;
+  var ENGAGEMENT_KEY = "dei.engagement.v1";
+  var DRAFT_RECOVERY_KEY = "dei.builderRecovery.v1";
+  var engagementTimer = null;
+  var draftDirty = false;
+
+  function username() {
+    try { return Splunk.util.getConfigValue("USERNAME") || "unknown"; } catch (error) { return "unknown"; }
+  }
+
+  function engagementState() {
+    return safeJson(safeStorageGet(ENGAGEMENT_KEY+"."+username(), ""), {filters:{},activities:[],selected:null});
+  }
+
+  function engagementEndpoint() {
+    return Splunk.util.make_url("splunkd","__raw","servicesNS","-","splunk_detection_engineering_intelligence","dei","v1","storage");
+  }
+
+  function syncEngagement(state) {
+    window.clearTimeout(syncEngagement.timer); syncEngagement.timer=window.setTimeout(function(){
+      $.ajax({url:engagementEndpoint(),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify({resource:"preferences",operation:"upsert",record:$.extend(true,{_key:username()},state,{updated_at:new Date().toISOString()})})});
+    },700);
+  }
+
+  function saveEngagement(state) {
+    safeStorageSet(ENGAGEMENT_KEY+"."+username(), JSON.stringify(state));
+    syncEngagement(state);
+  }
+
+  function hydrateEngagement() {
+    return $.ajax({url:engagementEndpoint(),method:"POST",contentType:"application/json",dataType:"json",timeout:15000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")},data:JSON.stringify({resource:"preferences",operation:"read",key:username()})}).done(function(response){
+      var payload=response&&typeof response.payload==="string"?safeJson(response.payload,{}):response||{}; var preference=payload.preference||{};
+      if(preference&&preference._key){delete preference._key;safeStorageSet(ENGAGEMENT_KEY+"."+username(),JSON.stringify(preference));window.setTimeout(function(){restoreFilters();renderWorkContext();renderEngagementHome();restoreWorkspacePosition();},25);}
+    });
+  }
+
+  function pageKey() {
+    var id=shell().attr("id") || "";
+    return {"dei-command-center":"discovery","dei-mitre-page":"coverage","dei-detection-catalog-page":"catalog","dei-lifecycle-page":"catalog",
+      "dei-detection-health-page":"health","dei-health-detail-page":"health_detail","dei-action-center-page":"action_center",
+      "dei-guided-detection-page":"builder","dei-home-page":"home"}[id] || id || "workspace";
+  }
+
+  var FILTER_GROUPS = {
+    coverage:["#mitre-filter","#mitre-readiness-filter","#mitre-sourcetype-filter"],
+    catalog:["#lifecycle-search","#lifecycle-readiness","#lifecycle-stage","#lifecycle-visible-rows","#lifecycle-assignment","#catalog-search","#catalog-status-filter"],
+    health:["#health-filter","#health-state"],
+    health_detail:["#health-detection-filter"],
+    action_center:["#action-search","#action-severity","#action-category","#action-readiness"]
+  };
+
+  function saveFilters() {
+    var page=pageKey(),selectors=FILTER_GROUPS[page] || [],state=engagementState();
+    if (!selectors.length) { return; }
+    state.filters=state.filters || {}; state.filters[page]=state.filters[page] || {};
+    selectors.forEach(function (selector) { var field=$(selector); if (field.length) { state.filters[page][selector]=field.val(); } });
+    state.filters[page]._savedAt=new Date().toISOString(); saveEngagement(state);
+    $("#dei-filter-persistence").text("Filters saved · "+new Date().toLocaleTimeString());
+  }
+
+  function restoreFilters() {
+    var page=pageKey(),selectors=FILTER_GROUPS[page] || [],saved=(engagementState().filters || {})[page] || {},restored=0;
+    selectors.forEach(function (selector) {
+      var field=$(selector),value=saved[selector]; if (!field.length || value===undefined || value===null) { return; }
+      if (field.is("select") && !field.find('option[value="'+String(value).replace(/"/g,'\\"')+'"]').length) { return; }
+      field.val(value); restored+=1;
+    });
+    if (restored) { selectors.forEach(function (selector) { $(selector).trigger("change"); }); }
+    if (selectors.length && !$("#dei-filter-persistence").length) {
+      var target=$(selectors[0]).closest("section,main").find(".dei-product-bar").first();
+      if (!target.length) { target=shell().find(".dei-product-bar").first(); }
+      target.after('<div id="dei-filter-persistence" class="dei-filter-persistence" role="status">'+(restored?"Saved filters restored":"Filters save automatically for your next visit")+'</div>');
+    }
+  }
+
+  function saveWorkspacePosition() {
+    var state=engagementState(),page=pageKey(); state.positions=state.positions||{};
+    state.positions[page]={scroll_y:Math.max(0,window.scrollY||0),tab:String($("#workflow-unified-workspace [role='tab'][aria-selected='true']").attr("id")||""),open_details:shell().find("details[id][open]").map(function(){return this.id;}).get()};
+    saveEngagement(state);
+  }
+
+  function restoreWorkspacePosition() {
+    var position=(engagementState().positions||{})[pageKey()]; if (!position) { return; }
+    (position.open_details||[]).forEach(function(id){$("#"+id).prop("open",true);});
+    if (position.tab && $("#"+position.tab).length) { $("#"+position.tab).trigger("click"); }
+    if (position.scroll_y>0) { window.setTimeout(function(){window.scrollTo(0,position.scroll_y);},200); }
+  }
+
+  function rememberDetection(id,label,href) {
+    var value=String(id || "").replace(/^dei-/,""); if (!value || value==="all") { return; }
+    var state=engagementState(); state.selected={id:value,label:label || value,href:href || "detection_workflow?detection="+encodeURIComponent(value),at:new Date().toISOString()}; saveEngagement(state);
+    renderWorkContext();
+  }
+
+  function addActivity(type,title,detail,href,detectionId) {
+    var state=engagementState(),activity={type:type,title:title,detail:detail || "",href:href || "",detection_id:detectionId || "",at:new Date().toISOString()};
+    state.activities=[activity].concat(state.activities || []).slice(0,12); saveEngagement(state); renderEngagementHome();
+  }
+
+  function renderWorkContext() {
+    var selected=engagementState().selected;
+    if (!selected || pageKey()==="home" || pageKey()==="discovery") { $("#dei-work-context").remove(); return; }
+    var markup='<section id="dei-work-context" class="dei-work-context"><span><b>Current detection</b> · '+$("<div>").text(selected.label).html()+'</span><a href="'+selected.href+'">Continue work →</a></section>';
+    if ($("#dei-active-scan-context").length) { $("#dei-active-scan-context").after(markup); }
+    else { shell().find(".dei-product-bar").first().after(markup); }
+  }
+
+  function renderEngagementHome() {
+    if (!shell().is("#dei-home-page")) { return; }
+    var state=engagementState(),selected=state.selected,activities=(state.activities || []).slice(0,5),recovery=safeJson(safeStorageGet(DRAFT_RECOVERY_KEY+"."+username(),""),null);
+    var resume=recovery ? {id:recovery.detection_id,label:recovery.name || recovery.detection_id,href:"detection_workflow?detection="+encodeURIComponent(recovery.detection_id),at:recovery.at,detail:"Recovered SPL changes are waiting for review."} :
+      (selected ? {id:selected.id,label:selected.label,href:selected.href,at:selected.at,detail:"Resume at the last detection and workspace you opened."} : null);
+    var markup='<section id="dei-engagement-home" class="dei-engagement-home" aria-label="Resume work and recent activity"><article class="dei-resume-work"><p class="dei-eyebrow">Continue where you left off</p>'+
+      (resume?'<h2>'+$("<div>").text(resume.label).html()+'</h2><p>'+resume.detail+'</p><small>Last activity · '+new Date(resume.at).toLocaleString()+'</small><a href="'+resume.href+'">Continue detection →</a>':'<h2>No unfinished work</h2><p>Select a detection in Coverage or Builder and DEI will preserve your return point.</p><a href="mitre_coverage">Review detection opportunities →</a>')+'</article>'+
+      '<article class="dei-recent-activity"><p class="dei-eyebrow">Recent activity</p><h2>Engineering history</h2><ol>'+(activities.length?activities.map(function(item){return '<li><a href="'+(item.href||"detection_catalog")+'"><strong>'+$("<div>").text(item.title).html()+'</strong><span>'+$("<div>").text(item.detail).html()+'</span><small>'+new Date(item.at).toLocaleString()+'</small></a></li>';}).join(""):'<li><span>Completed scans, saved drafts, validations, approvals, deployments, and health reviews will appear here.</span></li>')+'</ol></article></section>';
+    if ($("#dei-engagement-home").length) { $("#dei-engagement-home").replaceWith(markup); }
+    else if ($("#dei-guided-workflow").length) { $("#dei-guided-workflow").after(markup); }
+  }
+
+  function draftRecovery() { return safeJson(safeStorageGet(DRAFT_RECOVERY_KEY+"."+username(),""),null); }
+  function clearDraftRecovery() { try { window.localStorage.removeItem(DRAFT_RECOVERY_KEY+"."+username()); } catch(error){} draftDirty=false; $("#dei-draft-recovery").remove(); }
+  function captureDraftRecovery() {
+    var id=String($("#builder-detection-select").val() || $("#workflow-detection-select").val() || ""); if (!id || id==="all") { return; }
+    var recovery={detection_id:id,name:$("#builder-detection-select option:selected").text() || id,spl:String($("#generator-spl").val() || ""),cron:String($("#builder-cron").val() || ""),earliest:String($("#builder-earliest").val() || ""),latest:String($("#builder-latest").val() || ""),at:new Date().toISOString()};
+    if (!recovery.spl.trim()) { return; } draftDirty=true; safeStorageSet(DRAFT_RECOVERY_KEY+"."+username(),JSON.stringify(recovery)); rememberDetection(id,recovery.name,"detection_workflow?detection="+encodeURIComponent(id));
+    $("#dei-draft-save-state").text("Recovery copy updated · "+new Date().toLocaleTimeString());
+  }
+
+  function showDraftRecovery() {
+    if (!shell().is("#dei-guided-detection-page")) { return; }
+    var recovery=draftRecovery(),id=String($("#builder-detection-select").val() || $("#workflow-detection-select").val() || "");
+    if (!recovery || !id || recovery.detection_id!==id || $("#dei-draft-recovery").length) { return; }
+    var panel='<section id="dei-draft-recovery" class="dei-draft-recovery" role="status"><div><p class="dei-eyebrow">Recovered work</p><h2>Unfinished query changes from '+new Date(recovery.at).toLocaleString()+'</h2><p>These browser-recovered edits are not an official lifecycle save. Compare or restore them before continuing.</p></div><div><button id="dei-restore-draft" type="button">Restore recovered SPL</button><button id="dei-compare-draft" type="button">Compare with current</button><button id="dei-discard-draft" type="button">Discard recovery</button></div></section>';
+    $("#guided-builder-workspace").prepend(panel); if (!$("#dei-draft-save-state").length) { $("#builder-feedback").after('<small id="dei-draft-save-state" class="dei-draft-save-state">Recovery copy available</small>'); }
+  }
+
+  function renderScanChanges() {
+    var changes=safeJson(safeSessionGet("dei.latestScanChanges",""),{}),target=$("#dei-discovery-next-summary"); if (!target.length || !changes.baseline_available) { return; }
+    var chips=[{label:"New telemetry routes",value:(changes.new_routes||[]).length},{label:"Newly buildable",value:(changes.newly_buildable||[]).length},{label:"Readiness regressions",value:(changes.readiness_regressions||[]).length},{label:"Field changes",value:(changes.field_changes||[]).length}];
+    $("#dei-scan-change-summary").remove(); target.after('<div id="dei-scan-change-summary" class="dei-scan-change-summary">'+chips.map(function(item){return '<span data-active="'+(item.value>0?"true":"false")+'"><b>'+item.value+'</b> '+item.label+'</span>';}).join("")+'</div>');
+  }
+
+  function completionConfirmation(action,saved) {
+    var labels={submit_review:"Validation handoff saved",approve_review:"Peer review approved",record_deployment:"Deployment evidence saved",record_health:"Health evidence saved",return_draft:"Draft reopened",restart_recommendation:"Recommendation restarted",start_tuning:"Tuning version opened",retire:"Retirement evidence saved"};
+    var title=labels[action] || "Lifecycle progress saved",id=saved && (saved.detection_id || saved._key || saved.id),state=saved && saved.state || "updated";
+    $("#dei-engagement-confirmation").remove(); $("#lifecycle-action-feedback").after('<section id="dei-engagement-confirmation" class="dei-engagement-confirmation"><strong>✓ '+title+'</strong><span>Current stage: '+String(state).replace(/_/g," ")+'. The governed record and audit history were updated.</span><a href="detection_workflow?detection='+encodeURIComponent(id||"")+'">Continue next required action →</a></section>');
+    addActivity(action,title,(saved&&saved.name||id||"Detection")+" · "+String(state).replace(/_/g," "),"detection_workflow?detection="+encodeURIComponent(id||""),id);
+  }
+
+  function initializeEngagement() {
+    hydrateEngagement();
+    window.setTimeout(function(){ restoreFilters(); renderWorkContext(); renderEngagementHome(); showDraftRecovery(); renderScanChanges(); restoreWorkspacePosition(); },350);
+    window.setTimeout(function(){ restoreFilters(); var field=$("#builder-detection-select,#workflow-detection-select,#mitre-filter,#health-detection-filter").filter(function(){return $(this).val()&&$(this).val()!=="all";}).first();if(field.length){rememberDetection(field.val(),field.find("option:selected").text());} },1200);
+    var selectors=[]; Object.keys(FILTER_GROUPS).forEach(function(key){selectors=selectors.concat(FILTER_GROUPS[key]);});
+    $(document).on("input change",selectors.join(","),function(){ window.clearTimeout(engagementTimer); engagementTimer=window.setTimeout(saveFilters,250); });
+    $(document).on("click","#lifecycle-reset-filters,#catalog-reset-filters,#action-reset-filters",function(){window.setTimeout(saveFilters,25);});
+    $(document).on("click","#workflow-tab-all,#workflow-tab-artifact,#workflow-tab-change-control",function(){window.setTimeout(saveWorkspacePosition,25);});
+    $(document).on("click",".dei-shell details[id] summary",function(){window.setTimeout(saveWorkspacePosition,25);});
+    $(window).on("scroll",function(){window.clearTimeout(saveWorkspacePosition.timer);saveWorkspacePosition.timer=window.setTimeout(saveWorkspacePosition,300);});
+    $(document).on("change","#mitre-filter,#builder-detection-select,#workflow-detection-select,#health-detection-filter",function(){rememberDetection($(this).val(),$(this).find("option:selected").text()); window.setTimeout(showDraftRecovery,100);});
+    $(document).on("input change","#generator-spl,#builder-cron,#builder-earliest,#builder-latest",function(){draftDirty=true;window.clearTimeout(captureDraftRecovery.timer);captureDraftRecovery.timer=window.setTimeout(captureDraftRecovery,500);});
+    $(document).on("click","#dei-restore-draft",function(){var r=draftRecovery();if(!r)return;$("#generator-spl").val(r.spl).trigger("input");$("#builder-cron").val(r.cron);$("#builder-earliest").val(r.earliest);$("#builder-latest").val(r.latest);announceAction("Recovered query restored. Review and save it as a governed draft when ready.","success");});
+    $(document).on("click","#dei-compare-draft",function(){var r=draftRecovery();if(!r)return;$("#dei-recovery-comparison").remove();$("#dei-draft-recovery").append('<details id="dei-recovery-comparison" open><summary>Recovered and currently loaded SPL</summary><div class="dei-recovery-compare-grid"><section><strong>Recovered copy</strong><pre>'+$("<div>").text(r.spl).html()+'</pre></section><section><strong>Currently loaded version</strong><pre>'+$("<div>").text(String($("#generator-spl").val()||"")).html()+'</pre></section></div></details>');});
+    $(document).on("click","#dei-discard-draft",clearDraftRecovery);
+    $(document).on("dei:detection-artifact-saved",function(_event,id,record){clearDraftRecovery();rememberDetection(id,record&&record.name);addActivity(record&&record.validation&&record.validation.status==="passed"?"validation":"draft","Detection work saved",(record&&record.name||id)+" · "+(record&&record.state||"draft"),"detection_workflow?detection="+encodeURIComponent(id),id);});
+    $(document).on("dei:lifecycle-action-complete",function(_event,action,saved){completionConfirmation(action,saved);});
+    $(document).on("dei:catalog-action-complete",function(_event,status){addActivity("catalog","Catalog state updated","Detection status · "+status,"detection_catalog");});
+    $(document).on("dei:scan-progress",function(_event,status){if(status&&/^complete/.test(status.stage)){addActivity("scan","Environment scan completed",status.message,"mitre_coverage");window.setTimeout(renderScanChanges,50);}});
+    $(window).on("beforeunload",function(){if(shell().is("#dei-guided-detection-page")&&draftDirty){captureDraftRecovery();return "Recovered query changes are available when you return.";}});
+  }
 
   function safeStorageGet(key, fallback) {
     try { return window.localStorage.getItem(key) || fallback; } catch (error) { return fallback; }
@@ -885,4 +1054,5 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
 
   initialize();
+  initializeEngagement();
 });
