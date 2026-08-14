@@ -25,7 +25,8 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     for element_id in (
         "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
         "dei-analyze", "dei-feedback", "dei-discovery-next",
-        "dei-discovery-result-state", "dei-open-environment-insights",
+        "dei-discovery-result-state", "dei-discovery-next-summary",
+        "dei-review-scan-results", "dei-open-environment-insights",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
     for moved_id in (
@@ -36,8 +37,21 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
-    insights_link = root.find(".//a[@href='detection_workflow']")
-    assert insights_link is not None
+    next_step = root.find(".//*[@id='dei-discovery-next']")
+    assert next_step is not None
+    assert next_step.attrib["hidden"] == "hidden"
+    assert root.find(".//a[@href='mitre_coverage']") is not None
+    assert root.find(".//a[@href='detection_workflow']") is not None
+
+
+def test_completed_scan_reveals_an_explicit_next_step() -> None:
+    javascript = (STATIC_ROOT / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC_ROOT / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    assert 'next.prop("hidden",!ready)' in javascript
+    assert '"The scan generated "+recommendationCount+" detection recommendation"' in javascript
+    assert '$("#dei-review-scan-results").toggleClass("ready",ready)' in javascript
+    assert ".dei-discovery-next[hidden]" in stylesheet
+    assert "#dei-review-scan-results.ready" in stylesheet
 
 
 def test_environment_insights_contains_saved_results_without_discovery_form() -> None:

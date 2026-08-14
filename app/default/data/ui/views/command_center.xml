@@ -12,16 +12,16 @@
             <div id="dei-api-status" class="dei-status">API status: checking</div>
           </section>
 
-          <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title">
-            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to detection engineering</h2><p>Use this saved scan evidence to select, build, validate, review, and govern a detection in one workspace.</p></div>
-            <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="detection_workflow">Open Detection Engineering Workspace →</a></div>
-          </section>
-
           <section id="dei-telemetry" class="dei-control-panel">
             <div class="dei-control-header"><div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry discovery</h2><p>Active source types observed across searchable indexes during the current seven-day analysis window.</p></div><span class="dei-control-note">7-day active telemetry window</span></div>
             <div class="dei-source-frame"><div class="dei-source-frame-head"><span>Discovered source types</span><small>Populated by this scan only</small></div><textarea id="dei-sources" rows="7" readonly="readonly" placeholder="Run environment analysis to discover active Splunk telemetry..."></textarea></div>
             <div class="dei-actions"><label class="dei-toggle"><input id="dei-es-enabled" type="checkbox"/><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label><button id="dei-analyze" type="button"><span>Run intelligence scan</span><b>→</b></button></div>
             <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
+          </section>
+
+          <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title" aria-live="polite" hidden="hidden">
+            <div class="dei-discovery-next-copy"><span id="dei-discovery-result-state" data-state="waiting">Waiting for analysis</span><div><p class="dei-eyebrow">Recommended next step</p><h2 id="dei-discovery-next-title">Review detection opportunities</h2><p id="dei-discovery-next-summary">The completed scan is ready for review. Confirm telemetry readiness and ATT&amp;CK coverage before building a detection.</p></div></div>
+            <div class="dei-discovery-next-action"><a id="dei-review-scan-results" href="mitre_coverage">Review recommendations →</a><a id="dei-open-environment-insights" href="detection_workflow">Open Guided Detection Builder</a></div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>

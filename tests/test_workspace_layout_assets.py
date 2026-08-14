@@ -286,7 +286,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     for selector in (
         "#dei-home-page>.dei-guided-workflow{order:2!important}",
         "#dei-command-center>#dei-telemetry{order:2!important}",
-        "#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:1!important}",
+        "#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:3!important;margin-top:14px}",
         "#dei-detection-builder-page>.dei-builder-selector-section{order:2!important}",
         "#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:2!important}",
     ):
