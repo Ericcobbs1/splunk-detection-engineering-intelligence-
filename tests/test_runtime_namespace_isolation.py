@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_BIN = ROOT / "app" / "bin"
+QUALITY_WORKFLOW = ROOT / ".github" / "workflows" / "quality.yml"
 
 
 def test_dei_handlers_ignore_a_conflicting_generic_dei_package(tmp_path: Path) -> None:
@@ -50,3 +51,9 @@ def test_persistent_entrypoints_use_only_the_isolated_runtime_namespace() -> Non
     assert "from dei_intelligence.api.storage_handler import StorageHandler" in (
         APP_BIN / "dei_storage_rest.py"
     ).read_text(encoding="utf-8")
+
+
+def test_ci_type_checks_the_isolated_runtime_package() -> None:
+    workflow = QUALITY_WORKFLOW.read_text(encoding="utf-8")
+    assert "mypy app/bin/dei_intelligence" in workflow
+    assert "mypy app/bin/dei\n" not in workflow

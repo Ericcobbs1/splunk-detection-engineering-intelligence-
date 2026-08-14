@@ -58,7 +58,7 @@ jobs:
         run: ruff check app/bin tests
 
       - name: Type check
-        run: mypy app/bin/dei
+        run: mypy app/bin/dei_intelligence
 
       - name: Unit tests
         run: pytest
