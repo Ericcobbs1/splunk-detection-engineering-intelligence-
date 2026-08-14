@@ -13,7 +13,7 @@
 
           <header class="dei-action-center-hero">
             <div><p class="dei-kicker">Detection Action Center</p><h1>Resolve the next pipeline blockers.</h1><p>Review prioritized telemetry, validation, and monitoring findings without crowding the operational home page.</p></div>
-            <a href="dei_home">Return to operational home →</a>
+            <a id="action-return-to-detection" href="dei_home">Return to operational home →</a>
           </header>
 
           <section class="dei-action-summary" aria-label="Action item summary">

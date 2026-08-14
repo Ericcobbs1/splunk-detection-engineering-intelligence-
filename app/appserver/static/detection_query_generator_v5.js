@@ -295,7 +295,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var labels = {
       production_ready:"Telemetry ready",
       field_unverified:"Field verification required",
-      field_gap:"Confirmed field gap"
+      field_gap:"Confirmed field gap",
+      partial:"Planning draft · partial telemetry",
+      unsupported:"Planning draft · telemetry unavailable",
+      requires_es:"Planning draft · Enterprise Security required",
+      requires_enterprise_security:"Planning draft · Enterprise Security required"
     };
     return labels[value] || String(value || "unknown").replace(/_/g, " ");
   }
@@ -315,6 +319,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function engineeringWarnings(item) {
     var warnings = [];
+    if (["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(item.readiness)!==-1) {
+      warnings.push("Planning draft only. Telemetry readiness must be verified before lifecycle advancement.");
+    }
+    if ((item.missing_sources || []).length) {
+      warnings.push("Missing telemetry sources: " + item.missing_sources.join(" · "));
+    }
     if (item.readiness === "field_unverified") {
       warnings.push("Field requirements have not been verified against a representative sample. Review field aliases before validation.");
     }
@@ -326,7 +336,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function buildArtifact(item) {
     var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
-    var sources = observedSourcetypes(item, report);
+    var observedSources = observedSourcetypes(item, report);
+    var planning = ["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(item.readiness)!==-1;
+    var sources = observedSources.length ? observedSources : uniqueValues(item.required_sources || item.missing_sources || []);
     var timing = schedule(item);
     var spl = attachPlatformMitreMetadata("search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
       "\n" + normalizedPrelude(item) + "\n" + analyticLogic(item), item);
@@ -337,7 +349,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var artifact={
       schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft", analytic_family:analyticFamily(item.detection_id),
       description:item.why, severity:item.severity, capability:item.capability,
-      source_readiness:item.readiness, unresolved_fields:unresolvedFields(item), engineering_warnings:engineeringWarnings(item),
+      source_readiness:item.readiness, telemetry_verified:!planning&&observedSources.length>0,
+      planning_draft:planning, observed_sourcetypes:observedSources,
+      unresolved_fields:unresolvedFields(item), engineering_warnings:engineeringWarnings(item),
       sourcetypes:sources, mitre_attack:item.mitre_techniques || [], spl:spl,
       schedule:timing, generated_at:new Date().toISOString(), updated_at:new Date().toISOString(),
       validation:null, enterprise_security: esEnabled ? {
@@ -373,7 +387,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#generator-empty").hide();
     $("#generator-output").show();
     $("#generator-title").text(artifact.name);
-    $("#generator-badges").html('<span>' + escapeHtml(artifact.status) + '</span><span>' +
+    $("#generator-badges").html('<span>' + escapeHtml(artifact.planning_draft?"planning draft":artifact.status) + '</span><span>' +
       escapeHtml(artifact.severity) + '</span><span>' + escapeHtml(readinessLabel(artifact.source_readiness)) + '</span><span>' + escapeHtml(artifact.mitre_attack.join(" · ") || "No MITRE mapping") + '</span>');
     $("#builder-cron").val(artifact.schedule.cron);
     $("#builder-earliest").val(artifact.schedule.earliest);
@@ -631,8 +645,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       renderValidationResolution(null);
       return;
     }
-    state.removeClass("idle running passed failed").addClass(validation.status)
-      .text(validation.status === "passed" ? "Search completed" : "Validation failed");
+    var planningPassed=validation.status==="planning_passed";
+    state.removeClass("idle running passed failed planning_passed").addClass(planningPassed?"passed":validation.status)
+      .text(validation.status === "passed" ? "Search completed" : planningPassed?"Planning search completed · telemetry gate remains":"Validation failed");
     $("#validation-status").text(validation.status);
     $("#validation-result-count").text(validation.result_count);
     $("#validation-runtime").text(validation.runtime_ms + " ms");
@@ -711,17 +726,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         earliest_time:artifact.schedule.earliest, latest_time:artifact.schedule.latest}
     }).done(function (text) {
       var rows = parseExportRows(text);
-      artifact.validation = {status:"passed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
+      var planningDraft=artifact.planning_draft===true || artifact.telemetry_verified===false;
+      artifact.validation = {status:planningDraft?"planning_passed":"passed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
         result_count:rows.length, result_limit:VALIDATION_RESULT_LIMIT, sample_results:rows};
-      artifact.status = "testing";
-      artifact.state = "testing";
+      artifact.status = planningDraft ? "draft" : "testing";
+      artifact.state = artifact.status;
       artifact.updated_at = artifact.validation.validated_at;
       selected = artifact;
       renderArtifact(artifact);
       saveArtifact(artifact).done(function(savedRecord){
         announceSavedArtifact(artifact,savedRecord);
         $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
-        setFeedback("Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
+        setFeedback(planningDraft?"Planning search completed. SPL execution was tested, but telemetry readiness must be verified before peer review.":"Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
       }).fail(function(error){ setFeedback("Validation passed but its lifecycle evidence could not be saved: "+String(error||"unknown persistence error"),"error"); });
     }).fail(function (xhr, status) {
       var error=validationError(xhr,status);
@@ -773,7 +789,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function buildableRecommendations() {
     var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
-    var allowed = {production_ready:true, field_unverified:true, field_gap:true};
+    var allowed = {production_ready:true, field_unverified:true, field_gap:true,partial:true,
+      unsupported:true,requires_es:true,requires_enterprise_security:true};
     return (report.recommendations || []).filter(function (item) {
       return allowed[item.readiness] === true;
     });
@@ -824,25 +841,30 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), null);
     var items = buildableRecommendations();
     var requested = requestedDetectionId();
-    $("#builder-ready-count").text(items.length + " buildable");
+    $("#builder-ready-count").text(items.length + " available");
     $("#builder-detection-select").html('<option value="">Select a detection to build</option>' +
       selectorGroup(items, "production_ready", "Telemetry ready") +
       selectorGroup(items, "field_unverified", "Field verification required") +
-      selectorGroup(items, "field_gap", "Confirmed field gaps"));
+      selectorGroup(items, "field_gap", "Confirmed field gaps") +
+      selectorGroup(items, "partial", "Planning drafts · partial telemetry") +
+      selectorGroup(items, "unsupported", "Planning drafts · telemetry unavailable") +
+      selectorGroup(items, "requires_es", "Planning drafts · Enterprise Security required") +
+      selectorGroup(items, "requires_enterprise_security", "Planning drafts · Enterprise Security required"));
     if (!report || !report.recommendations) {
       setStartFeedback("No environment analysis is loaded. Run Environment Discovery before generating a draft.", "error");
       $("#builder-generate").prop("disabled", true);
       return;
     }
     if (!items.length) {
-      setStartFeedback("No buildable recommendations are available. Resolve telemetry blockers first.", "error");
+      setStartFeedback("No recommendations are available. Run Environment Discovery first.", "error");
       $("#builder-generate").prop("disabled", true);
       return;
     }
     if (requested && items.some(function (item) { return item.detection_id === requested; })) {
       $("#builder-detection-select").val(requested);
       $("#builder-generate").prop("disabled", false);
-      setStartFeedback("Ready to generate a clean detection draft.", "ready");
+      var requestedItem=items.filter(function (item) { return item.detection_id===requested; })[0];
+      setStartFeedback(requestedItem&&["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(requestedItem.readiness)!==-1?"Ready to create a planning draft. Telemetry readiness will remain blocked.":"Ready to generate a clean detection draft.", "ready");
       resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.");
       $("#builder-detection-select").trigger("change");
     } else {
@@ -901,7 +923,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     artifact.unresolved_fields = unresolvedFields(item);
     artifact.engineering_warnings = engineeringWarnings(item);
     if (!artifact.sourcetypes || !artifact.sourcetypes.length) {
-      setStartFeedback("No observed sourcetype mapping is available for this recommendation. Refresh Environment Intelligence before generating SPL.", "error");
+      setStartFeedback("No required or observed source is defined for this recommendation. Refresh Environment Intelligence or correct the knowledge pack.", "error");
       finishGeneration();
       return;
     }
@@ -920,7 +942,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord);
       }
       $(document).trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord]);
-      setStartFeedback("Detection draft generated and saved. Review the SPL and validation workspace below.", "success");
+      setStartFeedback(artifact.planning_draft?"Planning draft generated. Review the SPL; telemetry readiness is still required before peer review.":"Detection draft generated and saved. Review the SPL and validation workspace below.", "success");
       setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
       finishGeneration();
     }).fail(function (error) {

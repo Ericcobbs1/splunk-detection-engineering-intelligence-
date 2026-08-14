@@ -35,7 +35,7 @@
               <article class="dei-workflow-next-card">
                 <p>Do this next</p><h3 id="workflow-next-title">Review the recommendation</h3><p id="workflow-next-explanation"></p>
                 <div id="workflow-requirements" class="dei-workflow-requirements"></div>
-                <a id="workflow-primary-action" href="#detection-generator">Continue →</a>
+                <div class="dei-workflow-next-actions"><a id="workflow-primary-action" href="#detection-generator">Continue →</a><a id="workflow-secondary-action" href="detection_action_center?category=telemetry" hidden="hidden">Resolve telemetry evidence →</a></div>
                 <small id="workflow-action-note">The required workspace is available below.</small>
               </article>
               <aside class="dei-workflow-help-card">

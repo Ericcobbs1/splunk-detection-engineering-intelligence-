@@ -22,7 +22,7 @@ def test_guided_workflow_is_a_packaged_dedicated_page() -> None:
         "workflow-empty", "workflow-driver", "workflow-stage-count",
         "workflow-detection-title", "workflow-current-stage", "workflow-stage-rail",
         "workflow-next-title", "workflow-next-explanation", "workflow-requirements",
-        "workflow-primary-action", "workflow-action-note", "workflow-advanced-evidence",
+        "workflow-primary-action", "workflow-secondary-action", "workflow-action-note", "workflow-advanced-evidence",
         "lifecycle-action-center", "lifecycle-action-title", "lifecycle-action-position",
         "lifecycle-action-state", "lifecycle-action-summary", "lifecycle-action-feedback",
         "lifecycle-action-progress", "lifecycle-action-evidence", "lifecycle-action-fields",
@@ -48,11 +48,31 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert "You are here" in javascript
     assert '"Stage "+(current+1)+" of "+STAGES.length' in javascript
     assert '"Current stage: "+label(stage)' in javascript
-    assert 'requirements:[["Telemetry readiness",false],["MITRE mapping",false],["Observed sourcetype",false]]' in javascript
+    assert "recommendationRequirements" in javascript
+    assert 'techniques.length>0' in javascript
+    assert 'observed.length>0' in javascript
+    assert 'missing_sources' in javascript
     assert '$(document).on("dei:detection-draft-generated dei:detection-artifact-saved"' in javascript
     assert "dei:detection-artifact-saved" in javascript
     assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
+
+
+def test_unsupported_recommendation_has_safe_planning_and_remediation_paths() -> None:
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    for contract in (
+        "Create planning draft", "Resolve telemetry evidence", "planning draft",
+        'detection_action_center?category=telemetry&detection=', "secondaryHref",
+    ):
+        assert contract in workflow
+    for contract in (
+        "planning_draft:planning", "telemetry_verified:!planning",
+        "planning_passed", "Telemetry readiness must be verified before lifecycle advancement",
+        "unsupported:true", "partial:true",
+    ):
+        assert contract in generator
+    assert 'artifact.status = planningDraft ? "draft" : "testing"' in generator
 
 
 def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -> None:

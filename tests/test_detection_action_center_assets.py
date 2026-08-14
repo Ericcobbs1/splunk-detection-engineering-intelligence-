@@ -19,6 +19,7 @@ def test_action_center_is_a_packaged_dedicated_workspace() -> None:
         "action-count-telemetry", "action-count-validation", "action-count-monitoring",
         "action-search", "action-severity", "action-category", "action-readiness",
         "action-reset-filters", "action-refresh", "action-findings", "action-empty",
+        "action-return-to-detection",
     ):
         assert root.find(f".//*[@id='{element_id}']") is not None
 
@@ -57,5 +58,6 @@ def test_action_center_exposes_filters_and_direct_remediation_actions() -> None:
         "[data-action-summary]", "#action-reset-filters", "#action-refresh",
         "Repair and validate", "Review health evidence", "Record health baseline",
         "Build engineering draft", "Resolve telemetry evidence",
+        "Missing required source", "returnTarget", '#action-return-to-detection',
     ):
         assert contract in javascript

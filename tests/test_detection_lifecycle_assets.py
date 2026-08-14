@@ -248,7 +248,8 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "VALIDATION_TIMEOUT_MS = 60000" in javascript
     assert "earliest_time:artifact.schedule.earliest" in javascript
     assert "latest_time:artifact.schedule.latest" in javascript
-    assert 'artifact.status = "testing"' in javascript
+    assert 'artifact.status = planningDraft ? "draft" : "testing"' in javascript
+    assert 'status:planningDraft?"planning_passed":"passed"' in javascript
     assert "sample_results:rows" in javascript
     assert "saveCurrentDraft" in javascript
     assert "validationResolution" in javascript
