@@ -417,9 +417,9 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert "field-evidence verification" in lifecycle
     assert "telemetry ready" in lifecycle
     for destination in (
-        "command_center#dei-telemetry", "detection_catalog?pipeline=profile",
-        "detection_catalog?pipeline=qualify", "mitre_coverage#mitre-detection-list",
-        "detection_catalog?pipeline=design", "detection_workflow#guided-builder-workspace",
+        "command_center#dei-telemetry", "environment_insights#dei-portfolio-section",
+        "environment_insights#metric-ready", "mitre_coverage#mitre-detection-list",
+        "detection_workflow#workflow-driver", "detection_workflow#guided-builder-workspace",
         "detection_workflow#builder-validation-title",
     ):
         assert destination in javascript
@@ -427,3 +427,37 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert '.attr("href","detection_action_center")' in javascript
     assert ".dei-topology-node[role=\"link\"]" in stylesheet
     assert ".dei-topology-flow>.dei-flow-header{position:relative!important" in stylesheet
+
+
+def test_every_home_topology_step_targets_an_existing_owned_section() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    routes = {
+        "discover": ("command_center", "dei-telemetry"),
+        "profile": ("environment_insights", "dei-portfolio-section"),
+        "qualify": ("environment_insights", "metric-ready"),
+        "recommend": ("mitre_coverage", "mitre-detection-list"),
+        "design": ("detection_workflow", "workflow-driver"),
+        "generate": ("detection_workflow", "guided-builder-workspace"),
+        "validate": ("detection_workflow", "builder-validation-title"),
+    }
+    for stage, (view_name, section_id) in routes.items():
+        destination = f'{stage}:"{view_name}#{section_id}"'
+        assert destination in javascript
+        view = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
+        assert view.find(f".//*[@id='{section_id}']") is not None, destination
+
+
+def test_catalog_makes_enabled_and_disabled_states_immediately_visible() -> None:
+    view = (VIEWS / "detection_catalog.xml").read_text(encoding="utf-8")
+    javascript = (STATIC / "detection_catalog_v2.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "detection_catalog_state_v1.css").read_text(encoding="utf-8")
+    assert 'data-catalog-filter="enabled" data-deployment-state="enabled"' in view
+    assert 'data-catalog-filter="disabled" data-deployment-state="disabled"' in view
+    assert 'id="catalog-count-disabled"' in view
+    assert 'data-catalog-status="' in javascript
+    assert 'Enabled in Production' in javascript
+    assert 'class="dei-deployment-state ' in javascript
+    assert '"ENABLED"' in javascript and '"DISABLED"' in javascript
+    assert '[data-deployment-state="enabled"]' in stylesheet
+    assert '[data-deployment-state="disabled"]' in stylesheet
+    assert ".dei-deployment-state.disabled" in stylesheet

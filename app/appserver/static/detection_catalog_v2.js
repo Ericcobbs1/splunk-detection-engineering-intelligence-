@@ -55,7 +55,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     $("#catalog-table").html(visible.length?visible.map(function (record) {
       var deployment=record.deployment||{}; var status=catalogStatus(record);
-      return '<tr><td><strong>'+esc(record.name||key(record))+'</strong><small>'+esc(key(record))+'</small></td><td>'+esc(mitre(record)||"Not mapped")+'</td><td><span class="dei-lifecycle-stage '+esc(record.state)+'">'+esc(label(record.state))+'</span></td><td><span class="dei-catalog-status '+esc(status)+'">'+esc(label(status))+'</span></td><td>'+esc(deployment.external_object_id||"Not enabled")+'</td><td>'+esc(health(record))+'</td><td><button class="dei-catalog-manage" type="button" data-key="'+esc(key(record))+'">Manage</button></td></tr>';
+      var deploymentState=status==="enabled"||status==="monitoring"?"Enabled in Production":status==="disabled"?"Disabled":"Not enabled";
+      return '<tr data-catalog-status="'+esc(status)+'"><td><strong>'+esc(record.name||key(record))+'</strong><small>'+esc(key(record))+'</small></td><td>'+esc(mitre(record)||"Not mapped")+'</td><td><span class="dei-lifecycle-stage '+esc(record.state)+'">'+esc(label(record.state))+'</span></td><td><span class="dei-catalog-status '+esc(status)+'">'+esc(label(status))+'</span></td><td><span class="dei-deployment-state '+esc(status)+'">'+esc(deploymentState)+'</span><small>'+esc(deployment.external_object_id||"No deployment object recorded")+'</small></td><td>'+esc(health(record))+'</td><td><button class="dei-catalog-manage" type="button" data-key="'+esc(key(record))+'">Manage</button></td></tr>';
     }).join(""):'<tr><td colspan="7">No cataloged detections match these filters. <button class="dei-catalog-inline-reset" type="button">Reset filters</button></td></tr>');
   }
 
@@ -68,7 +69,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     selected=records.filter(function (record) { return key(record)===recordKey; })[0]||null; if (!selected) { return; }
     var status=catalogStatus(selected); var deployment=selected.deployment||{};
     $("#catalog-action-panel").prop("hidden",false); $("#catalog-action-title").text(selected.name||key(selected));
-    $("#catalog-action-state").text(label(status)+" · "+label(selected.state));
+    $("#catalog-action-state").removeClass("ready development staging enabled disabled monitoring retired").addClass(status).text((status==="enabled"||status==="monitoring"?"ENABLED":status==="disabled"?"DISABLED":label(status))+" · "+label(selected.state));
     $("#catalog-action-summary").text(["ready","development","staging"].indexOf(status)!==-1?"Peer review is approved. Record or promote the governed deployment object, or return it for changes.":"Manage operational state and continue through monitoring, tuning, or retirement.");
     $("#catalog-action-evidence").html(evidence(selected));
     $("#catalog-deployment-target").val(deployment.target||"splunk_platform"); $("#catalog-deployment-environment").val(deployment.environment||"production"); $("#catalog-external-id").val(deployment.external_object_id||""); $("#catalog-enable-note").val("");
