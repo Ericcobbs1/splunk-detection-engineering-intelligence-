@@ -685,12 +685,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function renderEnvironmentSplitState() {
     var report=safeJson(safeSessionGet("dei.latestRecommendationReport", ""), {});
-    var ready=Number(report.observed_source_count || 0)>0 || (report.recommendations || []).length>0;
+    var recommendationCount=(report.recommendations || []).length;
+    var ready=Number(report.observed_source_count || 0)>0 || recommendationCount>0;
+    var next=$("#dei-discovery-next");
     $("#dei-discovery-result-state").text(ready ? "Analysis ready" : "Waiting for analysis")
       .attr("data-state",ready ? "ready" : "waiting");
+    $("#dei-discovery-next-summary").text(ready ?
+      "The scan generated "+recommendationCount+" detection recommendation"+(recommendationCount===1?"":"s")+". Review telemetry readiness and ATT&CK coverage before building." :
+      "The completed scan will provide the recommended next action here.");
+    next.prop("hidden",!ready).attr("aria-hidden",ready ? "false" : "true");
     $("#dei-open-environment-insights").toggleClass("ready",ready)
-      .attr("aria-label",ready ? "View saved environment intelligence results" :
-        "Open environment intelligence results; no saved analysis is currently available");
+      .attr("aria-label",ready ? "Open the Guided Detection Builder using saved scan recommendations" :
+        "Open the Guided Detection Builder; no saved analysis is currently available");
+    $("#dei-review-scan-results").toggleClass("ready",ready)
+      .attr("aria-label",ready ? "Review scan recommendations and ATTACK coverage" :
+        "Review recommendations; no saved analysis is currently available");
   }
 
   function closeOnboarding() {
