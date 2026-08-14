@@ -1,0 +1,22 @@
+{
+  "id": "identity",
+  "name": "Identity Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Identity Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity"
+  ],
+  "supported_sources": [
+    "identity.authentication"
+  ],
+  "capabilities": [
+    "identity.mfa",
+    "identity.privilege"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

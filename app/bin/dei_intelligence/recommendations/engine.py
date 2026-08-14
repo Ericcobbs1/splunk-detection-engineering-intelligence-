@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 from dei_intelligence.telemetry.normalization import SourceMapping, normalize_sources
+
+_DETECTION_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_.-]*$")
+_MITRE_TECHNIQUE_PATTERN = re.compile(r"^T[0-9]{4}(?:\.[0-9]{3})?$")
+_DETECTION_KEYS = {
+    "id", "name", "pack_id", "capability", "required_sources", "required_fields",
+    "priority", "severity", "mitre_techniques", "why", "implementation",
+    "requires_enterprise_security",
+}
 
 
 class RecommendationError(ValueError):
@@ -39,6 +49,19 @@ class DetectionOpportunity:
         missing = sorted(required - value.keys())
         if missing:
             raise RecommendationError(f"Detection catalog entry missing: {', '.join(missing)}")
+        unexpected = sorted(value.keys() - _DETECTION_KEYS)
+        if unexpected:
+            raise RecommendationError(
+                f"Detection catalog entry contains unsupported fields: {', '.join(unexpected)}"
+            )
+
+        detection_id = value["id"]
+        if not isinstance(detection_id, str) or _DETECTION_ID_PATTERN.fullmatch(detection_id) is None:
+            raise RecommendationError("Detection id must be a stable lowercase identifier")
+        for field_name in ("name", "pack_id", "capability", "why", "implementation"):
+            field_value = value[field_name]
+            if not isinstance(field_value, str) or not field_value.strip():
+                raise RecommendationError(f"Detection {field_name} must be a non-empty string")
 
         priority = value["priority"]
         if not isinstance(priority, int) or not 0 <= priority <= 100:
@@ -46,9 +69,16 @@ class DetectionOpportunity:
         severity = str(value["severity"]).lower()
         if severity not in {"low", "medium", "high", "critical"}:
             raise RecommendationError(f"Unsupported severity: {severity}")
-        required_sources = tuple(str(item).strip() for item in value["required_sources"])
+        raw_required_sources = value["required_sources"]
+        if not isinstance(raw_required_sources, list) or not all(
+            isinstance(item, str) for item in raw_required_sources
+        ):
+            raise RecommendationError("Detection required_sources must be an array of strings")
+        required_sources = tuple(item.strip() for item in raw_required_sources)
         if not required_sources or any(not item for item in required_sources):
             raise RecommendationError("Detection required_sources must not be empty")
+        if len(required_sources) != len(set(required_sources)):
+            raise RecommendationError("Detection required_sources must not contain duplicates")
 
         field_requirements: dict[str, tuple[tuple[str, ...], ...]] = {}
         raw_fields = value.get("required_fields", {})
@@ -66,15 +96,30 @@ class DetectionOpportunity:
                     raise RecommendationError("field requirement groups must contain field names")
                 parsed_groups.append(tuple(item.strip() for item in candidates))
             field_requirements[source] = tuple(parsed_groups)
+        if set(field_requirements) != set(required_sources):
+            raise RecommendationError(
+                "Detection required_fields must define every required source and no others"
+            )
+
+        raw_techniques = value["mitre_techniques"]
+        if not isinstance(raw_techniques, list) or not all(
+            isinstance(item, str) and _MITRE_TECHNIQUE_PATTERN.fullmatch(item)
+            for item in raw_techniques
+        ):
+            raise RecommendationError("Detection mitre_techniques must contain ATT&CK technique IDs")
+        if len(raw_techniques) != len(set(raw_techniques)):
+            raise RecommendationError("Detection mitre_techniques must not contain duplicates")
+        if not isinstance(value["requires_enterprise_security"], bool):
+            raise RecommendationError("Detection requires_enterprise_security must be boolean")
 
         return cls(
-            detection_id=str(value["id"]), name=str(value["name"]),
+            detection_id=detection_id, name=value["name"],
             pack_id=str(value["pack_id"]), capability=str(value["capability"]),
             required_sources=required_sources, required_fields=field_requirements,
             priority=priority, severity=severity,
-            mitre_techniques=tuple(str(item) for item in value["mitre_techniques"]),
-            why=str(value["why"]), implementation=str(value["implementation"]),
-            requires_enterprise_security=bool(value["requires_enterprise_security"]),
+            mitre_techniques=tuple(raw_techniques),
+            why=value["why"], implementation=value["implementation"],
+            requires_enterprise_security=value["requires_enterprise_security"],
         )
 
 
@@ -138,6 +183,11 @@ class RecommendationEngine:
             raise RecommendationError("Detection catalog contains duplicate IDs")
         self._opportunities = opportunities
 
+    @property
+    def detection_count(self) -> int:
+        """Return the number of validated detections available to the engine."""
+        return len(self._opportunities)
+
     @classmethod
     def from_catalog(cls, catalog_path: Path) -> "RecommendationEngine":
         try:
@@ -152,6 +202,87 @@ class RecommendationEngine:
         if len(opportunities) != len(raw):
             raise RecommendationError("Every detection catalog entry must be an object")
         return cls(opportunities)
+
+    @classmethod
+    def from_knowledge_packs(
+        cls,
+        pack_root: Path,
+        manifest_schema_path: Path,
+        detection_schema_path: Path,
+        *,
+        current_dei_version: str = "0.1.0",
+    ) -> "RecommendationEngine":
+        """Load and cross-validate every pack-owned detection catalog."""
+        try:
+            detection_schema = json.loads(detection_schema_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RecommendationError(f"Unable to load detection schema: {exc}") from exc
+        required = detection_schema.get("required") if isinstance(detection_schema, dict) else None
+        properties = detection_schema.get("properties") if isinstance(detection_schema, dict) else None
+        if (
+            not isinstance(required, list)
+            or not isinstance(properties, dict)
+            or not _DETECTION_KEYS.issubset(set(required))
+            or not _DETECTION_KEYS.issubset(properties)
+        ):
+            raise RecommendationError(f"Invalid detection schema: {detection_schema_path}")
+
+        try:
+            packs = KnowledgePackLoader(
+                manifest_schema_path, current_dei_version=current_dei_version
+            ).load_all(pack_root)
+        except KnowledgePackError as exc:
+            raise RecommendationError(f"Unable to load knowledge packs: {exc}") from exc
+
+        opportunities: list[DetectionOpportunity] = []
+        for pack in packs:
+            manifest = pack.manifest
+            for detection_path in pack.detection_paths:
+                try:
+                    raw = json.loads(detection_path.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:
+                    raise RecommendationError(
+                        f"Unable to load detection catalog {detection_path}: {exc}"
+                    ) from exc
+                if not isinstance(raw, list) or not raw:
+                    raise RecommendationError(
+                        f"Detection catalog must be a non-empty JSON array: {detection_path}"
+                    )
+                for value in raw:
+                    if not isinstance(value, dict):
+                        raise RecommendationError(
+                            f"Every detection catalog entry must be an object: {detection_path}"
+                        )
+                    opportunity = DetectionOpportunity.from_mapping(value)
+                    if opportunity.pack_id != manifest.pack_id:
+                        raise RecommendationError(
+                            f"Detection {opportunity.detection_id!r} declares pack "
+                            f"{opportunity.pack_id!r}, expected {manifest.pack_id!r}"
+                        )
+                    if opportunity.capability not in manifest.capabilities:
+                        raise RecommendationError(
+                            f"Detection {opportunity.detection_id!r} references undeclared "
+                            f"capability {opportunity.capability!r}"
+                        )
+                    undeclared_sources = sorted(
+                        set(opportunity.required_sources) - set(manifest.supported_sources)
+                    )
+                    if undeclared_sources:
+                        raise RecommendationError(
+                            f"Detection {opportunity.detection_id!r} references sources not "
+                            f"declared by pack {manifest.pack_id!r}: "
+                            f"{', '.join(undeclared_sources)}"
+                        )
+                    if (
+                        manifest.requires_enterprise_security
+                        and not opportunity.requires_enterprise_security
+                    ):
+                        raise RecommendationError(
+                            f"Detection {opportunity.detection_id!r} must require Enterprise "
+                            f"Security because pack {manifest.pack_id!r} requires it"
+                        )
+                    opportunities.append(opportunity)
+        return cls(tuple(opportunities))
 
     def recommend(
         self,

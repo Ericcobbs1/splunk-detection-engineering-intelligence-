@@ -1,0 +1,23 @@
+{
+  "id": "github",
+  "name": "GitHub Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "GitHub Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "github.audit"
+  ],
+  "capabilities": [
+    "github.audit.admin_change"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

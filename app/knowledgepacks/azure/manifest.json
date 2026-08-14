@@ -1,0 +1,23 @@
+{
+  "id": "azure",
+  "name": "Microsoft Azure",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Microsoft Azure detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "azure.activity"
+  ],
+  "capabilities": [
+    "azure.activity.change"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

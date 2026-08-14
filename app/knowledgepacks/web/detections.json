@@ -1,0 +1,38 @@
+[
+  {
+    "id": "web-anomalous-post-volume",
+    "name": "Anomalous Web POST Activity",
+    "pack_id": "web",
+    "capability": "web.http",
+    "required_sources": [
+      "web.http"
+    ],
+    "required_fields": {
+      "web.http": [
+        [
+          "method",
+          "http_method"
+        ],
+        [
+          "uri",
+          "uri_path",
+          "url",
+          "request_uri"
+        ],
+        [
+          "src_ip",
+          "clientip",
+          "client_ip"
+        ]
+      ]
+    },
+    "priority": 80,
+    "severity": "medium",
+    "mitre_techniques": [
+      "T1041"
+    ],
+    "why": "Unusual POST volume or destinations can indicate data transfer, abuse, or compromised web activity.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

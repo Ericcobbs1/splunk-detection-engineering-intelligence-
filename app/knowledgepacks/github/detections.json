@@ -1,0 +1,35 @@
+[
+  {
+    "id": "github-organization-admin-change",
+    "name": "GitHub Organization Administrative Change",
+    "pack_id": "github",
+    "capability": "github.audit.admin_change",
+    "required_sources": [
+      "github.audit"
+    ],
+    "required_fields": {
+      "github.audit": [
+        [
+          "action"
+        ],
+        [
+          "actor",
+          "user"
+        ],
+        [
+          "actor_ip",
+          "ip_address",
+          "src_ip"
+        ]
+      ]
+    },
+    "priority": 86,
+    "severity": "medium",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "GitHub organization and repository administration events can reveal unauthorized access or persistence changes.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

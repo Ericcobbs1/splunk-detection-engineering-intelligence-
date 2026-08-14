@@ -5,12 +5,11 @@ from pathlib import Path
 import pytest
 
 from dei_intelligence.recommendations.engine import RecommendationEngine, RecommendationError
-
-CATALOG_PATH = Path("app/detections/catalog.json")
+from library_helpers import engine_from_library
 
 
 def test_recommendations_rank_ready_cloud_detections() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(["aws:cloudtrail"])
+    report = engine_from_library().recommend(["aws:cloudtrail"])
     assert report.production_ready_count == 3
     assert report.partial_count == 1
     assert report.recommendations[0].detection_id == "aws-iam-policy-escalation"
@@ -19,7 +18,7 @@ def test_recommendations_rank_ready_cloud_detections() -> None:
 
 
 def test_recommendations_explain_partial_ai_coverage() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["ai:gateway"], include_unsupported=True
     )
     sensitive = next(
@@ -32,7 +31,7 @@ def test_recommendations_explain_partial_ai_coverage() -> None:
 
 
 def test_recommendations_are_case_insensitive_and_deduplicated() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["AWS:CLOUDTRAIL", "aws:cloudtrail", ""]
     )
     assert report.observed_source_count == 1
@@ -50,7 +49,7 @@ def test_production_like_lab_baseline_preserves_legacy_readiness() -> None:
         "azure:openai:diagnostic",
         "gcp:audit:vertexai",
     ]
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         observed_sources,
         enterprise_security_enabled=True,
         include_unsupported=True,
@@ -89,7 +88,7 @@ def test_eleven_source_lab_uses_v2_secondary_capabilities() -> None:
         "ai:gateway",
         "dlp",
     ]
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         observed_sources,
         enterprise_security_enabled=True,
         include_unsupported=True,
@@ -131,7 +130,7 @@ def test_legacy_enterprise_lab_remains_ready_for_original_catalog() -> None:
         "json",
         "otx:pulse",
     ]
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         observed_sources,
         enterprise_security_enabled=True,
         include_unsupported=True,
@@ -162,7 +161,7 @@ def test_expanded_catalog_sources_enable_new_detection_families() -> None:
         "github:audit",
         "sfdc:logfile",
     ]
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         observed_sources,
         include_unsupported=True,
     )
@@ -183,7 +182,7 @@ def test_expanded_catalog_sources_enable_new_detection_families() -> None:
 
 
 def test_unsupported_detections_are_hidden_by_default() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend([])
+    report = engine_from_library().recommend([])
     assert report.recommendations == ()
     assert report.unsupported_count == 31
 

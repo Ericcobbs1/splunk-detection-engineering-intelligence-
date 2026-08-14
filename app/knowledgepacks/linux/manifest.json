@@ -1,0 +1,23 @@
+{
+  "id": "linux",
+  "name": "Linux Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Linux Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "endpoint"
+  ],
+  "supported_sources": [
+    "linux.authentication"
+  ],
+  "capabilities": [
+    "linux.authentication",
+    "linux.privilege"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

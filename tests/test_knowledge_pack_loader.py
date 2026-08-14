@@ -7,8 +7,8 @@ import pytest
 from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_PATH = REPO_ROOT / "schemas" / "knowledge-pack.schema.json"
-PACK_ROOT = REPO_ROOT / "knowledgepacks"
+SCHEMA_PATH = REPO_ROOT / "app" / "schemas" / "knowledge-pack.schema.json"
+PACK_ROOT = REPO_ROOT / "app" / "knowledgepacks"
 
 
 def test_load_all_reference_packs() -> None:
@@ -16,8 +16,10 @@ def test_load_all_reference_packs() -> None:
 
     packs = loader.load_all(PACK_ROOT)
 
-    assert {pack.manifest.pack_id for pack in packs} == {"ai", "aws", "windows"}
-    assert all(not pack.manifest.requires_enterprise_security for pack in packs)
+    assert {pack.manifest.pack_id for pack in packs} == {
+        path.name for path in PACK_ROOT.iterdir() if path.is_dir()
+    }
+    assert all(pack.detection_paths for pack in packs)
 
 
 def test_discover_requires_existing_directory(tmp_path: Path) -> None:
@@ -86,7 +88,8 @@ def test_pack_directory_must_match_manifest_id(tmp_path: Path) -> None:
           "minimum_dei_version": "0.1.0",
           "domains": ["endpoint"],
           "supported_sources": ["example"],
-          "capabilities": ["example.capability"]
+          "capabilities": ["example.capability"],
+          "detection_files": ["detections.json"]
         }""",
         encoding="utf-8",
     )
@@ -108,7 +111,8 @@ def test_pack_requiring_newer_dei_version_is_rejected(tmp_path: Path) -> None:
           "minimum_dei_version": "0.2.0",
           "domains": ["cloud"],
           "supported_sources": ["example"],
-          "capabilities": ["example.future"]
+          "capabilities": ["example.future"],
+          "detection_files": ["detections.json"]
         }""",
         encoding="utf-8",
     )
@@ -130,10 +134,12 @@ def test_pack_supporting_current_dei_version_loads(tmp_path: Path) -> None:
           "minimum_dei_version": "0.1.0",
           "domains": ["cloud"],
           "supported_sources": ["example"],
-          "capabilities": ["example.compatible"]
+          "capabilities": ["example.compatible"],
+          "detection_files": ["detections.json"]
         }""",
         encoding="utf-8",
     )
+    (pack_root / "detections.json").write_text("[]", encoding="utf-8")
     loader = KnowledgePackLoader(SCHEMA_PATH, current_dei_version="0.1.0")
 
     pack = loader.load(manifest_path)

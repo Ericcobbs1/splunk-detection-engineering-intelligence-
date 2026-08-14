@@ -1,0 +1,72 @@
+[
+  {
+    "id": "endpoint-suspicious-powershell",
+    "name": "EDR Suspicious PowerShell Process",
+    "pack_id": "endpoint",
+    "capability": "endpoint.process",
+    "required_sources": [
+      "endpoint.edr"
+    ],
+    "required_fields": {
+      "endpoint.edr": [
+        [
+          "process_name",
+          "Image",
+          "file_name"
+        ],
+        [
+          "command_line",
+          "CommandLine",
+          "process_command_line"
+        ],
+        [
+          "user",
+          "UserName"
+        ]
+      ]
+    },
+    "priority": 95,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1059.001"
+    ],
+    "why": "EDR process telemetry can identify encoded, hidden, or suspicious PowerShell execution chains.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "endpoint-remote-logon",
+    "name": "EDR Suspicious Remote Logon",
+    "pack_id": "endpoint",
+    "capability": "endpoint.authentication",
+    "required_sources": [
+      "endpoint.edr"
+    ],
+    "required_fields": {
+      "endpoint.edr": [
+        [
+          "user",
+          "UserName"
+        ],
+        [
+          "src_ip",
+          "RemoteAddress",
+          "SourceIP"
+        ],
+        [
+          "logon_type",
+          "event_type",
+          "EventType"
+        ]
+      ]
+    },
+    "priority": 89,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1021"
+    ],
+    "why": "Remote logons from unusual sources can indicate lateral movement or compromised credentials.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

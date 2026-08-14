@@ -1,0 +1,34 @@
+[
+  {
+    "id": "m365-admin-change-failure",
+    "name": "Microsoft 365 Administrative Change Failure",
+    "pack_id": "m365",
+    "capability": "m365.admin_change",
+    "required_sources": [
+      "m365.activity"
+    ],
+    "required_fields": {
+      "m365.activity": [
+        [
+          "Operation",
+          "operation"
+        ],
+        [
+          "Workload",
+          "workload"
+        ],
+        [
+          "ResultStatus",
+          "result",
+          "status"
+        ]
+      ]
+    },
+    "priority": 82,
+    "severity": "medium",
+    "mitre_techniques": [],
+    "why": "Failed or unusual administrative operations in Microsoft 365 can indicate misuse, privilege problems, or attempted unauthorized change.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

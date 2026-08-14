@@ -75,6 +75,12 @@ Runs proposed searches against bounded historical windows and records runtime, r
 
 Loads versioned manifests and detection definitions. Invalid, unsigned, incompatible, or schema-noncompliant packs are rejected or quarantined.
 
+Pack manifests declare `detection_files`, supported telemetry sources, and capabilities. The
+recommendation engine aggregates those files in deterministic pack order and validates that every
+detection belongs to its containing pack. Detection IDs must be globally unique and remain stable
+across upgrades. Pack content may be divided into additional JSON files as the library grows
+without changing the runtime API.
+
 ### Integration Manager
 
 Detects optional products and exposes feature flags. ES-specific functionality must remain isolated behind this layer.

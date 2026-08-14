@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Sequence
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional, cast
 
 from dei_intelligence.api.response import persistent_response
+from dei_intelligence.core.config import RuntimeConfig
 from dei_intelligence.recommendations.engine import (
     RecommendationEngine,
     RecommendationError,
@@ -19,7 +21,20 @@ RecommendationFactory = Callable[
     RecommendationReport,
 ]
 APP_ROOT = Path(__file__).resolve().parents[3]
-CATALOG_PATH = APP_ROOT / "detections" / "catalog.json"
+PACK_ROOT = APP_ROOT / "knowledgepacks"
+MANIFEST_SCHEMA_PATH = APP_ROOT / "schemas" / "knowledge-pack.schema.json"
+DETECTION_SCHEMA_PATH = APP_ROOT / "schemas" / "detection.schema.json"
+
+
+@lru_cache(maxsize=1)
+def _default_engine() -> RecommendationEngine:
+    """Load the immutable packaged library once per persistent handler process."""
+    return RecommendationEngine.from_knowledge_packs(
+        PACK_ROOT,
+        MANIFEST_SCHEMA_PATH,
+        DETECTION_SCHEMA_PATH,
+        current_dei_version=RuntimeConfig().app_version,
+    )
 
 
 def _default_factory(
@@ -27,7 +42,7 @@ def _default_factory(
     include_unsupported: bool, fields_by_source: Optional[dict[str, list[str]]],
     telemetry_routes: Optional[list[dict[str, Any]]],
 ) -> RecommendationReport:
-    return RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    return _default_engine().recommend(
         sources,
         enterprise_security_enabled=enterprise_security_enabled,
         include_unsupported=include_unsupported,

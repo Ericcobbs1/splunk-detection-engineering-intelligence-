@@ -1,0 +1,21 @@
+{
+  "id": "enterprise_security",
+  "name": "Splunk Enterprise Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Splunk Enterprise Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "application"
+  ],
+  "supported_sources": [
+    "es.risk"
+  ],
+  "capabilities": [
+    "es.risk"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": true
+}

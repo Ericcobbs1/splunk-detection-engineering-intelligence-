@@ -15,7 +15,8 @@ def test_runtime_config_normalizes_values() -> None:
         {
             "app_version": "0.2.0",
             "log_level": "debug",
-            "enterprise_security_enabled": True,
+        "enterprise_security_enabled": True,
+        "detection_count": 0,
         }
     )
 
@@ -69,6 +70,7 @@ def test_health_service_reports_runtime_state() -> None:
         "status": "healthy",
         "version": "0.1.0",
         "knowledge_pack_count": 3,
+        "detection_count": 0,
         "enterprise_security_enabled": False,
     }
 
@@ -76,3 +78,8 @@ def test_health_service_reports_runtime_state() -> None:
 def test_health_service_rejects_negative_pack_count() -> None:
     with pytest.raises(ValueError, match="must not be negative"):
         HealthService(RuntimeConfig()).report(-1)
+
+
+def test_health_service_rejects_negative_detection_count() -> None:
+    with pytest.raises(ValueError, match="detection_count"):
+        HealthService(RuntimeConfig()).report(1, detection_count=-1)

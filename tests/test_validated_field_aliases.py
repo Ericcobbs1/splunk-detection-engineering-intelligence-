@@ -3,12 +3,13 @@
 import json
 from pathlib import Path
 
-CATALOG_PATH = Path("app/detections/catalog.json")
+from library_helpers import load_catalog
+
 PROVENANCE_PATH = Path("app/detections/field_provenance.json")
 
 
 def _entry(detection_id: str) -> dict[str, object]:
-    catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+    catalog = load_catalog()
     return next(item for item in catalog if item["id"] == detection_id)
 
 

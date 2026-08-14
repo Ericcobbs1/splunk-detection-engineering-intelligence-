@@ -1,0 +1,23 @@
+{
+  "id": "salesforce",
+  "name": "Salesforce Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Salesforce Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "salesforce.event_monitoring"
+  ],
+  "capabilities": [
+    "salesforce.session"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

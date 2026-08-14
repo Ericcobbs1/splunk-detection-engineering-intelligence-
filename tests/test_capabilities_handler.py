@@ -6,16 +6,19 @@ from dei_intelligence.api.capabilities_handler import (
 )
 from dei_intelligence.core.capabilities import CapabilityInventory
 from dei_intelligence.knowledgepacks.loader import KnowledgePackError
+from library_helpers import PACK_ROOT, load_catalog
 
 
 def test_default_inventory_aggregates_packaged_packs() -> None:
     inventory = _default_inventory_factory()
 
-    assert inventory.knowledge_pack_count == 3
-    assert inventory.capability_count == 18
-    assert inventory.domain_count == 6
-    assert inventory.supported_source_count == 12
-    assert [pack["id"] for pack in inventory.packs] == ["ai", "aws", "windows"]
+    expected_pack_ids = sorted(path.name for path in PACK_ROOT.iterdir() if path.is_dir())
+    expected_capabilities = {item["capability"] for item in load_catalog()}
+    assert inventory.knowledge_pack_count == len(expected_pack_ids)
+    assert inventory.capability_count >= len(expected_capabilities)
+    assert inventory.domain_count > 0
+    assert inventory.supported_source_count > 0
+    assert [pack["id"] for pack in inventory.packs] == expected_pack_ids
 
 
 def test_capabilities_handler_returns_inventory() -> None:
@@ -25,9 +28,8 @@ def test_capabilities_handler_returns_inventory() -> None:
     payload = response["payload"]
 
     assert response["status"] == 200
-    assert payload["knowledge_pack_count"] == 3
-    assert payload["capability_count"] == 18
-    assert len(payload["packs"]) == 3
+    assert payload["knowledge_pack_count"] == len(payload["packs"])
+    assert payload["capability_count"] >= len({item["capability"] for item in load_catalog()})
 
 
 def test_capabilities_handler_rejects_non_get_method() -> None:

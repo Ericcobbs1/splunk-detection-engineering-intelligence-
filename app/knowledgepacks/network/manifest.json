@@ -1,0 +1,25 @@
+{
+  "id": "network",
+  "name": "Network Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Network Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "network"
+  ],
+  "supported_sources": [
+    "network.dns",
+    "network.firewall",
+    "network.infrastructure"
+  ],
+  "capabilities": [
+    "network.dns",
+    "network.firewall",
+    "network.infrastructure"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

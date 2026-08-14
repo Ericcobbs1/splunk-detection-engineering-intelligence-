@@ -1,14 +1,10 @@
 """Regression tests for field validation when recent telemetry cannot be sampled."""
 
-from pathlib import Path
-
-from dei_intelligence.recommendations.engine import RecommendationEngine
-
-CATALOG_PATH = Path("app/detections/catalog.json")
+from library_helpers import engine_from_library
 
 
 def test_present_source_without_field_sample_is_unverified_not_field_gap() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["aws:cloudtrail"],
         include_unsupported=True,
         fields_by_source={},
@@ -27,7 +23,7 @@ def test_present_source_without_field_sample_is_unverified_not_field_gap() -> No
 
 
 def test_sampled_source_with_missing_required_fields_is_confirmed_field_gap() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["aws:cloudtrail"],
         include_unsupported=True,
         fields_by_source={"aws:cloudtrail": ["host", "source"]},

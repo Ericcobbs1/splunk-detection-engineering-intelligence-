@@ -1,0 +1,23 @@
+{
+  "id": "kubernetes",
+  "name": "Kubernetes Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Kubernetes Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "endpoint",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "kubernetes.audit"
+  ],
+  "capabilities": [
+    "kubernetes.audit.sensitive_operation"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

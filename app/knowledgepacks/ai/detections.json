@@ -1,0 +1,116 @@
+[
+  {
+    "id": "ai-shadow-usage",
+    "name": "Shadow AI Service Usage",
+    "pack_id": "ai",
+    "capability": "ai.shadow_usage",
+    "required_sources": [
+      "proxy"
+    ],
+    "required_fields": {
+      "proxy": [
+        [
+          "url",
+          "dest",
+          "host"
+        ],
+        [
+          "user",
+          "src_user"
+        ]
+      ]
+    },
+    "priority": 88,
+    "severity": "medium",
+    "mitre_techniques": [],
+    "why": "Unapproved generative AI access can bypass governance and data-protection controls.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "ai-sensitive-data-exposure",
+    "name": "Sensitive Data Sent to AI Service",
+    "pack_id": "ai",
+    "capability": "ai.sensitive_data",
+    "required_sources": [
+      "ai:gateway",
+      "dlp"
+    ],
+    "required_fields": {
+      "ai:gateway": [
+        [
+          "user",
+          "src_user"
+        ],
+        [
+          "prompt",
+          "message",
+          "request_body"
+        ]
+      ],
+      "dlp": [
+        [
+          "action",
+          "verdict",
+          "result"
+        ],
+        [
+          "classification",
+          "category",
+          "policy",
+          "rule_name"
+        ]
+      ]
+    },
+    "priority": 99,
+    "severity": "critical",
+    "mitre_techniques": [
+      "T1567"
+    ],
+    "why": "Sensitive content submitted to AI services can create material data-loss risk.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "ai-model-admin-change",
+    "name": "AI Model Administration Change",
+    "pack_id": "ai",
+    "capability": "ai.model_administration",
+    "required_sources": [
+      "azure:openai:diagnostic",
+      "aws:cloudtrail",
+      "gcp:audit:vertexai"
+    ],
+    "required_fields": {
+      "azure:openai:diagnostic": [
+        [
+          "operationName",
+          "operation_name",
+          "action"
+        ]
+      ],
+      "aws:cloudtrail": [
+        [
+          "eventName",
+          "event_name"
+        ]
+      ],
+      "gcp:audit:vertexai": [
+        [
+          "methodName",
+          "protoPayload.methodName",
+          "method_name",
+          "action"
+        ]
+      ]
+    },
+    "priority": 84,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "Unexpected model, endpoint, or access-policy changes can alter AI security posture.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

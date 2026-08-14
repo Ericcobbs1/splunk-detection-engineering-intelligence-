@@ -1,0 +1,23 @@
+{
+  "id": "m365",
+  "name": "Microsoft 365",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Microsoft 365 detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "email"
+  ],
+  "supported_sources": [
+    "m365.activity"
+  ],
+  "capabilities": [
+    "m365.admin_change"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

@@ -18,11 +18,12 @@ _ALLOWED_DOMAINS = {
 }
 _ALLOWED_KEYS = {
     "id", "name", "version", "minimum_dei_version", "description", "author",
-    "domains", "supported_sources", "capabilities", "requires_enterprise_security",
+    "domains", "supported_sources", "capabilities", "detection_files",
+    "requires_enterprise_security",
 }
 _REQUIRED_KEYS = {
     "id", "name", "version", "minimum_dei_version",
-    "domains", "supported_sources", "capabilities",
+    "domains", "supported_sources", "capabilities", "detection_files",
 }
 
 
@@ -95,6 +96,18 @@ def _validate_manifest(data: dict[str, Any]) -> None:
     capabilities = _validate_string_list("capabilities", data.get("capabilities"))
     if any(_CAPABILITY_PATTERN.fullmatch(item) is None for item in capabilities):
         raise KnowledgePackError("Invalid knowledge pack manifest at capabilities: invalid capability")
+    detection_files = _validate_string_list("detection_files", data.get("detection_files"))
+    for detection_file in detection_files:
+        candidate = Path(detection_file)
+        if (
+            candidate.is_absolute()
+            or ".." in candidate.parts
+            or candidate.suffix.lower() != ".json"
+        ):
+            raise KnowledgePackError(
+                "Invalid knowledge pack manifest at detection_files: "
+                "relative JSON paths contained by the pack are required"
+            )
 
     for key in ("description", "author"):
         if key in data and not isinstance(data[key], str):
@@ -164,10 +177,19 @@ class KnowledgePackLoader:
                 f"{self._current_dei_version}"
             )
 
+        detection_paths = tuple(manifest_path.parent / item for item in manifest.detection_files)
+        for detection_path in detection_paths:
+            if not detection_path.is_file():
+                raise KnowledgePackError(
+                    f"Knowledge pack {manifest.pack_id!r} detection file does not exist: "
+                    f"{detection_path.name}"
+                )
+
         return KnowledgePack(
             root=manifest_path.parent,
             manifest_path=manifest_path,
             manifest=manifest,
+            detection_paths=detection_paths,
         )
 
     def load_all(self, root: Path) -> tuple[KnowledgePack, ...]:
