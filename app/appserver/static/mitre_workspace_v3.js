@@ -112,7 +112,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var mapped = selected ? (selected.mitre_techniques || []).filter(function (id) {
         return techniqueMap[id] && techniqueMap[id].tactics.indexOf(tactic.id) !== -1;
       }) : [];
-      return '<article class="dei-matrix-tactic ' + (active[tactic.id] ? "covered" : "") + '">' +
+      return '<article class="dei-matrix-tactic ' + (active[tactic.id] ? "covered" : "not-applicable") + '">' +
         '<div class="dei-matrix-tactic-head"><span>' + tactic.id + '</span><strong>' + escapeHtml(tactic.name) + '</strong><b>' + tactic.count + ' techniques</b></div>' +
         '<p>' + escapeHtml(tactic.description) + '</p>' +
         '<div class="dei-matrix-techniques">' + (mapped.length ? mapped.map(function (id) {
@@ -146,6 +146,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var nextHref = buildable ? "detection_workflow?detection=" + encodeURIComponent(item.detection_id) : "command_center#dei-telemetry";
     var nextLabel = buildable ? "Build this detection" : "Resolve telemetry gaps";
     var nextDetail = buildable ? "Generate SPL, scheduling guidance, and validation evidence." : "Run a new scan after onboarding the required telemetry.";
+    var observedSourcetypes = observedSourcetypesForDetection(item);
+    var improvementGuidance = [];
+    if (!techniques.length) { improvementGuidance.push("Add a reviewed ATT&CK technique mapping before peer review."); }
+    if (item.readiness === "field_gap") { improvementGuidance.push("Resolve the reported field gaps or add reviewed field aliases before treating this detection as production ready."); }
+    if (item.readiness === "field_unverified") { improvementGuidance.push("Run representative field validation against the observed logs and document the verified fields."); }
+    if (item.readiness === "partial") { improvementGuidance.push("Add the missing telemetry source or narrow the SPL to the log sources that are currently observable."); }
+    if (!observedSourcetypes.length) { improvementGuidance.push("Confirm the required log source is onboarded and producing current events before building."); }
+    if (meta && meta.detection) { improvementGuidance.push(meta.detection); }
+    if (!improvementGuidance.length) { improvementGuidance.push("Preserve the current mapping, then validate thresholds, entities, and false-positive behavior against representative logs."); }
+    var improvementCards = improvementGuidance.map(function (guidance) {
+      return '<li>' + escapeHtml(guidance) + '</li>';
+    }).join("");
     var offlineReference = meta ? [
       '<section class="dei-offline-reference">',
       '<div class="dei-offline-reference-head"><div><span class="dei-protection-label">Offline ATT&amp;CK reference</span><h3>', escapeHtml((meta.currentId || focus) + " · " + meta.name), '</h3></div><span class="dei-offline-badge">Bundled</span></div>',
@@ -168,6 +180,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       '<div class="dei-inspector-primary">' +
       '<section class="dei-inspector-section"><span class="dei-protection-label">Detection state</span><div class="dei-inspector-badges"><span class="dei-readiness ' + escapeHtml(item.readiness) + '">' + escapeHtml(String(item.readiness || "unknown").replace(/_/g," ")) + '</span><span class="dei-severity ' + escapeHtml(item.severity) + '">' + escapeHtml(item.severity) + '</span><span class="dei-field-state neutral">' + escapeHtml(String(item.field_validation || "not evaluated").replace(/_/g," ")) + '</span></div></section>' +
       '<section class="dei-inspector-section"><span class="dei-protection-label">Why it matters</span><p>' + escapeHtml(item.why || "") + '</p></section>' +
+      '<section class="dei-inspector-section dei-mitre-improvements"><span class="dei-protection-label">Recommended detection improvements</span><p>Based on the selected mapping, readiness state, and observed log sources:</p><ul>' + improvementCards + '</ul><small>Observed sourcetypes: ' + escapeHtml(observedSourcetypes.join(" · ") || "none verified") + '</small></section>' +
       '<section class="dei-inspector-section"><span class="dei-protection-label">Mapped techniques</span><div class="dei-inspector-techniques">' + techniqueCards + '</div></section>' +
       '<section class="dei-inspector-section"><span class="dei-protection-label">What this protects</span><div class="dei-inspector-outcomes">' + (tacticCards || '<p class="dei-empty">No tactic protection outcome available.</p>') + '</div></section>' +
       '</div>' +

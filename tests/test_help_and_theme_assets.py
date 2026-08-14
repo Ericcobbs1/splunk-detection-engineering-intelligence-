@@ -73,3 +73,64 @@ def test_theme_uses_color_plus_status_contracts() -> None:
     assert 'content:"!"' in design
     assert 'content:"×"' in design
     assert ":focus-visible" in design
+
+
+def test_light_theme_overrides_legacy_text_and_surfaces() -> None:
+    stylesheet = (STATIC / "dei_theme_v1.css").read_text(encoding="utf-8")
+    assert '[data-dei-theme="light"] .dei-shell span' in stylesheet
+    assert '[data-dei-theme="light"] .dei-shell em' in stylesheet
+    assert '[data-dei-theme="light"] .dei-shell strong' in stylesheet
+    assert '[data-dei-theme="light"] .dei-health-workspace' in stylesheet
+    assert '[data-dei-theme="light"] .dei-detection-flow' in stylesheet
+
+
+def test_health_is_visible_and_restores_summary_visuals() -> None:
+    health_xml = (VIEWS / "detection_health.xml").read_text(encoding="utf-8")
+    health_js = (STATIC / "detection_health_v1.js").read_text(encoding="utf-8")
+    assert 'href="detection_health">Health</a>' in health_xml
+    for element_id in (
+        "health-donut", "health-donut-total", "health-ready-percent",
+        "health-ready-bar", "health-ready-label",
+    ):
+        assert f'id="{element_id}"' in health_xml
+    assert 'role="progressbar"' in health_xml
+    assert 'role="img"' in health_xml
+    assert '"--health-healthy"' in health_js
+    assert 'aria-valuenow' in health_js
+
+
+def test_every_primary_workspace_links_directly_to_health() -> None:
+    for name in (
+        "command_center", "environment_insights", "mitre_coverage",
+        "mitre_heatmap", "detection_workflow", "detection_catalog",
+        "detection_action_center", "detection_health",
+    ):
+        source = (VIEWS / f"{name}.xml").read_text(encoding="utf-8")
+        assert 'href="detection_health">Health</a>' in source, name
+    home = (VIEWS / "dei_home.xml").read_text(encoding="utf-8")
+    assert 'href="detection_health">Detection Health</a>' in home
+
+
+def test_global_workflow_ribbon_is_home_only() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
+    assert 'if (!shell().is("#dei-home-page")) { return; }' in javascript
+    assert 'if (!$("#dei-guided-workflow").length) { return; }' in javascript
+
+
+def test_mitre_workspace_is_detection_first_and_recommends_improvements() -> None:
+    view = (VIEWS / "mitre_coverage.xml").read_text(encoding="utf-8")
+    javascript = (STATIC / "mitre_workspace_v3.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "mitre_workspace_readability.css").read_text(encoding="utf-8")
+    assert "dei-mitre-selection-strip" in view
+    assert '"not-applicable"' in javascript
+    assert "Recommended detection improvements" in javascript
+    assert "Based on the selected mapping, readiness state, and observed log sources" in javascript
+    assert ".dei-mitre-linear-layout" in stylesheet
+
+
+def test_deep_links_open_nested_lifecycle_evidence_smoothly() -> None:
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
+    stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
+    assert 'target.parents("details").prop("open",true)' in javascript
+    assert "scrollIntoView({behavior:\"smooth\",block:\"center\"})" in javascript
+    assert "scroll-margin-top:24px" in stylesheet

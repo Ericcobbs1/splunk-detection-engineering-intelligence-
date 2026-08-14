@@ -286,9 +286,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     for selector in (
         "#dei-home-page>.dei-guided-workflow{order:2!important}",
         "#dei-command-center>#dei-telemetry{order:2!important}",
-        "#dei-environment-insights>.dei-guided-workflow{order:1!important}",
-        "#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:3!important}",
-        "#dei-mitre-page>.dei-guided-workflow{order:1!important}",
+        "#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:1!important}",
         "#dei-detection-builder-page>.dei-builder-selector-section{order:2!important}",
         "#dei-lifecycle-page>.dei-lifecycle-workspace-grid{order:2!important}",
     ):
@@ -300,6 +298,7 @@ def test_guided_workflow_prioritizes_primary_tasks_and_progressive_disclosure() 
     assert "run telemetry discovery" in javascript
     assert "Filter Detection Advisor by sourcetype" in javascript
     assert "Select a qualified recommendation" in javascript
+    assert 'if (!shell().is("#dei-home-page")) { return; }' in javascript
 
 
 def test_first_session_onboarding_is_dismissible_and_accessible() -> None:

@@ -8,8 +8,13 @@
         <div id="dei-command-center" class="dei-shell dei-environment-discovery">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Environment Discovery</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a></nav>
+            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a class="active" href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a><a href="detection_health">Health</a></nav>
             <div id="dei-api-status" class="dei-status">API status: checking</div>
+          </section>
+
+          <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title">
+            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to detection engineering</h2><p>Use this saved scan evidence to select, build, validate, review, and govern a detection in one workspace.</p></div>
+            <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="detection_workflow">Open Detection Engineering Workspace →</a></div>
           </section>
 
           <section id="dei-telemetry" class="dei-control-panel">
@@ -17,11 +22,6 @@
             <div class="dei-source-frame"><div class="dei-source-frame-head"><span>Discovered source types</span><small>Populated by this scan only</small></div><textarea id="dei-sources" rows="7" readonly="readonly" placeholder="Run environment analysis to discover active Splunk telemetry..."></textarea></div>
             <div class="dei-actions"><label class="dei-toggle"><input id="dei-es-enabled" type="checkbox"/><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label><button id="dei-analyze" type="button"><span>Run intelligence scan</span><b>→</b></button></div>
             <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
-          </section>
-
-          <section id="dei-discovery-next" class="dei-discovery-next" aria-labelledby="dei-discovery-next-title">
-            <div><p class="dei-eyebrow">Analysis Results</p><h2 id="dei-discovery-next-title">Continue to detection engineering</h2><p>Use this saved scan evidence to select, build, validate, review, and govern a detection in one workspace.</p></div>
-            <div class="dei-discovery-next-action"><span id="dei-discovery-result-state">Waiting for analysis</span><a id="dei-open-environment-insights" href="detection_workflow">Open Detection Engineering Workspace →</a></div>
           </section>
 
           <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>

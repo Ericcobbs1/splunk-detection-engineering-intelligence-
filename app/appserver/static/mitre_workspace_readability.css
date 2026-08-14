@@ -99,3 +99,104 @@
     min-height: 420px;
   }
 }
+
+/* Linear, detection-first coverage workflow. */
+.dei-mitre-linear-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dei-mitre-linear-layout .dei-mitre-selection-strip {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(190px, .45fr) minmax(520px, 1.55fr);
+  width: auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 16px;
+}
+
+.dei-mitre-selection-strip .dei-pane-head {
+  grid-column: 1 / -1;
+}
+
+.dei-mitre-selection-strip .dei-filter-stack {
+  align-content: start;
+  padding: 12px 12px 0 0;
+}
+
+.dei-mitre-selection-strip .dei-mitre-detection-list {
+  display: flex;
+  gap: 9px;
+  min-width: 0;
+  padding: 12px 2px 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+}
+
+.dei-mitre-selection-strip .dei-advisor-item {
+  flex: 0 0 250px;
+  margin: 0;
+  scroll-snap-align: start;
+}
+
+.dei-mitre-linear-layout .dei-mitre-content {
+  width: 100%;
+}
+
+.dei-mitre-linear-layout .dei-mitre-matrix-pane {
+  height: auto;
+  min-height: 0;
+}
+
+.dei-mitre-linear-layout .dei-mitre-matrix {
+  grid-template-columns: repeat(15, minmax(150px, 1fr));
+  height: auto;
+  min-height: 250px;
+}
+
+.dei-mitre-linear-layout .dei-matrix-tactic {
+  min-height: 205px;
+}
+
+.dei-mitre-linear-layout .dei-matrix-tactic.not-applicable {
+  opacity: .34;
+  filter: saturate(.35);
+}
+
+.dei-mitre-linear-layout .dei-matrix-tactic.not-applicable:hover,
+.dei-mitre-linear-layout .dei-matrix-tactic.not-applicable:focus-within {
+  opacity: .58;
+}
+
+.dei-mitre-improvements {
+  border: 1px solid rgba(92,225,194,.24);
+  border-radius: 10px;
+  background: rgba(92,225,194,.045);
+  padding: 13px !important;
+}
+
+.dei-mitre-improvements ul {
+  display: grid;
+  gap: 7px;
+  margin: 9px 0;
+  padding-left: 20px;
+}
+
+.dei-mitre-improvements small {
+  display: block;
+  color: var(--dei-soft);
+}
+
+@media (max-width: 900px) {
+  .dei-mitre-linear-layout .dei-mitre-selection-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .dei-mitre-selection-strip .dei-filter-stack {
+    padding-right: 0;
+  }
+}

@@ -117,7 +117,7 @@ def test_tour_targets_exist_in_their_owning_views():
     targets = {
         "dei_home.xml": ".//*[@id='dei-home-pipeline']",
         "command_center.xml": ".//*[@id='dei-telemetry']",
-        "mitre_coverage.xml": ".//*[@class='dei-mitre-advisor']",
+        "mitre_coverage.xml": ".//*[@class='dei-mitre-advisor dei-mitre-selection-strip']",
         "detection_workflow.xml": ".//*[@id='guided-builder-workspace']",
         "detection_catalog.xml": ".//*[@id='lifecycle-work-queue']",
     }

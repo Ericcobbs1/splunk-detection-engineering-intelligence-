@@ -131,6 +131,7 @@ def test_guided_workflow_uses_one_compact_workspace_selector() -> None:
         ("Home", "dei_home"), ("Discover", "command_center"),
         ("Coverage", "mitre_coverage"), ("Build", "detection_workflow"),
         ("Operate", "detection_catalog"),
+        ("Health", "detection_health"),
     ]
     javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     assert 'root.is("#dei-guided-detection-page")' in javascript
