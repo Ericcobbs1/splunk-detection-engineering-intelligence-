@@ -8,7 +8,7 @@ VIEWS = APP / "default/data/ui/views"
 STATIC = APP / "appserver/static"
 
 
-def test_customer_navigation_exposes_five_clear_destinations() -> None:
+def test_customer_navigation_exposes_six_clear_destinations() -> None:
     for view_name in ("command_center", "environment_insights", "mitre_coverage", "detection_workflow"):
         root = ElementTree.parse(VIEWS / f"{view_name}.xml").getroot()
         nav = root.find(".//nav[@class='dei-workspace-nav']")
@@ -17,6 +17,7 @@ def test_customer_navigation_exposes_five_clear_destinations() -> None:
             ("Home", "dei_home"), ("Discover", "command_center"),
             ("Coverage", "mitre_coverage"), ("Build", "detection_workflow"),
             ("Operate", "detection_catalog"),
+            ("Health", "detection_health"),
         ]
 
 

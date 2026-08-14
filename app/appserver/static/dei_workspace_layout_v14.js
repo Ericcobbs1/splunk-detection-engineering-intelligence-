@@ -157,7 +157,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function ensureExperiencePanel() {
     if ($("#dei-advanced-action-center").length) { return; }
-    $("#dei-guided-workflow").after(experiencePanelMarkup());
+    var workflow=$("#dei-guided-workflow");
+    if (workflow.length) { workflow.after(experiencePanelMarkup()); }
+    else { shell().find(".dei-product-bar").first().after(experiencePanelMarkup()); }
   }
 
   function renderExperienceActions(mode) {
@@ -472,17 +474,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function ensureGuidedWorkflow() {
+    if (!shell().is("#dei-home-page")) { return; }
     if ($("#dei-guided-workflow").length) { return; }
     var root=shell();
-    if (root.attr("id")==="dei-home-page" && $("#dei-home-pipeline").length) {
+    if ($("#dei-home-pipeline").length) {
       $("#dei-home-pipeline").after(workflowMarkup());
-    } else {
-      root.find(".dei-product-bar").first().after(workflowMarkup());
     }
   }
 
   function renderGuidedWorkflow() {
     ensureGuidedWorkflow();
+    if (!$("#dei-guided-workflow").length) { return; }
     var snapshot=workflowSnapshot();
     var page=workflowPage();
     var completion={
@@ -755,6 +757,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try{target=$(selector).first();}catch(error){return;}
     if(!target.length){return;}
     window.setTimeout(function(){
+      target.parents("details").prop("open",true);
       target.attr("tabindex","-1");
       target[0].scrollIntoView({behavior:"smooth",block:"center"});
       target.focus().addClass("dei-action-target");

@@ -594,8 +594,8 @@ body.dei-onboarding-open{overflow:hidden}
 #dei-command-center.dei-environment-discovery{display:flex;flex-direction:column}
 #dei-command-center.dei-environment-discovery>.dei-product-bar{order:0}
 #dei-command-center.dei-environment-discovery>.dei-guided-workflow{order:1!important}
+#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:1!important}
 #dei-command-center.dei-environment-discovery>#dei-telemetry{order:2!important}
-#dei-command-center.dei-environment-discovery>.dei-discovery-next{order:3!important}
 .dei-discovery-next{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;padding:22px 24px;border:1px solid rgba(96,224,202,.22);border-radius:14px;background:linear-gradient(135deg,rgba(9,25,35,.96),rgba(7,17,28,.98))}
 .dei-discovery-next-copy{display:flex;align-items:center;gap:14px;min-width:0}
 .dei-discovery-next-copy h2{margin:0 0 5px;color:#edf7ff;font-size:18px;line-height:1.3}
@@ -648,7 +648,7 @@ body.dei-onboarding-open{overflow:hidden}
 .dei-advanced-action span{margin-top:7px;color:#9fb3c8;font-size:12px;line-height:1.45}
 .dei-advanced-action b{position:absolute;right:14px;bottom:12px;color:#63dec4;font-size:16px}
 .dei-advanced-action:hover{border-color:rgba(83,220,192,.65);background:rgba(12,37,43,.88);text-decoration:none}
-.dei-action-target{outline:2px solid #66e1c8!important;outline-offset:4px;box-shadow:0 0 0 7px rgba(72,218,190,.12)!important}
+.dei-action-target{scroll-margin-top:24px;outline:2px solid #66e1c8!important;outline-offset:4px;box-shadow:0 0 0 7px rgba(72,218,190,.12)!important;transition:outline-color .2s ease,box-shadow .2s ease}
 .dei-interaction-status{position:fixed;right:24px;bottom:24px;z-index:10020;max-width:430px;padding:12px 15px;border:1px solid rgba(119,151,182,.35);border-radius:10px;background:#0b1724;color:#dce9f6;font-size:12px;font-weight:700;box-shadow:0 16px 38px rgba(0,0,0,.4);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
 .dei-interaction-status.visible{opacity:1;transform:translateY(0)}
 .dei-interaction-status[data-state="success"]{border-color:rgba(65,218,184,.55)}
