@@ -63,7 +63,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     applyArtifactMode(stage,item.record);
     window.setTimeout(function () { applyArtifactMode(stage,item.record); },0);
-    if (item.record) { $(document).trigger("dei:artifact-inspection-requested",[key(item),stage,item.record]); }
+    // A saved Draft must not populate the SPL editor merely because its
+    // recommendation was selected.  The Generate action owns draft creation
+    // (and intentional regeneration); later governed stages remain inspectable.
+    if (item.record && stage!=="draft") { $(document).trigger("dei:artifact-inspection-requested",[key(item),stage,item.record]); }
     var current=Math.max(0,STAGES.map(function (value) { return value.id; }).indexOf(stage)); var config=guide(item); var record=item.record||{};
     $("#workflow-empty").prop("hidden",true); $("#workflow-driver").prop("hidden",false);
     $("#workflow-stage-count").text("Stage "+(current+1)+" of "+STAGES.length); $("#workflow-detection-title").text(item.name||key(item));
