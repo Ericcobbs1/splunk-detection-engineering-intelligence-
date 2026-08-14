@@ -31,13 +31,17 @@
     if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(readiness)===-1) { return null; }
     var key=itemKey(item,index);
     var canBuild=["field_gap","field_unverified"].indexOf(readiness)!==-1;
+    var missingSources=(item.missing_sources || []);
+    var missingFields=[]; Object.keys(item.missing_fields || {}).forEach(function (source) {
+      (item.missing_fields[source] || []).forEach(function (fields) { missingFields.push(source+": "+fields); });
+    });
     return {
       key:key, name:item.name || key, severity:"attention", priority:1, category:"telemetry",
-      readiness:readiness, source:item.sourcetype || item.source || item.data_source || "Telemetry evidence",
-      mitre:item.mitre_attack_id || item.technique_id || "",
+      readiness:readiness, source:missingSources.join(" · ") || item.sourcetype || item.source || item.data_source || "Telemetry evidence",
+      mitre:(item.mitre_techniques || []).join(" · ") || item.mitre_attack_id || item.technique_id || "",
       reason:"Readiness is "+readiness.replace(/_/g," ")+".",
-      recommendation:item.next_action || "Resolve the required telemetry or field evidence, then run validation again.",
-      evidence:item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified.",
+      recommendation:item.next_action || (missingSources.length?"Ingest or map "+missingSources.join(" and ")+", run a new intelligence scan, then return to this detection.":"Resolve the required field evidence, run a new intelligence scan, then return to this detection."),
+      evidence:missingFields.join(" · ") || (missingSources.length?"Missing required source: "+missingSources.join(" · "):item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified."),
       href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
       action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence"
     };
@@ -135,9 +139,14 @@
 
   function applyQueryFilter() {
     var params=new URLSearchParams(window.location.search || "");
-    var category=params.get("category"); var severity=params.get("severity");
+    var category=params.get("category"); var severity=params.get("severity"); var detection=params.get("detection");
     if (["telemetry","validation","monitoring"].indexOf(category)!==-1) { $("#action-category").val(category); }
     if (["critical","attention"].indexOf(severity)!==-1) { $("#action-severity").val(severity); }
+    if (detection) {
+      $("#action-search").val(detection);
+      var returnTarget=params.get("return") || ("detection_workflow?detection="+encodeURIComponent(detection));
+      $("#action-return-to-detection").attr("href",returnTarget).text("Return to selected detection →");
+    }
   }
 
   $(function () {
