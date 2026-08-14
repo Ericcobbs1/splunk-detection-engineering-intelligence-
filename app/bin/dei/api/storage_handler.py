@@ -13,6 +13,7 @@ APP = "splunk_detection_engineering_intelligence"
 SCAN_SUMMARIES = "dei_scan_summaries"
 SCAN_HISTORY = "dei_scan_history"
 LIFECYCLE = "dei_lifecycle_records"
+USER_PREFERENCES = "dei_user_preferences"
 RequestFn = Callable[[str, str, str, Optional[dict[str, Any]]], tuple[int, str]]
 
 
@@ -45,6 +46,19 @@ def _session_key(request_data: dict[str, Any]) -> str:
             )
             if isinstance(value, str) and value:
                 return value
+    return ""
+
+
+def _session_user(request_data: dict[str, Any]) -> str:
+    for source in (
+        request_data.get("session", {}),
+        request_data.get("connection", {}),
+        request_data,
+    ):
+        if isinstance(source, dict):
+            value = source.get("user") or source.get("username")
+            if isinstance(value, str) and value.strip():
+                return value.strip()
     return ""
 
 
@@ -126,6 +140,7 @@ class StorageHandler:
             return persistent_response(400, {"error": "payload must be valid JSON"})
         method = str(request_data.get("method", "POST")).upper()
         resource = str(payload.get("resource", "")).strip().lower()
+        session_user = _session_user(request_data)
         store = self._store_factory(session_key)
         try:
             if method == "GET" and resource == "scan":
@@ -143,6 +158,12 @@ class StorageHandler:
                 return persistent_response(200, latest or {})
             if resource == "lifecycle" and operation == "read":
                 return persistent_response(200, {"records": store.list(LIFECYCLE)})
+            if resource == "preferences" and operation == "read":
+                key = session_user or str(payload.get("key", "")).strip()
+                if not key:
+                    return persistent_response(400, {"error": "preference key is required"})
+                record = next((item for item in store.list(USER_PREFERENCES) if item.get("_key") == key), None)
+                return persistent_response(200, {"preference": record or {}})
             if resource == "scan":
                 summary, history = payload.get("summary"), payload.get("history")
                 if not isinstance(summary, dict) or not isinstance(history, dict):
@@ -165,6 +186,15 @@ class StorageHandler:
                 if not isinstance(record, dict):
                     return persistent_response(400, {"error": "lifecycle record is required"})
                 store.upsert(LIFECYCLE, record)
+                return persistent_response(200, {"durable": True, "mode": "Splunk KV Store"})
+            if resource == "preferences":
+                record = payload.get("record")
+                if not isinstance(record, dict) or not str(record.get("_key", "")).strip():
+                    return persistent_response(400, {"error": "user preference record and key are required"})
+                if session_user:
+                    record = dict(record)
+                    record["_key"] = session_user
+                store.upsert(USER_PREFERENCES, record)
                 return persistent_response(200, {"durable": True, "mode": "Splunk KV Store"})
             return persistent_response(400, {"error": "unknown storage resource"})
         except (RuntimeError, ValueError, json.JSONDecodeError) as exc:

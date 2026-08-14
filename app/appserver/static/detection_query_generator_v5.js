@@ -406,6 +406,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     record.status = record.state;
     record.version = Number(record.version || 1);
     record.history = Array.isArray(record.history) ? record.history : [];
+    if (!record.ownership) { record.ownership={owner:Store&&Store.username?Store.username():"unknown",reviewer:"",review_due_at:"",health_due_at:""}; }
     return record;
   }
 
