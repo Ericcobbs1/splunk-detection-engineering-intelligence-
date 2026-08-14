@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from dei.core.config import RuntimeConfig
+from dei_intelligence.core.config import RuntimeConfig
 
 
 @dataclass(frozen=True)

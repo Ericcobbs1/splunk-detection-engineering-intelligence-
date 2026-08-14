@@ -19,7 +19,7 @@ class TelemetryApplication(PersistentServerConnectionApplication):
 
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        from dei.api.telemetry_handler import TelemetryHandler
+        from dei_intelligence.api.telemetry_handler import TelemetryHandler
 
         self._handler = TelemetryHandler(command_line, command_arg)
 

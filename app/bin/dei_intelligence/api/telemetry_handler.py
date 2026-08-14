@@ -7,10 +7,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from dei.api.response import persistent_response
-from dei.core.config import RuntimeConfig
-from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
-from dei.telemetry.analyzer import TelemetryAnalyzer
+from dei_intelligence.api.response import persistent_response
+from dei_intelligence.core.config import RuntimeConfig
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
+from dei_intelligence.telemetry.analyzer import TelemetryAnalyzer
 
 APP_ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_PATH = APP_ROOT / "schemas" / "knowledge-pack.schema.json"

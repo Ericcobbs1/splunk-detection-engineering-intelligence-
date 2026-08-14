@@ -19,7 +19,7 @@ class RecommendationsApplication(PersistentServerConnectionApplication):
 
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        from dei.api.recommendations_handler import RecommendationsHandler
+        from dei_intelligence.api.recommendations_handler import RecommendationsHandler
 
         self._handler = RecommendationsHandler(command_line, command_arg)
 

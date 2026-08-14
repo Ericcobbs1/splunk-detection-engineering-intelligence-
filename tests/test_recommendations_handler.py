@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from dei.api.recommendations_handler import RecommendationsHandler
-from dei.recommendations.engine import RecommendationError, RecommendationReport
+from dei_intelligence.api.recommendations_handler import RecommendationsHandler
+from dei_intelligence.recommendations.engine import RecommendationError, RecommendationReport
 
 
 def _report(

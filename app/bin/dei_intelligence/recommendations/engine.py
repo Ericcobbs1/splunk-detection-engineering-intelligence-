@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from dei.telemetry.normalization import SourceMapping, normalize_sources
+from dei_intelligence.telemetry.normalization import SourceMapping, normalize_sources
 
 
 class RecommendationError(ValueError):

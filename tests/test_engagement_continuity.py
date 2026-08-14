@@ -77,7 +77,7 @@ def test_help_explains_safe_resume_behavior() -> None:
 
 
 def test_user_preferences_are_durable_when_kv_store_is_available() -> None:
-    handler = (APP / "bin/dei/api/storage_handler.py").read_text(encoding="utf-8")
+    handler = (APP / "bin/dei_intelligence/api/storage_handler.py").read_text(encoding="utf-8")
     collections = (APP / "default/collections.conf").read_text(encoding="utf-8")
     assert 'USER_PREFERENCES = "dei_user_preferences"' in handler
     assert 'resource == "preferences" and operation == "read"' in handler

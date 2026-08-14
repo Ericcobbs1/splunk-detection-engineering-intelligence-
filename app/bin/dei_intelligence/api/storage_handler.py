@@ -7,7 +7,7 @@ from collections.abc import Callable
 from typing import Any, Optional
 from urllib.parse import quote
 
-from dei.api.response import persistent_response
+from dei_intelligence.api.response import persistent_response
 
 APP = "splunk_detection_engineering_intelligence"
 SCAN_SUMMARIES = "dei_scan_summaries"

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from dei.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
+from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = REPO_ROOT / "schemas" / "knowledge-pack.schema.json"

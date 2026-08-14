@@ -3,9 +3,9 @@
 import json
 from pathlib import Path
 
-from dei.api.telemetry_handler import TelemetryHandler
-from dei.knowledgepacks.loader import KnowledgePackLoader
-from dei.telemetry.analyzer import TelemetryAnalyzer
+from dei_intelligence.api.telemetry_handler import TelemetryHandler
+from dei_intelligence.knowledgepacks.loader import KnowledgePackLoader
+from dei_intelligence.telemetry.analyzer import TelemetryAnalyzer
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = REPO_ROOT / "app" / "schemas" / "knowledge-pack.schema.json"

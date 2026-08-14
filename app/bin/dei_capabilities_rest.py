@@ -19,7 +19,7 @@ class CapabilitiesApplication(PersistentServerConnectionApplication):
 
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        from dei.api.capabilities_handler import CapabilitiesHandler
+        from dei_intelligence.api.capabilities_handler import CapabilitiesHandler
 
         self._handler = CapabilitiesHandler(command_line, command_arg)
 

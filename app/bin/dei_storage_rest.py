@@ -15,7 +15,7 @@ from splunk.persistconn.application import PersistentServerConnectionApplication
 class StorageApplication(PersistentServerConnectionApplication):
     def __init__(self, command_line: list[str], command_arg: list[str]) -> None:
         super().__init__()
-        from dei.api.storage_handler import StorageHandler
+        from dei_intelligence.api.storage_handler import StorageHandler
 
         self._handler = StorageHandler()
 

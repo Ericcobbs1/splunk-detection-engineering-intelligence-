@@ -18,7 +18,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["app/bin"]
-include = ["dei*"]
+include = ["dei_intelligence*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["app/bin"]

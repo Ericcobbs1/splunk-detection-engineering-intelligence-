@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-from dei.api.storage_handler import (
+from dei_intelligence.api.storage_handler import (
     LIFECYCLE,
     SCAN_HISTORY,
     SCAN_SUMMARIES,
