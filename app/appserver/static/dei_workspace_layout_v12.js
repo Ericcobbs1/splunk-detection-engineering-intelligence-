@@ -755,9 +755,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function homeStageDestination(stage) {
-    var destination={discover:"command_center#dei-telemetry",profile:"detection_catalog?pipeline=profile",
-      qualify:"detection_catalog?pipeline=qualify",recommend:"mitre_coverage#mitre-detection-list",
-      design:"detection_catalog?pipeline=design",generate:"detection_workflow#guided-builder-workspace",
+    var destination={discover:"command_center#dei-telemetry",profile:"environment_insights#dei-portfolio-section",
+      qualify:"environment_insights#metric-ready",recommend:"mitre_coverage#mitre-detection-list",
+      design:"detection_workflow#workflow-driver",generate:"detection_workflow#guided-builder-workspace",
       validate:"detection_workflow#builder-validation-title"}[stage] || "detection_catalog#lifecycle-map";
     var detection=homeStageDetection(stage);
     if (detection) {

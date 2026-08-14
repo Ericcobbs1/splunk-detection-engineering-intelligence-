@@ -84,6 +84,21 @@ def test_theme_has_no_obsolete_light_mode_rules() -> None:
     assert '.dei-theme-standalone' not in stylesheet
 
 
+def test_small_text_uses_the_clear_readability_contract() -> None:
+    stylesheet = (STATIC / "dei_theme_v1.css").read_text(encoding="utf-8")
+    for contract in (
+        "--dei-text-secondary:#d1d9e2",
+        "--dei-muted:#b6c1cd",
+        "-webkit-font-smoothing:antialiased",
+        "-moz-osx-font-smoothing:grayscale",
+        "text-rendering:optimizeLegibility",
+        "font-size:13px!important",
+        "font-weight:500!important",
+        "text-shadow:none!important",
+    ):
+        assert contract in stylesheet
+
+
 def test_health_is_visible_and_restores_summary_visuals() -> None:
     health_xml = (VIEWS / "detection_health.xml").read_text(encoding="utf-8")
     health_js = (STATIC / "detection_health_v1.js").read_text(encoding="utf-8")
