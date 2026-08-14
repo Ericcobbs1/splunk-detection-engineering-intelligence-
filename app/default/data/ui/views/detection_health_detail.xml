@@ -1,0 +1,42 @@
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_health_detail_v1.js,dei_environment_scan_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v14.js,dei_theme_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,dei_workspace_layout_v1.css,detection_health_detail_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css,dei_theme_v1.css">
+  <label>Detection Health Metrics</label>
+  <description>Portfolio and detection-level lifecycle, validation, operational, efficacy, and freshness metrics.</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row><panel><html>
+    <main id="dei-health-detail-page" class="dei-shell dei-health-detail-page">
+      <section class="dei-product-bar" aria-label="DEI workspace navigation">
+        <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Health Metrics</span></div></div>
+        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a><a class="active" href="detection_health">Health</a></nav>
+      </section>
+
+      <header class="dei-health-detail-hero"><div><p class="dei-eyebrow">Continuous detection assurance</p><h1>Detection lifecycle and health metrics</h1><p>Measure whether detections remain deployed, observable, efficient, analytically useful, reviewed, and supported by current evidence.</p></div><div><a class="dei-link-button" href="detection_health">Health overview</a><button id="health-detail-refresh" type="button">Refresh metrics</button></div></header>
+
+      <section class="dei-health-scope" aria-labelledby="health-scope-title"><div><span>Scope</span><h2 id="health-scope-title">Portfolio overview</h2><p id="health-scope-summary">All enabled, disabled, draft, monitoring, tuning, and retired detection records.</p></div><label><span>Filter detection</span><select id="health-detection-filter"><option value="all">All detections · enabled and disabled</option></select></label></section>
+
+      <section id="health-detail-summary" class="dei-health-detail-summary" aria-label="Health metric summary">
+        <article><span>Managed</span><strong id="health-metric-managed">0</strong><small>All lifecycle records</small></article>
+        <article><span>Enabled</span><strong id="health-metric-enabled">0</strong><small>Production or monitoring</small></article>
+        <article><span>Validation pass rate</span><strong id="health-metric-validation">0%</strong><small>Passed / evaluated</small></article>
+        <article><span>Monitoring coverage</span><strong id="health-metric-monitoring">0%</strong><small>Current health evidence</small></article>
+        <article><span>Review freshness</span><strong id="health-metric-freshness">0%</strong><small>Measured within 30 days</small></article>
+        <article><span>Signal precision</span><strong id="health-metric-precision">N/A</strong><small>True / classified positives</small></article>
+      </section>
+
+      <section class="dei-health-analysis-grid">
+        <article class="dei-health-analysis-card"><div class="dei-health-card-head"><div><p class="dei-eyebrow">Lifecycle</p><h2>Detection stage distribution</h2></div><span id="health-lifecycle-total">0 detections</span></div><div id="health-lifecycle-bars" class="dei-health-lifecycle-bars"></div></article>
+        <article class="dei-health-analysis-card"><div class="dei-health-card-head"><div><p class="dei-eyebrow">Operational state</p><h2>Health and review status</h2></div><span>30-day freshness target</span></div><div id="health-operational-bars" class="dei-health-operational-bars"></div></article>
+      </section>
+
+      <section id="health-selected-detail" class="dei-health-selected-detail" aria-labelledby="health-selected-title">
+        <div class="dei-health-card-head"><div><p class="dei-eyebrow">Selected detection</p><h2 id="health-selected-title">Select one detection for detailed evidence</h2><p id="health-selected-subtitle">Portfolio metrics remain visible above.</p></div><div id="health-selected-actions"></div></div>
+        <ol id="health-lifecycle-timeline" class="dei-health-lifecycle-timeline" aria-label="Selected detection lifecycle"></ol>
+        <div id="health-selected-metrics" class="dei-health-selected-metrics"></div>
+        <div id="health-selected-guidance" class="dei-health-selected-guidance"></div>
+      </section>
+
+      <section class="dei-health-register"><div class="dei-health-card-head"><div><p class="dei-eyebrow">Detection register</p><h2>Lifecycle and operational evidence</h2><p id="health-register-summary" aria-live="polite">Loading detection records…</p></div></div><div class="dei-health-register-wrap"><table><thead><tr><th>Detection</th><th>Deployment</th><th>Lifecycle</th><th>Validation</th><th>Health</th><th>Last measured</th><th>Precision</th><th>Runtime</th><th>Action</th></tr></thead><tbody id="health-detail-table"></tbody></table></div></section>
+
+      <details class="dei-health-metric-framework"><summary>How DEI calculates and uses these health metrics</summary><div><p>DEI combines lifecycle governance, validation evidence, deployment state, scheduler/search performance, data freshness, result volume, and analyst dispositions. Metrics are decision support and require review in context.</p><dl><dt>Validation pass rate</dt><dd>Detections with passing historical validation divided by detections with an evaluated validation result.</dd><dt>Monitoring coverage</dt><dd>Enabled detections with recorded operational health evidence divided by enabled detections.</dd><dt>Review freshness</dt><dd>Detections measured within the 30-day target divided by detections with operational monitoring evidence.</dd><dt>Signal precision</dt><dd>True positives divided by true positives plus false positives. N/A means analyst classifications have not been recorded.</dd><dt>Search performance</dt><dd>Recorded search runtime and result volume. Confirm scheduler success, skipped searches, source freshness, and Job Inspector evidence in the monitoring note.</dd></dl><p>The framework follows continuous-monitoring principles from NIST SP 800-137/137A, Splunk scheduler and search-health evidence, and MITRE ATT&amp;CK Detection Strategy/Analytic separation.</p></div></details>
+    </main>
+  </html></panel></row>
+</form>

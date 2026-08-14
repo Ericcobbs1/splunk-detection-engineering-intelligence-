@@ -55,7 +55,7 @@ def test_every_canonical_workspace_loads_theme_assets_last() -> None:
     canonical = (
         "dei_home", "command_center", "environment_insights", "mitre_coverage",
         "mitre_heatmap", "detection_workflow", "detection_catalog",
-        "detection_health", "detection_action_center", "dei_help",
+        "detection_health", "detection_health_detail", "detection_action_center", "dei_help",
     )
     for name in canonical:
         root = ElementTree.parse(VIEWS / f"{name}.xml").getroot()

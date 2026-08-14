@@ -9,6 +9,7 @@
   <collection label="Operate">
     <view name="detection_catalog" />
     <view name="detection_health" />
+    <view name="detection_health_detail" />
   </collection>
   <view name="dei_help" />
   <collection label="Splunk">
