@@ -15,6 +15,7 @@ class HealthReport:
     status: str
     version: str
     knowledge_pack_count: int
+    detection_count: int
     enterprise_security_enabled: bool
 
     def to_mapping(self) -> dict[str, Any]:
@@ -28,13 +29,16 @@ class HealthService:
     def __init__(self, config: RuntimeConfig) -> None:
         self._config = config
 
-    def report(self, knowledge_pack_count: int) -> HealthReport:
+    def report(self, knowledge_pack_count: int, detection_count: int = 0) -> HealthReport:
         """Return runtime health after validating dependency counts."""
         if knowledge_pack_count < 0:
             raise ValueError("knowledge_pack_count must not be negative")
+        if detection_count < 0:
+            raise ValueError("detection_count must not be negative")
         return HealthReport(
             status="healthy",
             version=self._config.app_version,
             knowledge_pack_count=knowledge_pack_count,
+            detection_count=detection_count,
             enterprise_security_enabled=self._config.enterprise_security_enabled,
         )

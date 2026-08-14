@@ -18,6 +18,7 @@ class KnowledgePackManifest:
     domains: tuple[str, ...]
     supported_sources: tuple[str, ...]
     capabilities: tuple[str, ...]
+    detection_files: tuple[str, ...]
     description: str = ""
     author: str = ""
     requires_enterprise_security: bool = False
@@ -33,6 +34,7 @@ class KnowledgePackManifest:
             domains=tuple(str(item) for item in data["domains"]),
             supported_sources=tuple(str(item) for item in data["supported_sources"]),
             capabilities=tuple(str(item) for item in data["capabilities"]),
+            detection_files=tuple(str(item) for item in data["detection_files"]),
             description=str(data.get("description", "")),
             author=str(data.get("author", "")),
             requires_enterprise_security=bool(data.get("requires_enterprise_security", False)),
@@ -46,3 +48,4 @@ class KnowledgePack:
     root: Path
     manifest_path: Path
     manifest: KnowledgePackManifest
+    detection_paths: tuple[Path, ...]

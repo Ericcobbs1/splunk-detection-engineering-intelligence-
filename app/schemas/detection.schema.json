@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dei.dev/schemas/detection.schema.json",
+  "title": "DEI Detection Opportunity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "name", "pack_id", "capability", "required_sources", "required_fields",
+    "priority", "severity", "mitre_techniques", "why", "implementation",
+    "requires_enterprise_security"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*$"},
+    "name": {"type": "string", "minLength": 3},
+    "pack_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+    "capability": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*$"},
+    "required_sources": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "required_fields": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {
+        "type": "array", "minItems": 1,
+        "items": {
+          "type": "array", "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "priority": {"type": "integer", "minimum": 0, "maximum": 100},
+    "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+    "mitre_techniques": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^T[0-9]{4}(?:\\.[0-9]{3})?$"}
+    },
+    "why": {"type": "string", "minLength": 1},
+    "implementation": {"type": "string", "minLength": 1},
+    "requires_enterprise_security": {"type": "boolean"}
+  }
+}

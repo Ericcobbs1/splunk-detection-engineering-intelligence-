@@ -30,6 +30,18 @@ The initial project phase establishes the product definition and technical contr
 
 See [`docs/`](docs/) for the design package.
 
+## Modular detection library
+
+Installable detection content lives under `app/knowledgepacks/<pack-id>/`. Each pack owns a
+versioned `manifest.json` and one or more detection files declared by `detection_files`. At
+runtime, DEI aggregates the enabled packs and rejects incompatible content, duplicate detection
+IDs, undeclared capabilities, undeclared telemetry sources, invalid field requirements, and
+schema violations before recommendations are served.
+
+Detection IDs are stable upgrade contracts. New content should be added to its owning pack; the
+removed monolithic catalog must not be recreated. The runtime health response reports both loaded
+pack and detection counts so library migrations can be verified after installation.
+
 ## Planned capability areas
 
 - Telemetry and field profiling

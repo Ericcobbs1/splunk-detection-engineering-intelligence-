@@ -1,0 +1,43 @@
+[
+  {
+    "id": "gcp-admin-activity-change",
+    "name": "Google Cloud Administrative Change",
+    "pack_id": "gcp",
+    "capability": "gcp.admin_change",
+    "required_sources": [
+      "gcp.audit"
+    ],
+    "required_fields": {
+      "gcp.audit": [
+        [
+          "protoPayload.methodName",
+          "methodName",
+          "method_name"
+        ],
+        [
+          "protoPayload.serviceName",
+          "serviceName",
+          "service_name"
+        ],
+        [
+          "protoPayload.authenticationInfo.principalEmail",
+          "principalEmail",
+          "user"
+        ],
+        [
+          "resource.type",
+          "resourceName",
+          "resource"
+        ]
+      ]
+    },
+    "priority": 88,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "Google Cloud Admin Activity records high-impact control-plane changes and the identity responsible for them.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

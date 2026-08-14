@@ -1,10 +1,6 @@
 """Regression coverage for Enterprise Security readiness and risk-field handling."""
 
-from pathlib import Path
-
-from dei_intelligence.recommendations.engine import RecommendationEngine
-
-CATALOG_PATH = Path("app/detections/catalog.json")
+from library_helpers import engine_from_library
 
 
 def _base_fields() -> dict[str, list[str]]:
@@ -18,7 +14,7 @@ def _base_fields() -> dict[str, list[str]]:
 
 
 def test_es_risk_is_ready_when_es_enabled_and_risk_fields_exist() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["modular_alerts:risk"],
         enterprise_security_enabled=True,
         include_unsupported=True,
@@ -33,7 +29,7 @@ def test_es_risk_is_ready_when_es_enabled_and_risk_fields_exist() -> None:
 
 
 def test_es_prerequisite_overrides_field_gap_without_double_counting() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["modular_alerts:risk"],
         enterprise_security_enabled=False,
         include_unsupported=True,
@@ -49,7 +45,7 @@ def test_es_prerequisite_overrides_field_gap_without_double_counting() -> None:
 
 
 def test_es_field_gap_counts_when_es_is_enabled() -> None:
-    report = RecommendationEngine.from_catalog(CATALOG_PATH).recommend(
+    report = engine_from_library().recommend(
         ["modular_alerts:risk"],
         enterprise_security_enabled=True,
         include_unsupported=True,

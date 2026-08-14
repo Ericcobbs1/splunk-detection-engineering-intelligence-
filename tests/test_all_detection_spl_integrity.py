@@ -1,14 +1,19 @@
 """Execute the SPL generator contract across every catalog detection."""
 
+import json
 import subprocess
 from pathlib import Path
 
+from library_helpers import load_catalog
+
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "app" / "appserver" / "static" / "detection_query_generator_v5.js"
-CATALOG = ROOT / "app" / "detections" / "catalog.json"
 
 
-def test_every_catalog_detection_generates_clean_idempotent_spl() -> None:
+def test_every_catalog_detection_generates_clean_idempotent_spl(tmp_path: Path) -> None:
+    catalog = load_catalog()
+    catalog_path = tmp_path / "aggregated-catalog.json"
+    catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
     script = r"""
 const fs=require("fs");
 const generatorPath=process.argv[1],catalogPath=process.argv[2];
@@ -64,9 +69,9 @@ if(failures.length) throw new Error(failures.join("\n"));
 console.log("validated "+catalog.length+" detection generators");
 """
     completed = subprocess.run(
-        ["node", "-e", script, str(GENERATOR), str(CATALOG)],
+        ["node", "-e", script, str(GENERATOR), str(catalog_path)],
         check=True,
         capture_output=True,
         text=True,
     )
-    assert "validated 31 detection generators" in completed.stdout
+    assert f"validated {len(catalog)} detection generators" in completed.stdout

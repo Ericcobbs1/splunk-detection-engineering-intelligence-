@@ -11,11 +11,13 @@ from dei_intelligence.api.response import persistent_response
 from dei_intelligence.core.config import RuntimeConfig
 from dei_intelligence.core.health import HealthReport, HealthService
 from dei_intelligence.knowledgepacks.loader import KnowledgePackError, KnowledgePackLoader
+from dei_intelligence.recommendations.engine import RecommendationEngine, RecommendationError
 
 HealthReportFactory = Callable[[], HealthReport]
 APP_ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_PATH = APP_ROOT / "schemas" / "knowledge-pack.schema.json"
 PACK_ROOT = APP_ROOT / "knowledgepacks"
+DETECTION_SCHEMA_PATH = APP_ROOT / "schemas" / "detection.schema.json"
 
 
 def _default_report_factory() -> HealthReport:
@@ -24,7 +26,16 @@ def _default_report_factory() -> HealthReport:
     packs = KnowledgePackLoader(
         SCHEMA_PATH, current_dei_version=config.app_version
     ).load_all(PACK_ROOT)
-    return HealthService(config).report(knowledge_pack_count=len(packs))
+    engine = RecommendationEngine.from_knowledge_packs(
+        PACK_ROOT,
+        SCHEMA_PATH,
+        DETECTION_SCHEMA_PATH,
+        current_dei_version=config.app_version,
+    )
+    return HealthService(config).report(
+        knowledge_pack_count=len(packs),
+        detection_count=engine.detection_count,
+    )
 
 
 class HealthHandler:
@@ -56,7 +67,7 @@ class HealthHandler:
 
         try:
             report = self._report_factory()
-        except KnowledgePackError as exc:
+        except (KnowledgePackError, RecommendationError) as exc:
             return persistent_response(
                 500,
                 {"error": "knowledge pack validation failed", "detail": str(exc)},

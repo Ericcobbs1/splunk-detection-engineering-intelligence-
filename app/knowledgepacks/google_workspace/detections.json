@@ -1,0 +1,37 @@
+[
+  {
+    "id": "google-workspace-admin-change",
+    "name": "Google Workspace Administrative Change",
+    "pack_id": "google_workspace",
+    "capability": "google_workspace.admin_change",
+    "required_sources": [
+      "google_workspace.admin"
+    ],
+    "required_fields": {
+      "google_workspace.admin": [
+        [
+          "actor.email",
+          "actor_email",
+          "user"
+        ],
+        [
+          "events.name",
+          "event_name",
+          "action"
+        ],
+        [
+          "id.time",
+          "event_time"
+        ]
+      ]
+    },
+    "priority": 85,
+    "severity": "medium",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "Unexpected Google Workspace administration changes can alter membership, access, or organization security settings.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

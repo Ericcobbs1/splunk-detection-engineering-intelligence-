@@ -1,0 +1,41 @@
+[
+  {
+    "id": "azure-control-plane-change",
+    "name": "Azure Control-Plane Resource Change",
+    "pack_id": "azure",
+    "capability": "azure.activity.change",
+    "required_sources": [
+      "azure.activity"
+    ],
+    "required_fields": {
+      "azure.activity": [
+        [
+          "operationName",
+          "operation_name"
+        ],
+        [
+          "caller",
+          "Caller"
+        ],
+        [
+          "resourceId",
+          "resource_id",
+          "resource"
+        ],
+        [
+          "status",
+          "statusValue",
+          "result"
+        ]
+      ]
+    },
+    "priority": 88,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "Unexpected Azure control-plane writes can modify compute, identity, or security posture.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

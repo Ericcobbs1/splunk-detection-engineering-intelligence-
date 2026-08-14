@@ -1,0 +1,40 @@
+[
+  {
+    "id": "salesforce-session-anomaly",
+    "name": "Salesforce Session Anomaly",
+    "pack_id": "salesforce",
+    "capability": "salesforce.session",
+    "required_sources": [
+      "salesforce.event_monitoring"
+    ],
+    "required_fields": {
+      "salesforce.event_monitoring": [
+        [
+          "CLIENT_IP",
+          "client_ip",
+          "src_ip"
+        ],
+        [
+          "USER_AGENT",
+          "user_agent"
+        ],
+        [
+          "SESSION_KEY",
+          "session_key"
+        ],
+        [
+          "LOGIN_KEY",
+          "login_key"
+        ]
+      ]
+    },
+    "priority": 86,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1078"
+    ],
+    "why": "Unexpected Salesforce session attributes can indicate stolen credentials, session misuse, or abnormal client activity.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

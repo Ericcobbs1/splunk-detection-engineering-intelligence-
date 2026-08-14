@@ -1,0 +1,74 @@
+[
+  {
+    "id": "identity-mfa-failure-spike",
+    "name": "Identity MFA Failure Spike",
+    "pack_id": "identity",
+    "capability": "identity.mfa",
+    "required_sources": [
+      "identity.authentication"
+    ],
+    "required_fields": {
+      "identity.authentication": [
+        [
+          "eventType",
+          "event_type",
+          "action"
+        ],
+        [
+          "actor.alternateId",
+          "user",
+          "src_user"
+        ],
+        [
+          "outcome.result",
+          "result",
+          "status"
+        ]
+      ]
+    },
+    "priority": 94,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1110"
+    ],
+    "why": "Repeated MFA failures can indicate credential attacks, MFA fatigue, or attempted account takeover.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "identity-privilege-grant",
+    "name": "Unexpected Identity Privilege Grant",
+    "pack_id": "identity",
+    "capability": "identity.privilege",
+    "required_sources": [
+      "identity.authentication"
+    ],
+    "required_fields": {
+      "identity.authentication": [
+        [
+          "eventType",
+          "event_type",
+          "action"
+        ],
+        [
+          "actor.alternateId",
+          "user",
+          "src_user"
+        ],
+        [
+          "target",
+          "target_user",
+          "target.alternateId"
+        ]
+      ]
+    },
+    "priority": 96,
+    "severity": "critical",
+    "mitre_techniques": [
+      "T1098"
+    ],
+    "why": "Unexpected privilege assignment can create persistent access or administrative control.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

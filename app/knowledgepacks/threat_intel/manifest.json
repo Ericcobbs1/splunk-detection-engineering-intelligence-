@@ -1,0 +1,22 @@
+{
+  "id": "threat_intel",
+  "name": "Threat Intelligence",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Threat Intelligence detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "network",
+    "application"
+  ],
+  "supported_sources": [
+    "threat_intelligence"
+  ],
+  "capabilities": [
+    "threat_intelligence.match"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

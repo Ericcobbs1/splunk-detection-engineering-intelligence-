@@ -1,0 +1,43 @@
+[
+  {
+    "id": "kubernetes-sensitive-api-operation",
+    "name": "Sensitive Kubernetes API Operation",
+    "pack_id": "kubernetes",
+    "capability": "kubernetes.audit.sensitive_operation",
+    "required_sources": [
+      "kubernetes.audit"
+    ],
+    "required_fields": {
+      "kubernetes.audit": [
+        [
+          "verb"
+        ],
+        [
+          "user.username",
+          "user"
+        ],
+        [
+          "sourceIPs",
+          "source_ip",
+          "src_ip"
+        ],
+        [
+          "objectRef.resource",
+          "resource"
+        ],
+        [
+          "responseStatus.code",
+          "status_code"
+        ]
+      ]
+    },
+    "priority": 91,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1610"
+    ],
+    "why": "Sensitive Kubernetes API operations can create workloads, alter access, or modify cluster security state.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

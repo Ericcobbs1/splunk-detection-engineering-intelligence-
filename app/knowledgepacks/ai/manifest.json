@@ -5,8 +5,29 @@
   "minimum_dei_version": "0.1.0",
   "description": "Security telemetry for generative AI services, AI gateways, model endpoints, and AI governance controls.",
   "author": "DEI Project",
-  "domains": ["ai", "cloud", "application"],
-  "supported_sources": ["azure:openai:diagnostic", "aws:cloudtrail", "gcp:audit:vertexai", "ai:gateway", "proxy", "dlp"],
-  "capabilities": ["ai.shadow_usage", "ai.sensitive_data", "ai.api_abuse", "ai.prompt_attack", "ai.model_administration", "ai.governance"],
+  "domains": [
+    "ai",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "azure:openai:diagnostic",
+    "aws:cloudtrail",
+    "gcp:audit:vertexai",
+    "ai:gateway",
+    "proxy",
+    "dlp"
+  ],
+  "capabilities": [
+    "ai.shadow_usage",
+    "ai.sensitive_data",
+    "ai.api_abuse",
+    "ai.prompt_attack",
+    "ai.model_administration",
+    "ai.governance"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
   "requires_enterprise_security": false
 }

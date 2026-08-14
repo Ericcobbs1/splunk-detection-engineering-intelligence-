@@ -1,0 +1,31 @@
+[
+  {
+    "id": "es-risk-score-spike",
+    "name": "Enterprise Security Risk Score Spike",
+    "pack_id": "enterprise_security",
+    "capability": "es.risk",
+    "required_sources": [
+      "es.risk"
+    ],
+    "required_fields": {
+      "es.risk": [
+        [
+          "risk_object"
+        ],
+        [
+          "calculated_risk_score",
+          "risk_score"
+        ],
+        [
+          "risk_object_type"
+        ]
+      ]
+    },
+    "priority": 92,
+    "severity": "high",
+    "mitre_techniques": [],
+    "why": "Rapid accumulation of risk against an entity can reveal multi-stage activity that individual alerts miss.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": true
+  }
+]

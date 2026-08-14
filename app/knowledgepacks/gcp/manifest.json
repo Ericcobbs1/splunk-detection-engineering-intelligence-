@@ -1,0 +1,23 @@
+{
+  "id": "gcp",
+  "name": "Google Cloud Platform",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Google Cloud Platform detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "application"
+  ],
+  "supported_sources": [
+    "gcp.audit"
+  ],
+  "capabilities": [
+    "gcp.admin_change"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

@@ -1,0 +1,164 @@
+[
+  {
+    "id": "aws-iam-policy-escalation",
+    "name": "AWS IAM Privilege Escalation",
+    "pack_id": "aws",
+    "capability": "aws.iam",
+    "required_sources": [
+      "aws:cloudtrail"
+    ],
+    "required_fields": {
+      "aws:cloudtrail": [
+        [
+          "eventName",
+          "event_name"
+        ],
+        [
+          "userIdentity.arn",
+          "userIdentity.userName",
+          "userIdentity.sessionContext.sessionIssuer.userName",
+          "user_arn",
+          "user"
+        ],
+        [
+          "sourceIPAddress",
+          "src_ip"
+        ]
+      ]
+    },
+    "priority": 96,
+    "severity": "critical",
+    "mitre_techniques": [
+      "T1098",
+      "T1078.004"
+    ],
+    "why": "High-risk IAM changes can grant persistent or administrative cloud access.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "aws-cloudtrail-disabled",
+    "name": "CloudTrail Logging Disabled",
+    "pack_id": "aws",
+    "capability": "aws.cloudtrail",
+    "required_sources": [
+      "aws:cloudtrail"
+    ],
+    "required_fields": {
+      "aws:cloudtrail": [
+        [
+          "eventName",
+          "event_name"
+        ],
+        [
+          "eventSource",
+          "event_source"
+        ]
+      ]
+    },
+    "priority": 98,
+    "severity": "critical",
+    "mitre_techniques": [
+      "T1562.008"
+    ],
+    "why": "Disabling audit logging can conceal malicious cloud activity.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "aws-s3-public-access",
+    "name": "S3 Public Access Change",
+    "pack_id": "aws",
+    "capability": "aws.s3",
+    "required_sources": [
+      "aws:cloudtrail"
+    ],
+    "required_fields": {
+      "aws:cloudtrail": [
+        [
+          "eventName",
+          "event_name"
+        ],
+        [
+          "requestParameters.bucketName",
+          "bucket_name",
+          "bucket"
+        ]
+      ]
+    },
+    "priority": 90,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1530"
+    ],
+    "why": "Public-access changes can expose sensitive cloud data.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "aws-guardduty-high-severity",
+    "name": "High-Severity GuardDuty Finding",
+    "pack_id": "aws",
+    "capability": "aws.guardduty.finding",
+    "required_sources": [
+      "aws.guardduty"
+    ],
+    "required_fields": {
+      "aws.guardduty": [
+        [
+          "severity"
+        ],
+        [
+          "accountId",
+          "account_id"
+        ],
+        [
+          "resource.resourceType",
+          "resourceType",
+          "resource_type"
+        ],
+        [
+          "action_type",
+          "service.action.actionType"
+        ]
+      ]
+    },
+    "priority": 94,
+    "severity": "high",
+    "mitre_techniques": [],
+    "why": "High-severity GuardDuty findings identify AWS resources associated with suspicious or malicious activity.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "aws-securityhub-critical-finding",
+    "name": "Critical Security Hub Finding",
+    "pack_id": "aws",
+    "capability": "aws.securityhub.finding",
+    "required_sources": [
+      "aws.securityhub"
+    ],
+    "required_fields": {
+      "aws.securityhub": [
+        [
+          "Severity.Label",
+          "severity"
+        ],
+        [
+          "Workflow.Status",
+          "workflow_status"
+        ],
+        [
+          "ProductArn",
+          "product_arn"
+        ]
+      ]
+    },
+    "priority": 93,
+    "severity": "critical",
+    "mitre_techniques": [],
+    "why": "Critical or newly active Security Hub findings can represent high-impact cloud security exposure requiring prioritization.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

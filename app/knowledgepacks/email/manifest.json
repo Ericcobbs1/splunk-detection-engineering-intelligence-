@@ -1,0 +1,21 @@
+{
+  "id": "email",
+  "name": "Email Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Email Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "email"
+  ],
+  "supported_sources": [
+    "email.message_trace"
+  ],
+  "capabilities": [
+    "email.message_trace"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

@@ -1,0 +1,71 @@
+[
+  {
+    "id": "linux-ssh-bruteforce",
+    "name": "Linux SSH Brute Force",
+    "pack_id": "linux",
+    "capability": "linux.authentication",
+    "required_sources": [
+      "linux.authentication"
+    ],
+    "required_fields": {
+      "linux.authentication": [
+        [
+          "user",
+          "user_name"
+        ],
+        [
+          "src_ip",
+          "source_ip"
+        ],
+        [
+          "action",
+          "status",
+          "message"
+        ]
+      ]
+    },
+    "priority": 93,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1110"
+    ],
+    "why": "Repeated SSH authentication failures can indicate brute-force or password-spraying activity.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "linux-sudo-shell",
+    "name": "Linux Privileged Shell via Sudo",
+    "pack_id": "linux",
+    "capability": "linux.privilege",
+    "required_sources": [
+      "linux.authentication"
+    ],
+    "required_fields": {
+      "linux.authentication": [
+        [
+          "user",
+          "user_name"
+        ],
+        [
+          "command",
+          "process",
+          "message"
+        ],
+        [
+          "action",
+          "status",
+          "message"
+        ]
+      ]
+    },
+    "priority": 88,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1548.003"
+    ],
+    "why": "Unexpected sudo activity that launches a privileged shell can indicate privilege escalation.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

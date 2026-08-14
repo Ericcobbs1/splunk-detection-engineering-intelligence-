@@ -1,0 +1,23 @@
+{
+  "id": "google_workspace",
+  "name": "Google Workspace",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Google Workspace detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "identity",
+    "cloud",
+    "email"
+  ],
+  "supported_sources": [
+    "google_workspace.admin"
+  ],
+  "capabilities": [
+    "google_workspace.admin_change"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

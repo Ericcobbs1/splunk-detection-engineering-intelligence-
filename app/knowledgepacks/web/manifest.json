@@ -1,0 +1,22 @@
+{
+  "id": "web",
+  "name": "Web Security",
+  "version": "0.1.0",
+  "minimum_dei_version": "0.1.0",
+  "description": "Web Security detection content and telemetry-readiness metadata.",
+  "author": "DEI Project",
+  "domains": [
+    "network",
+    "application"
+  ],
+  "supported_sources": [
+    "web.http"
+  ],
+  "capabilities": [
+    "web.http"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
+  "requires_enterprise_security": false
+}

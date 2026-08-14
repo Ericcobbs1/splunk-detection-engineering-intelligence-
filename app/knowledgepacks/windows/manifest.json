@@ -5,8 +5,25 @@
   "minimum_dei_version": "0.1.0",
   "description": "Windows authentication, account management, PowerShell, process, service, registry, and Kerberos telemetry.",
   "author": "DEI Project",
-  "domains": ["identity", "endpoint"],
-  "supported_sources": ["XmlWinEventLog:Security", "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational", "XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"],
-  "capabilities": ["windows.authentication", "windows.account_management", "windows.powershell", "windows.process_creation", "windows.services", "windows.kerberos"],
+  "domains": [
+    "identity",
+    "endpoint"
+  ],
+  "supported_sources": [
+    "XmlWinEventLog:Security",
+    "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational",
+    "XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+  ],
+  "capabilities": [
+    "windows.authentication",
+    "windows.account_management",
+    "windows.powershell",
+    "windows.process_creation",
+    "windows.services",
+    "windows.kerberos"
+  ],
+  "detection_files": [
+    "detections.json"
+  ],
   "requires_enterprise_security": false
 }

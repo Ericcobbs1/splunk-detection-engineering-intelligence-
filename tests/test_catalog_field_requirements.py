@@ -1,14 +1,11 @@
 """Regression tests for DEI detection field-readiness metadata."""
 
-import json
-from pathlib import Path
-
-CATALOG_PATH = Path("app/detections/catalog.json")
+from library_helpers import load_catalog
 
 
 def test_every_detection_defines_required_fields_for_required_sources() -> None:
-    catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-    assert len(catalog) == 31
+    catalog = load_catalog()
+    assert catalog
 
     for detection in catalog:
         required_sources = detection["required_sources"]

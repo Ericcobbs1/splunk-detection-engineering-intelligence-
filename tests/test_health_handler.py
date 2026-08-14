@@ -3,6 +3,7 @@
 from dei_intelligence.api.health_handler import HealthHandler, _default_report_factory
 from dei_intelligence.core.health import HealthReport
 from dei_intelligence.knowledgepacks.loader import KnowledgePackError
+from library_helpers import PACK_ROOT
 
 
 def _report() -> HealthReport:
@@ -10,6 +11,7 @@ def _report() -> HealthReport:
         status="healthy",
         version="0.1.0",
         knowledge_pack_count=3,
+        detection_count=31,
         enterprise_security_enabled=False,
     )
 
@@ -17,7 +19,10 @@ def _report() -> HealthReport:
 def test_default_report_counts_packaged_knowledge_packs() -> None:
     report = _default_report_factory()
 
-    assert report.knowledge_pack_count == 3
+    assert report.knowledge_pack_count == len(
+        [path for path in PACK_ROOT.iterdir() if path.is_dir()]
+    )
+    assert report.detection_count > 0
     assert report.status == "healthy"
 
 
@@ -29,6 +34,7 @@ def test_health_handler_returns_json_payload() -> None:
     assert response["status"] == 200
     assert response["payload"] == {
         "enterprise_security_enabled": False,
+        "detection_count": 31,
         "knowledge_pack_count": 3,
         "status": "healthy",
         "version": "0.1.0",

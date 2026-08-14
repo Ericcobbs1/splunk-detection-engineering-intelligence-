@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from dei_intelligence import __version__
+
 
 class ConfigurationError(ValueError):
     """Raised when DEI runtime configuration is invalid."""
@@ -14,7 +16,7 @@ class ConfigurationError(ValueError):
 class RuntimeConfig:
     """Validated runtime settings shared by DEI core services."""
 
-    app_version: str = "0.1.0"
+    app_version: str = __version__
     log_level: str = "INFO"
     enterprise_security_enabled: bool = False
 

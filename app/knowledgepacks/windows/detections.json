@@ -1,0 +1,94 @@
+[
+  {
+    "id": "windows-password-spray",
+    "name": "Windows Password Spray",
+    "pack_id": "windows",
+    "capability": "windows.authentication",
+    "required_sources": [
+      "XmlWinEventLog:Security"
+    ],
+    "required_fields": {
+      "XmlWinEventLog:Security": [
+        [
+          "EventCode",
+          "event_id"
+        ],
+        [
+          "TargetUserName",
+          "user"
+        ],
+        [
+          "IpAddress",
+          "src_ip"
+        ]
+      ]
+    },
+    "priority": 95,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1110.003"
+    ],
+    "why": "Repeated failed logons across many accounts can indicate password spraying.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "windows-kerberoasting",
+    "name": "Kerberoasting Activity",
+    "pack_id": "windows",
+    "capability": "windows.kerberos",
+    "required_sources": [
+      "XmlWinEventLog:Security"
+    ],
+    "required_fields": {
+      "XmlWinEventLog:Security": [
+        [
+          "EventCode",
+          "event_id"
+        ],
+        [
+          "ServiceName",
+          "service_name"
+        ],
+        [
+          "TargetUserName",
+          "user"
+        ]
+      ]
+    },
+    "priority": 92,
+    "severity": "high",
+    "mitre_techniques": [
+      "T1558.003"
+    ],
+    "why": "Unusual Kerberos service-ticket requests can expose service-account credentials.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  },
+  {
+    "id": "windows-powershell-encoded",
+    "name": "Encoded PowerShell Execution",
+    "pack_id": "windows",
+    "capability": "windows.powershell",
+    "required_sources": [
+      "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational"
+    ],
+    "required_fields": {
+      "XmlWinEventLog:Microsoft-Windows-PowerShell/Operational": [
+        [
+          "ScriptBlockText",
+          "CommandLine",
+          "process_command_line"
+        ]
+      ]
+    },
+    "priority": 86,
+    "severity": "medium",
+    "mitre_techniques": [
+      "T1059.001"
+    ],
+    "why": "Encoded PowerShell commonly obscures malicious command execution.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]

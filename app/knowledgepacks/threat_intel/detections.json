@@ -1,0 +1,31 @@
+[
+  {
+    "id": "threat-intel-observable-match",
+    "name": "Threat Intelligence Observable Match",
+    "pack_id": "threat_intel",
+    "capability": "threat_intelligence.match",
+    "required_sources": [
+      "threat_intelligence"
+    ],
+    "required_fields": {
+      "threat_intelligence": [
+        [
+          "indicator",
+          "value",
+          "ioc"
+        ],
+        [
+          "type",
+          "indicator_type",
+          "ioc_type"
+        ]
+      ]
+    },
+    "priority": 91,
+    "severity": "high",
+    "mitre_techniques": [],
+    "why": "Known-malicious indicators provide high-value context for prioritizing suspicious hosts, domains, and addresses.",
+    "implementation": "splunk_spl",
+    "requires_enterprise_security": false
+  }
+]
