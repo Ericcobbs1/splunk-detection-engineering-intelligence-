@@ -58,6 +58,9 @@ def test_action_center_exposes_filters_and_direct_remediation_actions() -> None:
         "[data-action-summary]", "#action-reset-filters", "#action-refresh",
         "Repair and validate", "Review health evidence", "Record health baseline",
         "Build engineering draft", "Resolve telemetry evidence",
-        "Missing required source", "returnTarget", '#action-return-to-detection',
+        "Missing required capability", "Observed adjacent telemetry",
+        "destination identity (URL, domain, HTTP host, or TLS SNI)",
+        "map an observed sourcetype only after verifying", "source_mappings",
+        "returnTarget", '#action-return-to-detection',
     ):
         assert contract in javascript
