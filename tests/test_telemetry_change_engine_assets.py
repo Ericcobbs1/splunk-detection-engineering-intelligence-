@@ -29,6 +29,7 @@ def test_change_engine_classifies_source_schema_volume_and_detection_impact() ->
     for contract in (
         "new_sources", "removed_sources", "field_changes", "volume_changes",
         "new_routes", "removed_routes", "detection_changes", "newly_buildable", "readiness_regressions",
+        "freshness_changes", "telemetry_age_or_freshness",
         "baseline_assessment_id", "action_required", "change_count",
     ):
         assert contract in engine
@@ -38,6 +39,26 @@ def test_change_engine_classifies_source_schema_volume_and_detection_impact() ->
     assert "routeVolumes" in engine
     assert "removed_fields.length>0" in engine
     assert "baseline.fields_by_scope||baseline.fields_by_source" in engine
+
+
+def test_scan_retains_known_sources_without_using_stale_data_as_active_readiness() -> None:
+    engine = (STATIC / "dei_environment_scan_v1.js").read_text(encoding="utf-8")
+    view = ElementTree.parse(
+        APP / "default" / "data" / "ui" / "views" / "command_center.xml"
+    ).getroot()
+    for contract in (
+        "allowedWindows=[7,30,90]", "defaultWindowDays=30", "activeWindowDays=7",
+        "known_source_types", "active_source_types", "stale_source_types",
+        "known_sourcetype_count", "active_sourcetype_count", "known_report",
+        "activeRoutes", "known_source_mappings", "stale_source_types",
+        "profile(environment.active_rows,activeWindowDays)",
+        "latest(_time) AS last_seen", "saveDiscoveryWindow",
+    ):
+        assert contract in engine
+    select = view.find(".//*[@id='dei-discovery-window']")
+    assert select is not None
+    assert [option.attrib["value"] for option in select.findall("option")] == ["7", "30", "90"]
+    assert select.find("option[@value='30']").attrib["selected"] == "selected"
 
 
 def test_command_center_uses_the_shared_scan_engine() -> None:
