@@ -26,6 +26,62 @@
     return String(item.detection_id || item._key || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
   }
 
+  var telemetryGuidance={
+    proxy:{
+      related:["web.http","network.firewall","network.ids"],
+      evidence:"destination identity (URL, domain, HTTP host, or TLS SNI) and user or source identity"
+    }
+  };
+
+  function sourceCapabilities(mapping) {
+    return [mapping.canonical_source].concat(mapping.additional_canonical_sources || []).map(function (source) {
+      return String(source || "").toLowerCase();
+    });
+  }
+
+  function candidateSources(missingSources) {
+    var mappings=report().source_mappings || [];
+    var candidates=[];
+    missingSources.forEach(function (source) {
+      var guidance=telemetryGuidance[String(source || "").toLowerCase()];
+      if (!guidance) { return; }
+      mappings.forEach(function (mapping) {
+        if (sourceCapabilities(mapping).some(function (capability) { return guidance.related.indexOf(capability)!==-1; })) {
+          var label=String(mapping.observed_source || "").trim();
+          if (label && candidates.indexOf(label)===-1) { candidates.push(label); }
+        }
+      });
+    });
+    return candidates.slice(0,3);
+  }
+
+  function missingSourceEvidence(missingSources) {
+    var candidates=candidateSources(missingSources);
+    var requirements=[];
+    missingSources.forEach(function (source) {
+      var guidance=telemetryGuidance[String(source || "").toLowerCase()];
+      if (guidance && requirements.indexOf(guidance.evidence)===-1) { requirements.push(guidance.evidence); }
+    });
+    var detail="Missing required capability: "+missingSources.join(" · ")+".";
+    if (candidates.length) {
+      detail+=" Observed adjacent telemetry: "+candidates.join(" · ")+"; it is not classified as the required capability.";
+    }
+    if (requirements.length) { detail+=" Qualification requires "+requirements.join("; ")+"."; }
+    return detail;
+  }
+
+  function missingSourceAction(missingSources) {
+    var requirements=[];
+    missingSources.forEach(function (source) {
+      var guidance=telemetryGuidance[String(source || "").toLowerCase()];
+      if (guidance && requirements.indexOf(guidance.evidence)===-1) { requirements.push(guidance.evidence); }
+    });
+    var action=requirements.length ?
+      "Ingest qualifying telemetry or map an observed sourcetype only after verifying "+requirements.join("; ")+"." :
+      "Ingest qualifying telemetry or map an observed sourcetype only after verifying the required evidence.";
+    return action+" Run a new intelligence scan, then return to this detection.";
+  }
+
   function recommendationFinding(item,index) {
     var readiness=String(item.readiness || "unknown");
     if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(readiness)===-1) { return null; }
@@ -39,9 +95,9 @@
       key:key, name:item.name || key, severity:"attention", priority:1, category:"telemetry",
       readiness:readiness, source:missingSources.join(" · ") || item.sourcetype || item.source || item.data_source || "Telemetry evidence",
       mitre:(item.mitre_techniques || []).join(" · ") || item.mitre_attack_id || item.technique_id || "",
-      reason:"Readiness is "+readiness.replace(/_/g," ")+".",
-      recommendation:item.next_action || (missingSources.length?"Ingest or map "+missingSources.join(" and ")+", run a new intelligence scan, then return to this detection.":"Resolve the required field evidence, run a new intelligence scan, then return to this detection."),
-      evidence:missingFields.join(" · ") || (missingSources.length?"Missing required source: "+missingSources.join(" · "):item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified."),
+      reason:missingSources.length?"The required telemetry capability has not been verified.":"Readiness is "+readiness.replace(/_/g," ")+".",
+      recommendation:item.next_action || (missingSources.length?missingSourceAction(missingSources):"Resolve the required field evidence, run a new intelligence scan, then return to this detection."),
+      evidence:missingFields.join(" · ") || (missingSources.length?missingSourceEvidence(missingSources):item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified."),
       href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
       action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence"
     };
