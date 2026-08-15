@@ -26,11 +26,13 @@ require([
     )
   };
 
-  var discoverySpl = [
-    "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
+  function selectedWindowDays() { var value=Number($("#dei-discovery-window").val()||30); return [7,30,90].indexOf(value)!==-1?value:30; }
+
+  function discoverySpl(days) { return [
+    "| tstats count latest(_time) AS last_seen WHERE index=* earliest=-"+days+"d latest=now BY index sourcetype",
     '| where NOT match(index, "^_") AND isnotnull(sourcetype)',
     "| sort - count"
-  ].join(" ");
+  ].join(" "); }
 
   var riskDataModelSpl = [
     "| from datamodel:Risk.All_Risk",
@@ -116,7 +118,7 @@ require([
       .replace(/'/g, "&#39;");
   }
 
-  function discoverFieldInventory(sources, onProgress) {
+  function discoverFieldInventory(sources, onProgress, days) {
     return new Promise(function (resolve) {
       var inventory = {};
       var failures = [];
@@ -151,7 +153,7 @@ require([
           (function (source) {
             var isEsRisk = source.toLowerCase() === "modular_alerts:risk";
             var fieldSpl = isEsRisk ? riskDataModelSpl : [
-              'search index=* earliest=-7d latest=now sourcetype="' + escapeSearchValue(source) + '"',
+              'search index=* earliest=-' + days + 'd latest=now sourcetype="' + escapeSearchValue(source) + '"',
               "| head " + fieldSampleEvents,
               "| fieldsummary",
               "| fields field"
@@ -366,13 +368,14 @@ require([
   function discoverEnvironment(analyzeAfterDiscovery) {
     var button = $("#dei-analyze");
     var feedback = $("#dei-feedback");
+    var days=selectedWindowDays();
 
     if (analyzeAfterDiscovery) {
       button.prop("disabled", true).text("Discovering...");
     }
-    feedback.text("Discovering active Splunk telemetry from the last 7 days.");
+    feedback.text("Discovering known Splunk telemetry from the last "+days+" days.");
 
-    exportSearch(discoverySpl, 20000).done(function (text) {
+    exportSearch(discoverySpl(days), 20000).done(function (text) {
       var rows = parseExportRows(text);
       var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
       var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
@@ -400,7 +403,7 @@ require([
         feedback.text(
           "Profiling fields " + completed + "/" + total + ". Last completed: " + source + "."
         );
-      }).then(function (result) {
+      },days).then(function (result) {
         if (result.timedOut) {
           feedback.text(
             "Field profiling reached its 90-second ceiling. Continuing analysis with completed samples; " +
@@ -420,7 +423,7 @@ require([
   $("#dei-analyze").on("click", function () {
     if (window.DEIEnvironmentScan) {
       $(this).prop("disabled", true).text("Discovering...");
-      window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked")})
+      window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked"),windowDays:selectedWindowDays()})
         .always(resetAnalyzeButton);
       return;
     }
@@ -435,12 +438,23 @@ require([
     }
   });
 
-  $(document).on("dei:environment-refreshed", function (_event, report) {
+  function renderSourceInventory(snapshot,discoveredRows) {
+    var active={}; ((snapshot&&snapshot.active_source_types)||[]).forEach(function(source){active[String(source).toLowerCase()]=true;});
+    var stale={}; ((snapshot&&snapshot.stale_source_types)||[]).forEach(function(source){stale[String(source).toLowerCase()]=true;});
+    var sources=uniqueValues(discoveredRows.map(function(row){return row.sourcetype;}));
+    $("#dei-sources").val(sources.map(function(source){var key=source.toLowerCase();return (active[key]?"[ACTIVE] ":stale[key]?"[STALE] ":"")+source;}).join("\n"));
+    if(snapshot){$("#dei-window-note").text(snapshot.discovery_window_days+"-day known · "+snapshot.active_window_days+"-day active");$("#dei-source-summary").text(snapshot.known_sourcetype_count+" known · "+snapshot.active_sourcetype_count+" active · "+snapshot.stale_source_types.length+" stale");}
+  }
+
+  $(document).on("dei:environment-refreshed", function (_event, report, _changes, snapshot) {
     var discovery = window.sessionStorage.getItem("dei.latestDiscoveryExport") || "";
     var discoveredRows = parseExportRows(discovery);
-    $("#dei-sources").val(uniqueValues(discoveredRows.map(function (row) { return row.sourcetype; })).join("\n"));
+    renderSourceInventory(snapshot,discoveredRows);
     if (report && report.recommendations) { renderReport(report); }
   });
+
+  $(document).on("change","#dei-discovery-window",function(){var days=selectedWindowDays();if(window.DEIEnvironmentScan){window.DEIEnvironmentScan.saveWindow(days);}$("#dei-window-note").text(days+"-day known · 7-day active");});
+  $(document).on("dei:scan-service-ready",function(){var days=window.DEIEnvironmentScan?window.DEIEnvironmentScan.windowDays():30;$("#dei-discovery-window").val(String(days)).trigger("change");});
 
   $.ajax({url: endpoints.health, method: "GET", dataType: "json", timeout: 10000})
     .then(parsePayload).done(function (health) {
