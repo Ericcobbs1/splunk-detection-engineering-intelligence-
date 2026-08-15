@@ -7,7 +7,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var DISCOVERY_TIME_KEY = "dei.latestDiscoveryTime";
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
   var ARTIFACT_KEY = "dei.detectionDraftArtifacts";
-  var DISCOVERY_TOKEN = "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype";
+  var DISCOVERY_TOKEN = "BY index sourcetype";
   var originalAjax = $.ajax;
   var forceRefresh = false;
   var globalRefreshInProgress = false;
@@ -76,7 +76,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function isDiscoveryRequest(options) {
     var search = options && options.data && options.data.search;
-    return String(search || "").indexOf(DISCOVERY_TOKEN) !== -1;
+    search=String(search || "");
+    return search.indexOf("| tstats count")!==-1 && search.indexOf(DISCOVERY_TOKEN)!==-1;
   }
 
   $.ajax = function (options) {
