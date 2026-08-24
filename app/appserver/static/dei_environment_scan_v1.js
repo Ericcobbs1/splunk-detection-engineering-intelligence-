@@ -5,7 +5,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function windowDays(value) { var parsed=Number(value); return allowedWindows.indexOf(parsed)!==-1?parsed:defaultWindowDays; }
   function discoveryWindow() { try { return windowDays(window.localStorage.getItem(windowStorageKey)); } catch (error) { return defaultWindowDays; } }
   function saveDiscoveryWindow(value) { var days=windowDays(value); try { window.localStorage.setItem(windowStorageKey,String(days)); } catch (error) { /* Browser persistence is optional. */ } return days; }
-  function discoverySpl(days) { return '| tstats count latest(_time) AS last_seen WHERE index=* earliest=-'+windowDays(days)+'d latest=now BY index sourcetype | where NOT match(index, "^_") AND isnotnull(sourcetype) | sort - count'; }
+  function discoverySpl(days,includeInternalIndexes) { var filter=includeInternalIndexes?'| where isnotnull(sourcetype)':'| where NOT match(index, "^_") AND index!="ers" AND isnotnull(sourcetype)'; return '| tstats count latest(_time) AS last_seen WHERE index=* earliest=-'+windowDays(days)+'d latest=now BY index sourcetype '+filter+' | sort - count'; }
   function freshness(row,nowSeconds) { var age=Math.max(0,(nowSeconds-Number(row.last_seen||0))/86400); return age<=activeWindowDays?"active":"stale"; }
   function inventory(rows,days) { var now=Math.floor(Date.now()/1000),known=rows||[],activeRows=known.filter(function(row){return freshness(row,now)==="active";}),knownSources=unique(known.map(function(row){return row.sourcetype;})),activeSources=unique(activeRows.map(function(row){return row.sourcetype;})),activeMap=lowerMap(activeSources); return {window_days:windowDays(days),active_window_days:activeWindowDays,known_rows:known,active_rows:activeRows,known_sources:knownSources,active_sources:activeSources,known_indexes:unique(known.map(function(row){return row.index;})),active_indexes:unique(activeRows.map(function(row){return row.index;})),stale_sources:knownSources.filter(function(source){return !activeMap[String(source).toLowerCase()];})}; }
   function emit(stage,message,detail) { $(document).trigger("dei:scan-progress",[{stage:stage,message:message,detail:detail||{}}]); }
@@ -79,18 +79,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       window.sessionStorage.setItem("dei.latestDiscoveryExport",discoveryExport(snapshot.discovery_rows));
       window.sessionStorage.setItem("dei.latestDiscoveryTime",String(snapshot.completed_at_ms||Date.now()));
       window.sessionStorage.setItem("dei.latestEnterpriseSecurityEnabled",snapshot.enterprise_security_enabled?"true":"false");
+      window.sessionStorage.setItem("dei.includeInternalIndexes",snapshot.include_internal_indexes?"true":"false");
       window.sessionStorage.setItem("dei.latestScanChanges",JSON.stringify(snapshot.change_analysis||{}));
       window.sessionStorage.removeItem("dei.dashboardCleared");
     } catch (error) { /* Persistence failure does not invalidate a completed scan. */ }
   }
-  function persist(report,knownReport,environment,esEnabled,profileFailures,fieldsBySource,fieldsByScope,telemetryRoutes,baseline) {
+  function persist(report,knownReport,environment,esEnabled,includeInternalIndexes,profileFailures,fieldsBySource,fieldsByScope,telemetryRoutes,baseline) {
     var completed=Date.now();
     var snapshot={_key:"latest",assessment_id:"scan-"+completed,completed_at_ms:completed,completed_at:new Date(completed).toISOString(),
       initiated_by:username(),discovery_window_days:environment.window_days,active_window_days:environment.active_window_days,
       active_sourcetype_count:environment.active_sources.length,active_index_count:environment.active_indexes.length,
       known_sourcetype_count:environment.known_sources.length,known_index_count:environment.known_indexes.length,
       recommendation_count:(report.recommendations||[]).length,field_profile_failures:profileFailures||[],
-      enterprise_security_enabled:esEnabled===true,source_types:environment.active_sources,active_source_types:environment.active_sources,
+      enterprise_security_enabled:esEnabled===true,include_internal_indexes:includeInternalIndexes===true,source_types:environment.active_sources,active_source_types:environment.active_sources,
       known_source_types:environment.known_sources,stale_source_types:environment.stale_sources,indexes:environment.active_indexes,known_indexes:environment.known_indexes,
       discovery_rows:environment.known_rows,active_discovery_rows:environment.active_rows,fields_by_source:fieldsBySource||{},fields_by_scope:fieldsByScope||{},telemetry_routes:telemetryRoutes||[],report:report,known_report:knownReport};
     snapshot.change_analysis=compareSnapshots(baseline,snapshot);
@@ -114,8 +115,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       });
   }
   function run(options) {
-    var settings=options||{},days=saveDiscoveryWindow(settings.windowDays||discoveryWindow()),deferred=$.Deferred(); if (active) { deferred.reject({message:"An intelligence scan is already running."}); return deferred.promise(); } active=true; emit("discover","Discovering known Splunk telemetry from the last "+days+" days; the last "+activeWindowDays+" days determine active readiness.",{window_days:days,active_window_days:activeWindowDays});
-    exportSearch(discoverySpl(days),20000).done(function (text) {
+    var settings=options||{},days=saveDiscoveryWindow(settings.windowDays||discoveryWindow()),includeInternalIndexes=settings.includeInternalIndexes===true,deferred=$.Deferred(); if (active) { deferred.reject({message:"An intelligence scan is already running."}); return deferred.promise(); } active=true; emit("discover","Discovering known Splunk telemetry from the last "+days+" days; the last "+activeWindowDays+" days determine active readiness.",{window_days:days,active_window_days:activeWindowDays,include_internal_indexes:includeInternalIndexes});
+    exportSearch(discoverySpl(days,includeInternalIndexes),20000).done(function (text) {
       var discovered=rows(text),environment=inventory(discovered,days);
       if (!environment.known_sources.length) { var empty="Discovery completed but found no searchable source types in the selected "+days+"-day window. Verify DEI role index permissions or select a longer window, then retry."; active=false; emit("failed",empty); deferred.reject({message:empty}); return; }
       emit("profile","Known telemetry inventory complete. Profiling index, sourcetype, and channel routes.",{sources:environment.known_sources.length,indexes:environment.known_indexes.length,active_sources:environment.active_sources.length,stale_sources:environment.stale_sources.length});
@@ -128,7 +129,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
             report.known_unmapped_sources=knownReport.unmapped_sources||[];
             report.stale_source_types=environment.stale_sources;
             loadLatest().done(function(baseline){
-              persist(report,knownReport,environment,settings.enterpriseSecurityEnabled===true,result.failures,result.inventory,result.scoped_inventory,result.telemetry_routes,baseline).done(function(snapshot){
+              persist(report,knownReport,environment,settings.enterpriseSecurityEnabled===true,includeInternalIndexes,result.failures,result.inventory,result.scoped_inventory,result.telemetry_routes,baseline).done(function(snapshot){
                 active=false;
                 var changes=snapshot.change_analysis;
                 var message="Analysis complete. Found "+environment.known_sources.length+" known source types across "+environment.known_indexes.length+" indexes; "+environment.active_sources.length+" are active and "+environment.stale_sources.length+" are stale. Generated "+(report.recommendations||[]).length+" recommendations from active evidence. "+(changes.baseline_available?changes.change_count+" telemetry, freshness, or readiness change(s) detected.":"This scan established the initial telemetry baseline.");
@@ -144,7 +145,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).fail(function (xhr,status) { var message=errorMessage(xhr,status); active=false; emit("failed",message); deferred.reject({message:message}); });
     return deferred.promise();
   }
-  window.DEIEnvironmentScan={run:run,hydrate:hydrate,isRunning:function () { return active; },compareSnapshots:compareSnapshots,windowDays:discoveryWindow,saveWindow:saveDiscoveryWindow,inventory:inventory};
+  window.DEIEnvironmentScan={run:run,hydrate:hydrate,isRunning:function () { return active; },compareSnapshots:compareSnapshots,windowDays:discoveryWindow,saveWindow:saveDiscoveryWindow,inventory:inventory,discoverySearch:discoverySpl};
   $(document).trigger("dei:scan-service-ready");
   hydrate();
 });

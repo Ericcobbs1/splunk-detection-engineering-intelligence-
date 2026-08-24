@@ -25,6 +25,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     for element_id in (
         "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
         "dei-discovery-window", "dei-window-note", "dei-source-summary",
+        "dei-include-internal-indexes",
         "dei-analyze", "dei-feedback", "dei-discovery-next",
         "dei-discovery-result-state", "dei-discovery-next-summary",
         "dei-review-scan-results", "dei-open-environment-insights",
@@ -116,6 +117,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "| tstats count latest(_time) AS last_seen" in javascript
     assert 'earliest=-"+days+"d latest=now' in javascript
     assert 'NOT match(index, "^_")' in javascript
+    assert 'index!="ers"' in javascript
+    assert "includeInternalIndexes" in javascript
+    assert 'window.sessionStorage.getItem("dei.includeInternalIndexes")' in javascript
     assert "selectedWindowDays" in javascript
     assert "windowDays:selectedWindowDays()" in javascript
     assert "[ACTIVE]" in javascript

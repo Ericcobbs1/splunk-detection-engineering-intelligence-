@@ -28,9 +28,11 @@ require([
 
   function selectedWindowDays() { var value=Number($("#dei-discovery-window").val()||30); return [7,30,90].indexOf(value)!==-1?value:30; }
 
-  function discoverySpl(days) { return [
+  function discoverySpl(days, includeInternalIndexes) { return [
     "| tstats count latest(_time) AS last_seen WHERE index=* earliest=-"+days+"d latest=now BY index sourcetype",
-    '| where NOT match(index, "^_") AND isnotnull(sourcetype)',
+    includeInternalIndexes
+      ? '| where isnotnull(sourcetype)'
+      : '| where NOT match(index, "^_") AND index!="ers" AND isnotnull(sourcetype)',
     "| sort - count"
   ].join(" "); }
 
@@ -375,7 +377,8 @@ require([
     }
     feedback.text("Discovering known Splunk telemetry from the last "+days+" days.");
 
-    exportSearch(discoverySpl(days), 20000).done(function (text) {
+    var includeInternalIndexes = $("#dei-include-internal-indexes").is(":checked");
+    exportSearch(discoverySpl(days, includeInternalIndexes), 20000).done(function (text) {
       var rows = parseExportRows(text);
       var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
       var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
@@ -423,7 +426,11 @@ require([
   $("#dei-analyze").on("click", function () {
     if (window.DEIEnvironmentScan) {
       $(this).prop("disabled", true).text("Discovering...");
-      window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked"),windowDays:selectedWindowDays()})
+      window.DEIEnvironmentScan.run({
+        enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked"),
+        includeInternalIndexes:$("#dei-include-internal-indexes").is(":checked"),
+        windowDays:selectedWindowDays()
+      })
         .always(resetAnalyzeButton);
       return;
     }
@@ -455,6 +462,13 @@ require([
 
   $(document).on("change","#dei-discovery-window",function(){var days=selectedWindowDays();if(window.DEIEnvironmentScan){window.DEIEnvironmentScan.saveWindow(days);}$("#dei-window-note").text(days+"-day known · 7-day active");});
   $(document).on("dei:scan-service-ready",function(){var days=window.DEIEnvironmentScan?window.DEIEnvironmentScan.windowDays():30;$("#dei-discovery-window").val(String(days)).trigger("change");});
+
+  try {
+    $("#dei-include-internal-indexes").prop(
+      "checked",
+      window.sessionStorage.getItem("dei.includeInternalIndexes") === "true"
+    );
+  } catch (error) { /* The default remains safely disabled when storage is unavailable. */ }
 
   $.ajax({url: endpoints.health, method: "GET", dataType: "json", timeout: 10000})
     .then(parsePayload).done(function (health) {
