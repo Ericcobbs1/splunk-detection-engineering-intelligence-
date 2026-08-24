@@ -323,7 +323,7 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert "reviewMode ? 'Next'" in react_source
     assert "Ã" not in javascript
     assert 'function sessionKey(base) {' in javascript
-    assert "return base;" in javascript
+    assert 'return base+"."+GUIDE_STATE_VERSION' in javascript
     assert 'Splunk.util.getConfigValue("FORM_KEY")' not in javascript
     assert 'document.createElement("script")' in javascript
     assert "dei_interactive_guide_v3.js" in javascript

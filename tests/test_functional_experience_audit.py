@@ -60,7 +60,7 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert 'event.key==="Escape"' in adapter
     assert 'event.key==="F6"' in adapter
     assert 'function sessionKey(base) {' in adapter
-    assert "return base;" in adapter
+    assert 'return base+"."+GUIDE_STATE_VERSION' in adapter
     assert 'Splunk.util.getConfigValue("FORM_KEY")' not in adapter
     assert "window.DEINextGuide" in adapter
     assert 'document.createElement("script")' in adapter
@@ -246,7 +246,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'readStep()===11&&action==="record_deployment") goToStep(12)' in adapter
+    assert 'readStep()===11&&action==="record_deployment"&&saved.state==="production"' in adapter
     assert 'title:"Detection lifecycle tutorial complete"' in adapter
     assert "Splunk saved searches: Settings → Searches, Reports, and Alerts" in adapter
     assert "Enterprise Security detections: Configure → Content → Content Management" in adapter
@@ -258,10 +258,10 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     assert "reviewCeiling" in adapter
     assert "onForward" in react_source
     assert "step.lockBack" not in react_source
-    assert 'index===4 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
+    assert 'index===4 && $("#detection-generator").attr("data-dei-generated-detection")' not in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
-    assert "if(readStep()<=4)" in adapter
+    assert "readStep()!==4" in adapter
     assert 'if (page()!==step.page) { close(false); return; }' in adapter
     assert 'if(page()!==step.page){ window.location.href=route(step.page); return; }' in adapter
     assert "candidate[0]!==activeTarget" in adapter
@@ -346,6 +346,33 @@ def test_monitoring_tutorial_skips_valid_defaults_and_explains_both_next_actions
     assert ".dei-monitoring-choice" in stylesheet
 
 
+def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'var GUIDE_STATE_VERSION="v9"' in adapter
+    assert 'var DETECTION_KEY="dei.nextGuide.detection"' in adapter
+    assert "function resetWalkthroughDetection()" in adapter
+    assert "function walkthroughOwnsSelectedDetection()" in adapter
+    assert "function selectedRecommendationOpportunity()" in adapter
+    assert 'if(index>=5&&!walkthroughOwnsSelectedDetection()) return false' in adapter
+    assert 'readStep()!==4' in adapter
+    assert 'Tutorial: select a detection labeled Recommendation.' in adapter
+    assert 'if(index===3 && $("#workflow-detection-select").val())' not in adapter
+    assert 'if(index===4 && $("#detection-generator")' not in adapter
+    assert 'status.stage==="discover"&&guideActive&&page()==="environment"' in adapter
+    assert 'window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false")' in adapter
+
+
+def test_tutorial_branch_actions_cannot_report_false_completion():
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'action==="record_deployment"&&saved.state==="production"' in adapter
+    assert adapter.count('action==="record_deployment"&&saved.state==="production"') == 2
+    assert 'action==="return_draft"&&readStep()>=20&&readStep()<=23' in adapter
+    assert 'action==="restart_recommendation"&&readStep()>=5&&readStep()<=23' in adapter
+    assert 'if(action==="retire") close(true)' in adapter
+    assert 'lifecycleState.indexOf("retired")!==-1){ close(true); return true;' in adapter
+    assert 'readStep()===10||readStep()===24' in adapter
+
+
 def test_lifecycle_actions_name_outcomes_focus_invalid_fields_and_confirm_retirement():
     lifecycle = _source("detection_lifecycle_v3.js")
     assert "Record health and start monitoring" in lifecycle
@@ -370,7 +397,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v8"' in adapter
+    assert 'window.DEIGuideAssetVersion="v9"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter
@@ -406,20 +433,20 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
     adapter = _source("dei_guide_adapter_v8.js")
     transitions = (
         'readStep()===0){ event.preventDefault(); goToStep(1)',
-        'readStep()===1 && status.stage==="complete") advance()',
+        'readStep()===1&&status.stage==="complete") { resetWalkthroughDetection(); advance(); }',
         'readStep()===2){ event.preventDefault(); advance()',
-        'readStep()===3 && $(this).val()) advance()',
-        '(step===5||step===19)&&validation&&validation.status==="passed") advance()',
+        'if(!selectedRecommendationOpportunity())',
+        '(step===5||step===19)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance()',
         '(step===6||step===8||step===14||step===16||step===20||step===22)',
         'readStep()===7&&action==="submit_review") goToStep(8)',
         'readStep()===9&&action==="approve_review") goToStep(10)',
-        'readStep()===10 && String($(this).val()||"").trim()) goToStep(11)',
-        'readStep()===11&&action==="record_deployment") goToStep(12)',
+        'readStep()===10||readStep()===24',
+        'readStep()===11&&action==="record_deployment"&&saved.state==="production") goToStep(12)',
         'readStep()===15&&action==="record_health") goToStep(16)',
         'readStep()===17&&action==="start_tuning") goToStep(18)',
         'readStep()===21&&action==="submit_review") goToStep(22)',
         'readStep()===23&&action==="approve_review") goToStep(24)',
-        'readStep()===25&&action==="record_deployment") goToStep(26)',
+        'readStep()===25&&action==="record_deployment"&&saved.state==="production") goToStep(26)',
     )
     for transition in transitions:
         assert transition in adapter

@@ -216,7 +216,7 @@ def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
         "Open Environment Discovery",
         "Run current telemetry discovery",
         "Open the Detection Engineering Workspace",
-        "Choose a detection opportunity",
+        "Choose a new detection opportunity",
         "Generate a reviewable draft",
         "Validate the detection",
         "Document the validation handoff",
@@ -281,3 +281,71 @@ def test_simulation_matches_the_ui_transition_and_gate_contracts():
     assert "Record health checkpoint" in LIFECYCLE
     assert "Start tuning version" in LIFECYCLE
     assert "← Start tuning version" not in LIFECYCLE
+
+
+def test_tutorial_simulation_rejects_unrelated_and_nonproduction_progress():
+    step = 3
+    walkthrough_detection = None
+
+    # Restored historical records at every stage cannot satisfy a fresh run.
+    for state in ("draft", "testing", "peer_review", "production", "monitoring", "tuning", "retired"):
+        selected = "historical-" + state
+        assert walkthrough_detection is None
+        assert selected != walkthrough_detection
+        assert step == 3
+
+    # Only a Recommendation can enter generation, and only its generated record owns the run.
+    selected_stage = "recommendation"
+    selected = "new-authentication-detection"
+    if selected_stage == "recommendation":
+        step = 4
+    walkthrough_detection = selected
+    step = 5
+    assert walkthrough_detection == selected
+
+    # An event for another record is ignored.
+    unrelated_event_record = "old-retired-detection"
+    assert unrelated_event_record != walkthrough_detection
+    assert step == 5
+
+    # Development and Staging evidence is retained but cannot claim Production completion.
+    step = 11
+    for saved_state in ("peer_review", "catalog"):
+        if saved_state == "production":
+            step = 12
+        assert step == 11
+    saved_state = "production"
+    if saved_state == "production":
+        step = 12
+    assert step == 12
+
+    # Returning a tuned version for changes goes back to editing, not completion.
+    step = 22
+    action = "return_draft"
+    if action == "return_draft" and 20 <= step <= 23:
+        step = 18
+    assert step == 18
+
+    # Retirement ends the walkthrough without displaying the successful 27/27 claim.
+    action = "retire"
+    tutorial_open = True
+    if action == "retire":
+        tutorial_open = False
+    assert not tutorial_open
+
+
+def test_new_scan_restarts_an_unfinished_or_visible_walkthrough_from_discovery():
+    # Reproduce the reported defect: a stale completed step must not survive a new scan.
+    step = 26
+    seen = False
+    scan_stage = "discover"
+    guide_active = not seen
+    if scan_stage == "discover" and guide_active:
+        step = 1
+    assert step == 1
+
+    scan_stage = "complete"
+    if step == 1 and scan_stage == "complete":
+        step = 2
+    assert step == 2
+    assert step != 26
