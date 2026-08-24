@@ -39,6 +39,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     source_inventory = root.find(".//*[@id='dei-sources']")
     assert source_inventory is not None
     assert source_inventory.attrib["readonly"] == "readonly"
+    assert "index and sourcetype routes" in source_inventory.attrib["placeholder"]
     next_step = root.find(".//*[@id='dei-discovery-next']")
     assert next_step is not None
     assert next_step.attrib["hidden"] == "hidden"
@@ -126,6 +127,8 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert "windowDays:selectedWindowDays()" in javascript
     assert "[ACTIVE]" in javascript
     assert "[STALE]" in javascript
+    assert '"index="+route.index+" · sourcetype="+route.source' in javascript
+    assert '" routes"' in javascript
     assert 'output_mode: "json"' in javascript
     assert "fieldDiscoveryConcurrency = 6" in javascript
     assert "fieldSearchTimeoutMs = 12000" in javascript

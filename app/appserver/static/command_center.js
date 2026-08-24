@@ -446,11 +446,11 @@ require([
   });
 
   function renderSourceInventory(snapshot,discoveredRows) {
-    var active={}; ((snapshot&&snapshot.active_source_types)||[]).forEach(function(source){active[String(source).toLowerCase()]=true;});
-    var stale={}; ((snapshot&&snapshot.stale_source_types)||[]).forEach(function(source){stale[String(source).toLowerCase()]=true;});
-    var sources=uniqueValues(discoveredRows.map(function(row){return row.sourcetype;}));
-    $("#dei-sources").val(sources.map(function(source){var key=source.toLowerCase();return (active[key]?"[ACTIVE] ":stale[key]?"[STALE] ":"")+source;}).join("\n"));
-    if(snapshot){$("#dei-window-note").text(snapshot.discovery_window_days+"-day known · "+snapshot.active_window_days+"-day active");$("#dei-source-summary").text(snapshot.known_sourcetype_count+" known · "+snapshot.active_sourcetype_count+" active · "+snapshot.stale_source_types.length+" stale");}
+    var activeRoutes={},activeSources={}; ((snapshot&&snapshot.active_source_types)||[]).forEach(function(source){activeSources[String(source||"").toLowerCase()]=true;});((snapshot&&snapshot.active_discovery_rows)||[]).forEach(function(row){var key=String(row.index||"").toLowerCase()+"::"+String(row.sourcetype||"").toLowerCase();activeRoutes[key]=true;});
+    var seen={},routes=[]; (discoveredRows||[]).forEach(function(row){var index=String(row.index||"").trim(),source=String(row.sourcetype||"").trim(),key=index.toLowerCase()+"::"+source.toLowerCase();if(!index||!source||seen[key])return;seen[key]=true;routes.push({index:index,source:source,key:key});});
+    routes.sort(function(left,right){return left.index.localeCompare(right.index)||left.source.localeCompare(right.source);});
+    var hasScopedActive=Object.keys(activeRoutes).length>0;$("#dei-sources").val(routes.map(function(route){var active=hasScopedActive?activeRoutes[route.key]:activeSources[route.source.toLowerCase()];return (active?"[ACTIVE] ":"[STALE] ")+"index="+route.index+" · sourcetype="+route.source;}).join("\n"));
+    if(snapshot){$("#dei-window-note").text(snapshot.discovery_window_days+"-day known · "+snapshot.active_window_days+"-day active");$("#dei-source-summary").text(snapshot.known_sourcetype_count+" known source types · "+snapshot.active_sourcetype_count+" active · "+snapshot.stale_source_types.length+" stale · "+routes.length+" routes");}
   }
 
   $(document).on("dei:environment-refreshed", function (_event, report, _changes, snapshot) {
