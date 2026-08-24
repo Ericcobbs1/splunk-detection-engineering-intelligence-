@@ -181,7 +181,7 @@ def test_detection_lifecycle_assets_use_evidence_not_mock_completion() -> None:
     assert "activatePipelineStage" in javascript
     assert "data-pipeline-state" in javascript
     assert "Record deployment" in javascript
-    assert "Continue · Start Monitoring" in javascript
+    assert "Continue · Record health and start monitoring" in javascript
     assert ".dei-pipeline-grid" in stylesheet
     assert ".dei-state-grid" in stylesheet
     assert ".dei-lifecycle-table" in stylesheet

@@ -346,6 +346,20 @@ def test_monitoring_tutorial_skips_valid_defaults_and_explains_both_next_actions
     assert ".dei-monitoring-choice" in stylesheet
 
 
+def test_lifecycle_actions_name_outcomes_focus_invalid_fields_and_confirm_retirement():
+    lifecycle = _source("detection_lifecycle_v3.js")
+    assert "Record health and start monitoring" in lifecycle
+    assert 'function fieldError(selector,message,label)' in lifecycle
+    assert 'fieldError("#lifecycle-external-id"' in lifecycle
+    assert 'fieldError("#lifecycle-review-period"' in lifecycle
+    assert 'fieldError("#lifecycle-result-volume"' in lifecycle
+    assert 'fieldError("#lifecycle-runtime"' in lifecycle
+    assert '"Retirement reason *"' in lifecycle
+    assert 'window.confirm("Retire this governed detection record?' in lifecycle
+    assert "it will not disable the live Splunk saved search" in lifecycle
+    assert "Retirement cancelled. No lifecycle changes were saved." in lifecycle
+
+
 def test_completion_step_never_highlights_the_entire_workspace():
     adapter = _source("dei_guide_adapter_v8.js")
     assert "if(step.completion||step.operationsChoice) return $()" in adapter

@@ -277,7 +277,7 @@ def test_simulation_matches_the_ui_transition_and_gate_contracts():
         "A retirement reason is required.",
     ):
         assert message in LIFECYCLE
-    assert "Choose the next operational action" in LIFECYCLE
+    assert "Choose one next operational action" in LIFECYCLE
     assert "Record health checkpoint" in LIFECYCLE
     assert "Start tuning version" in LIFECYCLE
     assert "← Start tuning version" not in LIFECYCLE
