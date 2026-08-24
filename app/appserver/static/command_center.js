@@ -342,7 +342,7 @@ require([
       sources: sources,
       fields_by_source: fieldsBySource,
       enterprise_security_enabled: esEnabled,
-      include_unsupported: true
+      include_unsupported: false
     }).done(function (report) {
       var unmapped = report.unmapped_sources || [];
       var observed = report.observed_source_count || sources.length;

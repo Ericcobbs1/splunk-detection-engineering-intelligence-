@@ -120,6 +120,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'index!="ers"' in javascript
     assert '"(index=* OR index=_*)"' in javascript
     assert "includeInternalIndexes" in javascript
+    assert "include_unsupported: false" in javascript
     assert 'window.sessionStorage.getItem("dei.includeInternalIndexes")' in javascript
     assert "selectedWindowDays" in javascript
     assert "windowDays:selectedWindowDays()" in javascript
