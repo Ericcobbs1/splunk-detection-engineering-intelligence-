@@ -29,7 +29,7 @@ require([
   function selectedWindowDays() { var value=Number($("#dei-discovery-window").val()||30); return [7,30,90].indexOf(value)!==-1?value:30; }
 
   function discoverySpl(days, includeInternalIndexes) { return [
-    "| tstats count latest(_time) AS last_seen WHERE index=* earliest=-"+days+"d latest=now BY index sourcetype",
+    "| tstats count latest(_time) AS last_seen WHERE "+(includeInternalIndexes ? "(index=* OR index=_*)" : "index=*")+" earliest=-"+days+"d latest=now BY index sourcetype",
     includeInternalIndexes
       ? '| where isnotnull(sourcetype)'
       : '| where NOT match(index, "^_") AND index!="ers" AND isnotnull(sourcetype)',
