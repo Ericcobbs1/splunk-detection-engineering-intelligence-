@@ -253,8 +253,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return '<div class="dei-lifecycle-progress">'+states.map(function (state,index) {
       var status=index<current?"complete":(index===current?"current":"future");
       var statusLabel=status==="complete"?"Complete":(status==="current"?"Current stage":"Upcoming");
-      var action=controls.previous&&controls.previous.stage===state.id?controls.previous.action:(controls.next&&controls.next.stage===state.id?controls.next.action:"");
-      var actionLabel=controls.previous&&action===controls.previous.action?controls.previous.label:(controls.next&&action===controls.next.action?controls.next.label:"");
+      var action=controls.previous&&controls.previous.stage===state.id?controls.previous.action:(controls.alternate&&controls.alternate.stage===state.id?controls.alternate.action:(controls.next&&controls.next.stage===state.id?controls.next.action:""));
+      var actionLabel=controls.previous&&action===controls.previous.action?controls.previous.label:(controls.alternate&&action===controls.alternate.action?controls.alternate.label:(controls.next&&action===controls.next.action?controls.next.label:""));
       var tag=action?"button":"div"; var actionText=action?' data-stage-action="'+esc(action)+'" type="button" title="'+esc(actionLabel)+'"':"";
       return '<'+tag+' class="dei-progress-step '+status+(action?' available':'')+'"'+actionText+(status==="current"?' aria-current="step"':"")+'><span>'+(status==="complete"?"✓":String(index+1))+'</span><div><strong>'+esc(state.label)+'</strong><small>'+(action?"Available action":statusLabel)+'</small></div></'+tag+'>';
     }).join("")+"</div>";
@@ -266,7 +266,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (record.state==="peer_review"&&!approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return for changes"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"catalog",action:"approve_review",label:"Continue · Approve version"}}; }
     if (record.state==="peer_review"&&approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Reopen Draft"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"production",action:"record_deployment",label:"Continue · Record deployment"}}; }
     if (record.state==="production") { return {previous:null,edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"monitoring",action:"record_health",label:"Continue · Start Monitoring"}}; }
-    if (record.state==="monitoring") { return {previous:{stage:"tuning",action:"start_tuning",label:"Revise · Start tuning version"},edit:null,next:{stage:"monitoring",action:"record_health",label:"Continue · Record health"}}; }
+    if (record.state==="monitoring") { return {previous:null,alternate:{stage:"tuning",action:"start_tuning",label:"Start tuning version"},edit:null,next:{stage:"monitoring",action:"record_health",label:"Record health checkpoint"}}; }
     return {previous:null,edit:null,next:null};
   }
 
@@ -332,7 +332,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function buttonMarkup(record) {
     var controls=stageControls(record); var markup='<div class="dei-stage-controller" aria-label="Lifecycle stage controls">';
-    markup+=controls.previous?'<button type="button" class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':'<span class="dei-stage-controller-spacer"></span>';
+    if (record.state==="monitoring") { markup='<div class="dei-monitoring-choice" role="note"><strong>Choose the next operational action</strong><span>To remain in Monitoring, complete the measurements and evidence note, then select Record health checkpoint. To revise the detection, enter a specific tuning objective in the same note field, then select Start tuning version.</span></div>'+markup; }
+    markup+=controls.previous?'<button type="button" class="previous" data-action="'+esc(controls.previous.action)+'">← '+esc(controls.previous.label.replace(/^Previous · |^Revise · /,""))+'</button>':(controls.alternate?"":'<span class="dei-stage-controller-spacer"></span>');
+    if (controls.alternate) { markup+='<button type="button" data-action="'+esc(controls.alternate.action)+'">'+esc(controls.alternate.label)+' →</button>'; }
     if (controls.edit) { markup+='<button type="button" data-action="'+esc(controls.edit.action)+'">'+esc(controls.edit.label)+'</button>'; }
     if (controls.next) { markup+='<button type="button" class="primary next" data-action="'+esc(controls.next.action)+'">'+esc(controls.next.label.replace(/^Continue · /,""))+' →</button>'; }
     markup+='<button type="button" data-action="save_assignment">Save assignment</button>';

@@ -1,3 +1,3 @@
 """Detection Engineering Intelligence core package."""
 
-__version__ = "0.1.136"
+__version__ = "0.1.137"
