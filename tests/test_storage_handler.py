@@ -51,7 +51,7 @@ def test_scan_write_and_read_are_server_side_and_durable() -> None:
 def test_kv_upsert_updates_first_to_avoid_duplicate_key_errors() -> None:
     calls: list[tuple[str, str, dict[str, Any] | None]] = []
 
-    def update_existing(_token: str, method: str, path: str, payload: dict[str, Any] | None):
+    def update_existing(_token: str, method: str, path: str, payload: Any):
         calls.append((method, path, payload))
         return 200, ""
 
@@ -65,7 +65,7 @@ def test_kv_upsert_updates_first_to_avoid_duplicate_key_errors() -> None:
 def test_kv_upsert_creates_when_record_does_not_exist() -> None:
     calls: list[tuple[str, str, dict[str, Any] | None]] = []
 
-    def create_missing(_token: str, method: str, path: str, payload: dict[str, Any] | None):
+    def create_missing(_token: str, method: str, path: str, payload: Any):
         calls.append((method, path, payload))
         return (404, "") if len(calls) == 1 else (201, "")
 
