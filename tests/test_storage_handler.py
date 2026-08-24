@@ -48,18 +48,21 @@ def test_scan_write_and_read_are_server_side_and_durable() -> None:
     assert read["payload"]["assessment_id"] == "scan-1"
 
 
-def test_kv_upsert_updates_first_to_avoid_duplicate_key_errors() -> None:
+def test_kv_upsert_updates_existing_record_without_duplicate_key_errors() -> None:
     calls: list[tuple[str, str, dict[str, Any] | None]] = []
 
     def update_existing(_token: str, method: str, path: str, payload: Any):
         calls.append((method, path, payload))
+        if method == "GET":
+            return 200, '[{"_key":"det-1"}]'
         return 200, ""
 
     KVStore("token", request=update_existing).upsert("records", {"_key": "det-1", "state": "testing"})
 
-    assert len(calls) == 1
-    assert calls[0][1].endswith("/records/det-1")
-    assert calls[0][2] == {"state": "testing"}
+    assert len(calls) == 2
+    assert "query=" in calls[0][1]
+    assert calls[1][1].endswith("/records/det-1")
+    assert calls[1][2] == {"state": "testing"}
 
 
 def test_kv_upsert_creates_when_record_does_not_exist() -> None:
@@ -67,12 +70,12 @@ def test_kv_upsert_creates_when_record_does_not_exist() -> None:
 
     def create_missing(_token: str, method: str, path: str, payload: Any):
         calls.append((method, path, payload))
-        return (404, "") if len(calls) == 1 else (201, "")
+        return (200, "[]") if method == "GET" else (201, "")
 
     KVStore("token", request=create_missing).upsert("records", {"_key": "det-1", "state": "testing"})
 
     assert len(calls) == 2
-    assert calls[0][1].endswith("/records/det-1")
+    assert "query=" in calls[0][1]
     assert calls[1][1].endswith("/records")
     assert calls[1][2] == {"_key": "det-1", "state": "testing"}
 
