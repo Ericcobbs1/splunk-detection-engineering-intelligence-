@@ -315,7 +315,12 @@ def test_first_session_onboarding_is_dismissible_and_accessible() -> None:
     assert 'aria-modal="false"' in react_source
     assert "onClose" in react_source
     assert "onFocusTarget" in react_source
-    assert "Next" not in react_source
+    assert "reviewMode" in react_source
+    assert "onForward" in react_source
+    assert "disabled={stepNumber === 1}" in react_source
+    assert "step.lockBack" not in react_source
+    assert "reviewCeiling" in javascript
+    assert "reviewMode ? 'Next'" in react_source
     assert "Ã" not in javascript
     assert 'function sessionKey(base) {' in javascript
     assert "return base;" in javascript

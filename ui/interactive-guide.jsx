@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import Button from '@splunk/react-ui/Button';
 import SplunkThemeProvider from '@splunk/themes/SplunkThemeProvider';
 
-function AnalystGuide({step, stepNumber, totalSteps, onBack, onClose, onFocusTarget, onContinueOperations, onFinishCore}) {
+function AnalystGuide({step, stepNumber, totalSteps, reviewMode, onBack, onForward, onClose, onFocusTarget, onContinueOperations, onFinishCore}) {
   const [collapsed, setCollapsed] = useState(false);
   const progress = `${Math.round((stepNumber / totalSteps) * 100)}%`;
   return (
@@ -28,11 +28,11 @@ function AnalystGuide({step, stepNumber, totalSteps, onBack, onClose, onFocusTar
         <span style={{width: progress}} />
       </div>
       <footer className="dei-next-guide-footer">
-        <Button appearance="secondary" disabled={stepNumber === 1 || step.lockBack} onClick={onBack}>Back</Button>
+        <Button appearance="secondary" disabled={stepNumber === 1} onClick={onBack}>Back</Button>
         {step.operationsChoice ? <Button appearance="secondary" onClick={onFinishCore}>Finish core tutorial</Button> : null}
-        <Button appearance="primary" onClick={step.operationsChoice ? onContinueOperations : (step.completion ? onClose : onFocusTarget)}>{step.operationsChoice ? 'Continue: operate & tune' : (step.completion ? 'Finish' : 'Show me')}</Button>
+        <Button appearance="primary" onClick={reviewMode ? onForward : (step.operationsChoice ? onContinueOperations : (step.completion ? onClose : onFocusTarget))}>{reviewMode ? 'Next' : (step.operationsChoice ? 'Continue: operate & tune' : (step.completion ? 'Finish' : 'Show me'))}</Button>
       </footer>
-      <p className="dei-next-guide-hint">{step.operationsChoice ? 'Operational tuning is optional and should be driven by real evidence.' : (step.completion ? 'You can restart this guide from the Home page at any time.' : 'The guide advances automatically after you complete the highlighted action. Press Esc to exit.')}</p>
+      <p className="dei-next-guide-hint">{reviewMode ? 'Review mode does not repeat or change completed lifecycle actions. Select Next to return to the current checkpoint.' : (step.operationsChoice ? 'Operational tuning is optional and should be driven by real evidence.' : (step.completion ? 'You can restart this guide from the Home page at any time.' : 'The guide advances automatically after you complete the highlighted action. Press Esc to exit.'))}</p>
     </section>
   );
 }

@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from dei_intelligence.api.storage_handler import (
+    KVStore,
     LIFECYCLE,
     SCAN_HISTORY,
     SCAN_SUMMARIES,
@@ -45,6 +46,35 @@ def test_scan_write_and_read_are_server_side_and_durable() -> None:
     assert store.records[SCAN_HISTORY]["scan-1"]["assessment_id"] == "scan-1"
     read = handler.handle(request({"resource": "scan", "operation": "read"}))
     assert read["payload"]["assessment_id"] == "scan-1"
+
+
+def test_kv_upsert_updates_first_to_avoid_duplicate_key_errors() -> None:
+    calls: list[tuple[str, str, dict[str, Any] | None]] = []
+
+    def update_existing(_token: str, method: str, path: str, payload: dict[str, Any] | None):
+        calls.append((method, path, payload))
+        return 200, ""
+
+    KVStore("token", request=update_existing).upsert("records", {"_key": "det-1", "state": "testing"})
+
+    assert len(calls) == 1
+    assert calls[0][1].endswith("/records/det-1")
+    assert calls[0][2] == {"state": "testing"}
+
+
+def test_kv_upsert_creates_when_record_does_not_exist() -> None:
+    calls: list[tuple[str, str, dict[str, Any] | None]] = []
+
+    def create_missing(_token: str, method: str, path: str, payload: dict[str, Any] | None):
+        calls.append((method, path, payload))
+        return (404, "") if len(calls) == 1 else (201, "")
+
+    KVStore("token", request=create_missing).upsert("records", {"_key": "det-1", "state": "testing"})
+
+    assert len(calls) == 2
+    assert calls[0][1].endswith("/records/det-1")
+    assert calls[1][1].endswith("/records")
+    assert calls[1][2] == {"_key": "det-1", "state": "testing"}
 
 
 def test_lifecycle_write_read_and_delete_use_governed_collection() -> None:

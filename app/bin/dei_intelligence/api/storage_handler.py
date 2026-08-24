@@ -100,18 +100,18 @@ class KVStore:
         key = str(record.get("_key", "")).strip()
         if not key:
             raise ValueError("record _key is required")
-        status, _ = self._request(self._session_key, "POST", self.endpoint(collection), record)
-        if status in (200, 201):
-            return
-        if status != 409:
-            raise RuntimeError(f"KV create failed with HTTP {status}")
         replacement = dict(record)
         replacement.pop("_key", None)
         status, _ = self._request(
             self._session_key, "POST", self.endpoint(collection, key), replacement
         )
-        if status not in (200, 201):
+        if status in (200, 201):
+            return
+        if status != 404:
             raise RuntimeError(f"KV update failed with HTTP {status}")
+        status, _ = self._request(self._session_key, "POST", self.endpoint(collection), record)
+        if status not in (200, 201):
+            raise RuntimeError(f"KV create failed with HTTP {status}")
 
     def delete(self, collection: str, key: str) -> None:
         status, _ = self._request(self._session_key, "DELETE", self.endpoint(collection, key), None)
