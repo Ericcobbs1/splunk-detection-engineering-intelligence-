@@ -118,6 +118,7 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'earliest=-"+days+"d latest=now' in javascript
     assert 'NOT match(index, "^_")' in javascript
     assert 'index!="ers"' in javascript
+    assert '"(index=* OR index=_*)"' in javascript
     assert "includeInternalIndexes" in javascript
     assert 'window.sessionStorage.getItem("dei.includeInternalIndexes")' in javascript
     assert "selectedWindowDays" in javascript
