@@ -90,7 +90,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       initiated_by:username(),discovery_window_days:environment.window_days,active_window_days:environment.active_window_days,
       active_sourcetype_count:environment.active_sources.length,active_index_count:environment.active_indexes.length,
       known_sourcetype_count:environment.known_sources.length,known_index_count:environment.known_indexes.length,
-      recommendation_count:(report.recommendations||[]).length,field_profile_failures:profileFailures||[],
+      recommendation_count:(report.recommendations||[]).length,unsupported_opportunity_count:Number(report.unsupported_count||0),field_profile_failures:profileFailures||[],
       enterprise_security_enabled:esEnabled===true,include_internal_indexes:includeInternalIndexes===true,source_types:environment.active_sources,active_source_types:environment.active_sources,
       known_source_types:environment.known_sources,stale_source_types:environment.stale_sources,indexes:environment.active_indexes,known_indexes:environment.known_indexes,
       discovery_rows:environment.known_rows,active_discovery_rows:environment.active_rows,fields_by_source:fieldsBySource||{},fields_by_scope:fieldsByScope||{},telemetry_routes:telemetryRoutes||[],report:report,known_report:knownReport};
@@ -123,7 +123,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       profile(environment.active_rows,activeWindowDays).done(function (result) {
         emit("recommend","Evaluating route-scoped telemetry and field-level detection readiness.");
         var activeRouteKeys=routeMap(environment.active_rows),activeRoutes=result.telemetry_routes.filter(function(route){return !!activeRouteKeys[String(route.index||"").toLowerCase()+"::"+String(route.sourcetype||"").toLowerCase()];});
-        recommendations({sources:environment.active_sources,fields_by_source:result.inventory,telemetry_routes:activeRoutes,enterprise_security_enabled:settings.enterpriseSecurityEnabled===true,include_unsupported:true}).done(function (report) {
+        recommendations({sources:environment.active_sources,fields_by_source:result.inventory,telemetry_routes:activeRoutes,enterprise_security_enabled:settings.enterpriseSecurityEnabled===true,include_unsupported:false}).done(function (report) {
           recommendations({sources:environment.known_sources,fields_by_source:result.inventory,telemetry_routes:result.telemetry_routes,enterprise_security_enabled:settings.enterpriseSecurityEnabled===true,include_unsupported:true}).done(function(knownReport){
             report.known_source_mappings=knownReport.source_mappings||[];
             report.known_unmapped_sources=knownReport.unmapped_sources||[];
@@ -132,7 +132,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
               persist(report,knownReport,environment,settings.enterpriseSecurityEnabled===true,includeInternalIndexes,result.failures,result.inventory,result.scoped_inventory,result.telemetry_routes,baseline).done(function(snapshot){
                 active=false;
                 var changes=snapshot.change_analysis;
-                var message="Analysis complete. Found "+environment.known_sources.length+" known source types across "+environment.known_indexes.length+" indexes; "+environment.active_sources.length+" are active and "+environment.stale_sources.length+" are stale. Generated "+(report.recommendations||[]).length+" recommendations from active evidence. "+(changes.baseline_available?changes.change_count+" telemetry, freshness, or readiness change(s) detected.":"This scan established the initial telemetry baseline.");
+                var actionable=(report.recommendations||[]).length,unsupported=Number(report.unsupported_count||0);var message="Analysis complete. Found "+environment.known_sources.length+" known source types across "+environment.known_indexes.length+" indexes; "+environment.active_sources.length+" are active and "+environment.stale_sources.length+" are stale. Generated "+actionable+" actionable recommendation"+(actionable===1?"":"s")+" from active evidence; "+unsupported+" unsupported library opportunit"+(unsupported===1?"y was":"ies were")+" excluded. "+(changes.baseline_available?changes.change_count+" telemetry, freshness, or readiness change(s) detected.":"This scan established the initial telemetry baseline.");
                 if(changes.readiness_regressions&&changes.readiness_regressions.some(function(change){return change.cause==="telemetry_age_or_freshness";})) message+=" One or more readiness downgrades may be caused by telemetry age; review freshness before changing the detection design.";
                 if(!snapshot.persistence.durable) message+=" Shared KV persistence needs attention; this result is available only in the current browser session.";
                 emit(snapshot.persistence.durable?"complete":"complete_with_warning",message,{report:report,change_analysis:changes,assessment_id:snapshot.assessment_id,persistence:snapshot.persistence,snapshot:snapshot});
