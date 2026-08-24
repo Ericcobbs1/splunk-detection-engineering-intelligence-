@@ -40,7 +40,8 @@
   }
 
   function candidateSources(missingSources) {
-    var mappings=report().source_mappings || [];
+    var currentReport=report(),mappings=(currentReport.source_mappings || []).concat(currentReport.known_source_mappings || []),stale={};
+    (currentReport.stale_source_types||[]).forEach(function(source){stale[String(source||"").toLowerCase()]=true;});
     var candidates=[];
     missingSources.forEach(function (source) {
       var guidance=telemetryGuidance[String(source || "").toLowerCase()];
@@ -48,6 +49,7 @@
       mappings.forEach(function (mapping) {
         if (sourceCapabilities(mapping).some(function (capability) { return guidance.related.indexOf(capability)!==-1; })) {
           var label=String(mapping.observed_source || "").trim();
+          if (label && stale[label.toLowerCase()]) { label+=" (stale)"; }
           if (label && candidates.indexOf(label)===-1) { candidates.push(label); }
         }
       });
