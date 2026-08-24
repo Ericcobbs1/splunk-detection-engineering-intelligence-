@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[1]
 LIFECYCLE = (ROOT / "app/appserver/static/detection_lifecycle_v3.js").read_text()
 GUIDE = (ROOT / "app/appserver/static/dei_guide_adapter_v8.js").read_text()
