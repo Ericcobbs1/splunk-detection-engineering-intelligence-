@@ -21,7 +21,7 @@ def test_shared_workspace_assets_are_packaged_on_operational_pages() -> None:
     home_scripts = home.attrib["script"].split(",")
     assert "dei_interactive_guide_v3.js" not in home_scripts
     assert "dei_guide_adapter_v8.js" in home_scripts
-    assert "dei_workspace_layout_v12.js" in home_scripts
+    assert "dei_workspace_layout_v14.js" in home_scripts
     assert "dei_home_actions_v1.css" in home.attrib["stylesheet"].split(",")
     assert "dei_home_globe_react_v1.js" in home_scripts
     assert home.attrib["stylesheet"].split(",")[-5:] == ["dei_home_globe_v2.css", "dei_home_globe_v3.css", "dei_home_globe_v4.css", "dei_home_globe_v7.css", "dei_theme_v1.css"]
@@ -112,7 +112,7 @@ def test_analyst_layouts_prioritize_actions_and_sticky_context() -> None:
 
 def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None:
     stylesheet = (STATIC / "dei_workspace_layout_v1.css").read_text(encoding="utf-8")
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     home = ElementTree.parse(VIEWS / "dei_home.xml").getroot()
     shell = home.find(".//*[@id='dei-home-page']")
     assert shell is not None
@@ -157,14 +157,9 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert "@keyframes dei-home-pipeline-scan" in stylesheet
     assert '[data-pipeline-health="critical"]' in stylesheet
     assert "refreshHomeLifecycleRecords(true)" in javascript
-    assert "bindHomePrimaryActions" in javascript
-    assert 'window.location.assign(String($(this).attr("href") || "detection_catalog#lifecycle-map"))' in javascript
-    assert 'off("click.deiHomeRefresh").on("click.deiHomeRefresh"' in javascript
-    assert '"Pipeline stages populated"' in javascript
-    assert '"Current stage: "' in javascript
-    assert '"Blocked stage: "' in javascript
-    assert 'healthLabel+" | "+stageStatus' in javascript
-    assert '"All evidence stages complete"' not in javascript
+    assert '$(document).on("click", "#dei-home-refresh"' in javascript
+    assert '$(document).on("click", "#dei-topology-core-action"' in javascript
+    assert '"All evidence stages complete"' in javascript
     assert "Pipeline refreshed with the latest lifecycle evidence." in javascript
     assert 'if (!root.length) { return; }' in javascript
     assert 'if (bar.length && !bar.find(".dei-workspace-controls").length)' in javascript
@@ -435,7 +430,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
 
 
 def test_every_home_topology_step_targets_an_existing_owned_section() -> None:
-    javascript = (STATIC / "dei_workspace_layout_v12.js").read_text(encoding="utf-8")
+    javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     routes = {
         "discover": ("command_center", "dei-telemetry"),
         "profile": ("environment_insights", "dei-portfolio-section"),
@@ -460,7 +455,8 @@ def test_catalog_makes_enabled_and_disabled_states_immediately_visible() -> None
     assert 'data-catalog-filter="disabled" data-deployment-state="disabled"' in view
     assert 'id="catalog-count-disabled"' in view
     assert 'data-catalog-status="' in javascript
-    assert 'Enabled in Production' in javascript
+    assert 'DEI record: production enabled' in javascript
+    assert 'referenced Splunk object was not changed' in javascript
     assert 'class="dei-deployment-state ' in javascript
     assert '"ENABLED"' in javascript and '"DISABLED"' in javascript
     assert '[data-deployment-state="enabled"]' in stylesheet

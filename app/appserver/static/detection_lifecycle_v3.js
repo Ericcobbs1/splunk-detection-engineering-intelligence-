@@ -413,7 +413,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       pendingWorkspaceAction=action; reloadRecords();
     }).fail(function (error) {
       setActionBusy(false);
-      $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error||"Unable to save lifecycle record."));
+      $("#lifecycle-action-feedback").removeClass("success ready").addClass("error").text(String(error&&error.message||error||"Unable to save lifecycle record."));
     });
   }
 

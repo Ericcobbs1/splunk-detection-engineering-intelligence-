@@ -20,5 +20,6 @@ def test_lifecycle_fallback_is_visible_and_not_described_as_durable() -> None:
     assert 'trigger("dei:persistence-warning"' in source
     assert "saved only in this browser and are not shared or governed" in source
     assert "_persistence = {durable:false" in source
-    assert 'request({resource:"lifecycle", operation:"upsert", record:payload})' in source
+    assert 'expected_revision:record._revision' in source
+    assert 'deferred.reject({message:"Shared lifecycle persistence failed.' in source
     assert 'request({resource:"lifecycle", operation:"delete", key:key})' in source

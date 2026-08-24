@@ -7,6 +7,7 @@
   var COLLECTION = "dei_lifecycle_records";
   var FALLBACK_KEY = "dei.detectionDraftArtifacts";
   var mode = "loading";
+  var recoveryPending = false;
 
   function persistenceWarning(operation, detail) {
     mode = "browser fallback";
@@ -65,7 +66,11 @@
     request({resource:"lifecycle", operation:"read"})
       .done(function (response) {
         mode = "Splunk KV Store";
-        deferred.resolve(response&&Array.isArray(response.records) ? response.records : []);
+        var durable=response&&Array.isArray(response.records) ? response.records : [];
+        var fallback=fallbackRecords();
+        recoveryPending=fallback.some(function(local){var key=String(local._key||local.id||"");return key&&!durable.some(function(shared){return String(shared._key||shared.id||"")===key&&String(shared.updated_at||"")===String(local.updated_at||"");});});
+        if(recoveryPending)$(document).trigger("dei:persistence-recovery-required",[{count:fallback.length,message:"Browser recovery records differ from shared KV Store. Review them before overwriting governed data."}]);
+        deferred.resolve(durable);
       })
       .fail(function (xhr) {
         persistenceWarning("load", xhr&&xhr.status||"");
@@ -79,9 +84,12 @@
     var key = String(record._key || record.id || "").replace(/^dei-/, "");
     var payload = $.extend(true, {}, record, {_key:key, updated_at:new Date().toISOString(), updated_by:username()});
     if (!payload.created_at) { payload.created_at = payload.updated_at; }
-    request({resource:"lifecycle", operation:"upsert", record:payload})
-      .done(function () { mode = "Splunk KV Store"; payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
-      .fail(function () { deferred.resolve(saveFallback(payload)); });
+    request({resource:"lifecycle", operation:"upsert", expected_revision:record._revision, record:payload})
+      .done(function (response) { mode = "Splunk KV Store"; recoveryPending=false; payload=$.extend(true,{},payload,response&&response.record||{}); payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
+      .fail(function (xhr) {
+        var fallback=saveFallback(payload);
+        deferred.reject({message:"Shared lifecycle persistence failed. A non-durable recovery copy was saved in this browser.",status:xhr&&xhr.status||0,fallback:fallback});
+      });
     return deferred.promise();
   }
 
@@ -102,7 +110,7 @@
         });
         root.localStorage.setItem(FALLBACK_KEY, JSON.stringify(records));
         persistenceWarning("remove", xhr&&xhr.status||"");
-        deferred.resolve();
+        deferred.reject({message:"Shared lifecycle deletion failed. The governed record was not confirmed deleted.",status:xhr&&xhr.status||0});
       });
     return deferred.promise();
   }
@@ -114,6 +122,7 @@
     remove:remove,
     appendHistory:appendHistory,
     username:username,
-    mode:function () { return mode; }
+    mode:function () { return mode; },
+    recoveryPending:function () { return recoveryPending; }
   };
 }));

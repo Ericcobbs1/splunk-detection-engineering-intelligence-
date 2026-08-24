@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
+from datetime import datetime, timezone
 from typing import Any, Optional
 from urllib.parse import quote
 
@@ -15,6 +17,43 @@ SCAN_HISTORY = "dei_scan_history"
 LIFECYCLE = "dei_lifecycle_records"
 USER_PREFERENCES = "dei_user_preferences"
 RequestFn = Callable[[str, str, str, Optional[dict[str, Any]]], tuple[int, str]]
+MAX_REQUEST_BYTES = 1_000_000
+MAX_HISTORY_EVENTS = 500
+MAX_SCAN_HISTORY_RECORDS = 50
+ALLOWED_STATES = {
+    "recommendation", "draft", "testing", "peer_review", "production",
+    "monitoring", "tuning", "retired",
+}
+ALLOWED_TRANSITIONS = {
+    "recommendation": {"recommendation", "draft"},
+    "draft": {"recommendation", "draft", "testing"},
+    "testing": {"draft", "testing", "peer_review"},
+    "peer_review": {"draft", "peer_review", "production"},
+    "production": {"production", "monitoring", "retired"},
+    "monitoring": {"monitoring", "tuning", "retired"},
+    "tuning": {"tuning", "testing", "retired"},
+    "retired": {"retired"},
+}
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _json_size(value: Any) -> int:
+    return len(json.dumps(value, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+
+
+def _remove_validation_samples(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _remove_validation_samples(item)
+            for key, item in value.items()
+            if key not in {"sample_results", "raw_results", "_raw"}
+        }
+    if isinstance(value, list):
+        return [_remove_validation_samples(item) for item in value]
+    return value
 
 
 def _decode_payload(request_data: dict[str, Any]) -> Optional[dict[str, Any]]:
@@ -70,7 +109,13 @@ def _default_request(
     kwargs: dict[str, Any] = {"sessionKey": session_key, "method": method, "raiseAllErrors": False}
     if payload is not None:
         kwargs["jsonargs"] = json.dumps(payload)
-    response, content = simpleRequest(path, **kwargs)
+    try:
+        response, content = simpleRequest(path, **kwargs)
+    except Exception as exc:
+        match = re.search(r"HTTP\s+(\d{3})", str(exc))
+        if match:
+            return int(match.group(1)), str(exc)
+        raise
     status = int(response.get("status", 0))
     if isinstance(content, bytes):
         content = content.decode("utf-8", errors="replace")
@@ -96,6 +141,17 @@ class KVStore:
             raise RuntimeError("KV read returned an unexpected response")
         return [item for item in value if isinstance(item, dict)]
 
+    def get(self, collection: str, key: str) -> Optional[dict[str, Any]]:
+        query = quote(json.dumps({"_key": key}, separators=(",", ":")), safe="")
+        path = f"{self.endpoint(collection)}?query={query}&limit=1"
+        status, content = self._request(self._session_key, "GET", path, None)
+        if status != 200:
+            raise RuntimeError(f"KV read failed with HTTP {status}")
+        value = json.loads(content or "[]")
+        if not isinstance(value, list):
+            raise RuntimeError("KV read returned an unexpected response")
+        return next((item for item in value if isinstance(item, dict)), None)
+
     def contains(self, collection: str, key: str) -> bool:
         query = quote(json.dumps({"_key": key}, separators=(",", ":")), safe="")
         path = f"{self.endpoint(collection)}?query={query}&limit=1"
@@ -111,20 +167,36 @@ class KVStore:
         key = str(record.get("_key", "")).strip()
         if not key:
             raise ValueError("record _key is required")
-        if self.contains(collection, key):
-            replacement = dict(record)
-            replacement.pop("_key", None)
+        replacement = dict(record)
+        replacement.pop("_key", None)
+        status, _ = self._request(
+            self._session_key, "POST", self.endpoint(collection, key), replacement
+        )
+        if status in (200, 201):
+            return
+        if status != 404:
+            raise RuntimeError(f"KV update failed with HTTP {status}")
+        status, _ = self._request(self._session_key, "POST", self.endpoint(collection), record)
+        if status in (200, 201):
+            return
+        if status in (400, 409):
             status, _ = self._request(
                 self._session_key, "POST", self.endpoint(collection, key), replacement
             )
-            if status not in (200, 201):
-                raise RuntimeError(f"KV update failed with HTTP {status}")
+            if status in (200, 201):
+                return
+        raise RuntimeError(f"KV create failed with HTTP {status}")
+
+    def create(self, collection: str, record: dict[str, Any]) -> None:
+        key = str(record.get("_key", "")).strip()
+        if not key:
+            raise ValueError("record _key is required")
+        status, _ = self._request(self._session_key, "POST", self.endpoint(collection), record)
+        if status in (200, 201):
             return
-        status, _ = self._request(
-            self._session_key, "POST", self.endpoint(collection), record
-        )
-        if status not in (200, 201):
-            raise RuntimeError(f"KV create failed with HTTP {status}")
+        if status in (400, 409):
+            raise ValueError("record already exists")
+        raise RuntimeError(f"KV create failed with HTTP {status}")
 
     def delete(self, collection: str, key: str) -> None:
         status, _ = self._request(self._session_key, "DELETE", self.endpoint(collection, key), None)
@@ -139,6 +211,8 @@ class StorageHandler:
         self._store_factory = store_factory
 
     def handle(self, request: str) -> dict[str, Any]:
+        if len(request.encode("utf-8")) > MAX_REQUEST_BYTES:
+            return persistent_response(413, {"error": "request payload is too large"})
         try:
             request_data = json.loads(request)
         except json.JSONDecodeError:
@@ -181,25 +255,76 @@ class StorageHandler:
                 summary, history = payload.get("summary"), payload.get("history")
                 if not isinstance(summary, dict) or not isinstance(history, dict):
                     return persistent_response(400, {"error": "summary and history records are required"})
-                store.upsert(SCAN_HISTORY, history)
+                if _json_size(summary) > MAX_REQUEST_BYTES or _json_size(history) > MAX_REQUEST_BYTES:
+                    return persistent_response(413, {"error": "scan record is too large"})
+                if str(summary.get("_key", "")) != "latest":
+                    return persistent_response(400, {"error": "scan summary key must be latest"})
+                assessment_id = str(history.get("assessment_id", "")).strip()
+                if not assessment_id or str(history.get("_key", "")) != assessment_id:
+                    return persistent_response(400, {"error": "scan history key must match assessment_id"})
+                try:
+                    store.create(SCAN_HISTORY, history)
+                except ValueError:
+                    return persistent_response(409, {"error": "scan history assessment already exists"})
                 try:
                     store.upsert(SCAN_SUMMARIES, summary)
                 except Exception:
                     store.delete(SCAN_HISTORY, str(history.get("_key", "")))
                     raise
+                history_records = store.list(SCAN_HISTORY)
+                if len(history_records) > MAX_SCAN_HISTORY_RECORDS:
+                    ordered = sorted(history_records, key=lambda item: str(item.get("completed_at") or item.get("created_at") or item.get("_key", "")))
+                    for expired in ordered[: len(history_records) - MAX_SCAN_HISTORY_RECORDS]:
+                        store.delete(SCAN_HISTORY, str(expired.get("_key", "")))
                 return persistent_response(200, {"durable": True, "mode": "Splunk KV Store"})
             if resource == "lifecycle":
                 if operation == "delete":
-                    key = str(payload.get("key", "")).strip()
-                    if not key:
-                        return persistent_response(400, {"error": "lifecycle key is required"})
-                    store.delete(LIFECYCLE, key)
-                    return persistent_response(200, {"durable": True})
+                    return persistent_response(405, {"error": "lifecycle records are retained; retire the detection instead"})
                 record = payload.get("record")
                 if not isinstance(record, dict):
                     return persistent_response(400, {"error": "lifecycle record is required"})
+                if _json_size(record) > MAX_REQUEST_BYTES:
+                    return persistent_response(413, {"error": "lifecycle record is too large"})
+                key = str(record.get("_key", "")).strip()
+                state = str(record.get("state", "")).strip().lower()
+                if not key or state not in ALLOWED_STATES:
+                    return persistent_response(400, {"error": "valid lifecycle _key and state are required"})
+                incoming_history = record.get("history", [])
+                if not isinstance(incoming_history, list) or len(incoming_history) > MAX_HISTORY_EVENTS:
+                    return persistent_response(400, {"error": "lifecycle history is invalid or exceeds its limit"})
+                existing = store.get(LIFECYCLE, key)
+                existing_history = list(existing.get("history", [])) if existing else []
+                if incoming_history[: len(existing_history)] != existing_history:
+                    return persistent_response(409, {"error": "existing audit history is immutable"})
+                if existing:
+                    previous_state = str(existing.get("state", "recommendation")).lower()
+                    if state not in ALLOWED_TRANSITIONS.get(previous_state, {previous_state}):
+                        return persistent_response(409, {"error": f"illegal lifecycle transition: {previous_state} to {state}"})
+                    expected = payload.get("expected_revision")
+                    current = int(existing.get("_revision", 1))
+                    if expected is not None and int(expected) != current:
+                        return persistent_response(409, {"error": "lifecycle record changed; reload before saving", "current_revision": current})
+                else:
+                    current = 0
+                new_events = incoming_history[len(existing_history):]
+                stamped = existing_history + [dict(event, actor=session_user or "unknown", at=_now()) for event in new_events if isinstance(event, dict)]
+                record = dict(record)
+                record = _remove_validation_samples(record)
+                record["history"] = stamped
+                record["updated_by"] = session_user or "unknown"
+                record["updated_at"] = _now()
+                record["_revision"] = current + 1
+                review = record.get("review", {})
+                if isinstance(review, dict) and review.get("decision") == "approved":
+                    submitted_by = str(review.get("submitted_by", "")).strip()
+                    if submitted_by and submitted_by == (session_user or ""):
+                        return persistent_response(409, {"error": "submitter cannot approve the same detection version"})
+                    review = dict(review)
+                    review["reviewed_by"] = session_user or "unknown"
+                    review["reviewed_at"] = _now()
+                    record["review"] = review
                 store.upsert(LIFECYCLE, record)
-                return persistent_response(200, {"durable": True, "mode": "Splunk KV Store"})
+                return persistent_response(200, {"durable": True, "mode": "Splunk KV Store", "record": record})
             if resource == "preferences":
                 record = payload.get("record")
                 if not isinstance(record, dict) or not str(record.get("_key", "")).strip():

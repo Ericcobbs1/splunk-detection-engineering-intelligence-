@@ -104,7 +104,7 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
 
 
 def test_home_pipeline_drilldowns_open_owned_workspaces():
-    layout = _source("dei_workspace_layout_v12.js")
+    layout = _source("dei_workspace_layout_v14.js")
     assert 'generate:"detection_workflow#guided-builder-workspace"' in layout
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
@@ -433,7 +433,7 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
     adapter = _source("dei_guide_adapter_v8.js")
     transitions = (
         'readStep()===0){ event.preventDefault(); goToStep(1)',
-        'readStep()===1&&status.stage==="complete") { resetWalkthroughDetection(); goToStep(2); }',
+        'readStep()===1&&(status.stage==="complete"||status.stage==="complete_with_warning")) { resetWalkthroughDetection(); goToStep(2); }',
         'if(!selectedRecommendationOpportunity())',
         '(step===4||step===18)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance()',
         '(step===5||step===7||step===13||step===15||step===19||step===21)',
@@ -458,7 +458,7 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
 def test_tutorial_cross_page_links_have_one_navigation_owner():
     adapter = _source("dei_guide_adapter_v8.js")
     assert '".dei-open-environment-discovery", function(event){ if(readStep()===0){ event.preventDefault(); goToStep(1); } }' in adapter
-    assert 'status.stage==="complete") { resetWalkthroughDetection(); goToStep(2); }' in adapter
+    assert 'status.stage==="complete"||status.stage==="complete_with_warning"' in adapter
 
 
 def test_tutorial_back_navigation_and_selection_scope_survive_page_changes():

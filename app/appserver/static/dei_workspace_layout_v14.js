@@ -778,8 +778,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_catalog#lifecycle-work-queue"}[step.page]; }
 
   function restartOnboarding() {
-    if (window.DEIReactGuideConfigured || window.DEINextGuide) { return; }
     if (window.DEINextGuide) { window.DEINextGuide.start(); return; }
+    if (window.DEIReactGuideConfigured) { return; }
     return;
     safeSessionSet(onboardingSessionKey(), "false");
     safeSessionSet(ONBOARDING_STEP_KEY, "0");
@@ -860,7 +860,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#dei-discovery-result-state").text(ready ? "Analysis ready" : "Waiting for analysis")
       .attr("data-state",ready ? "ready" : "waiting");
     $("#dei-discovery-next-summary").text(ready ?
-      "The scan generated "+recommendationCount+" detection recommendation"+(recommendationCount===1?"":"s")+". Review telemetry readiness and ATT&CK coverage before building." :
+      "The scan generated "+recommendationCount+" detection recommendation"+(recommendationCount===1?"":"s")+". Continue in the guided workspace to select one and carry it through its complete lifecycle without losing context." :
       "The completed scan will provide the recommended next action here.");
     next.prop("hidden",!ready).attr("aria-hidden",ready ? "false" : "true");
     $("#dei-open-environment-insights").toggleClass("ready",ready)
@@ -1018,7 +1018,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("dei:scan-progress", function (_event,status) {
     if (status.stage==="hydrated") { renderHomePipeline(); renderGuidedWorkflow(); renderEnvironmentSplitState(); renderScanContext(); return; }
     $("#dei-home-flow-status").text(status.message);
-    announceAction(status.message,status.stage==="failed"?"error":status.stage==="complete"?"success":"info");
+    announceAction(status.message,status.stage==="failed"?"error":(status.stage==="complete"||status.stage==="complete_with_warning")?"success":"info");
   });
   $(document).on("keydown", function (event) {
     var overlay=$("#dei-onboarding-overlay");
@@ -1040,6 +1040,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     renderEnvironmentSplitState();
     renderScanContext();
   });
+  $(document).on("dei:persistence-warning",function(_event,status){announceAction(status&&status.message||"Shared persistence is unavailable.","error");});
+  $(document).on("dei:persistence-recovery-required",function(_event,status){announceAction(status&&status.message||"Browser recovery data requires review before shared data is changed.","error");});
   $(document).on("dei:environment-refresh-started", function () {
     $("#dei-home-detection-flow").attr("data-flow-state", "active");
     $("#dei-home-flow-status").text("Environment analysis is moving through telemetry discovery");

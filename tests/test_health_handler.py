@@ -33,12 +33,25 @@ def test_health_handler_returns_json_payload() -> None:
 
     assert response["status"] == 200
     assert response["payload"] == {
+        "dependencies": {"authenticated_checks": {"detail": "session unavailable", "ready": False}},
         "enterprise_security_enabled": False,
         "detection_count": 31,
         "knowledge_pack_count": 3,
         "status": "healthy",
+        "readiness": "unknown",
         "version": "0.1.0",
     }
+
+
+def test_health_handler_reports_authenticated_dependency_failure() -> None:
+    handler = HealthHandler(
+        report_factory=_report,
+        dependency_checker=lambda _: {"kv_store": {"ready": False, "http_status": 503}},
+    )
+    response = handler.handle('{"method":"GET","sessionKey":"token"}')
+    assert response["status"] == 200
+    assert response["payload"]["status"] == "degraded"
+    assert response["payload"]["readiness"] == "degraded"
 
 
 def test_health_handler_returns_controlled_pack_error() -> None:

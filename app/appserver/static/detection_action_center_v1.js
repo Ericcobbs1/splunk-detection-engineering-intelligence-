@@ -202,7 +202,8 @@
     if (["critical","attention"].indexOf(severity)!==-1) { $("#action-severity").val(severity); }
     if (detection) {
       $("#action-search").val(detection);
-      var returnTarget=params.get("return") || ("detection_workflow?detection="+encodeURIComponent(detection));
+      var requestedReturn=params.get("return") || "";
+      var returnTarget=/^(detection_workflow|detection_catalog|detection_health|detection_health_detail|mitre_coverage|mitre_heatmap)([?#].*)?$/.test(requestedReturn)?requestedReturn:("detection_workflow?detection="+encodeURIComponent(detection));
       $("#action-return-to-detection").attr("href",returnTarget).text("Return to selected detection →");
     }
   }

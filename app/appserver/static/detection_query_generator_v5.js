@@ -442,7 +442,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var record = Store.appendHistory(lifecycleRecord(artifact), eventName,
         artifact.status === "testing" ? "Bounded historical validation evidence persisted." : "Detection definition and SPL saved.");
       artifact.history = record.history;
-      Store.write(record).done(function (saved) { deferred.resolve(saved); })
+      Store.write(record).done(function (saved) {
+        artifact=$.extend(true,artifact,saved||{});
+        var durableArtifacts=storedArtifacts().filter(function(entry){return entry.id!==artifact.id;});
+        durableArtifacts.push(artifact);
+        window.localStorage.setItem(ARTIFACT_KEY,JSON.stringify(durableArtifacts));
+        deferred.resolve(artifact);
+      })
         .fail(function (error) { deferred.reject(error); });
     } else {
       deferred.resolve(lifecycleRecord(artifact));
@@ -728,7 +734,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var rows = parseExportRows(text);
       var planningDraft=artifact.planning_draft===true || artifact.telemetry_verified===false;
       artifact.validation = {status:planningDraft?"planning_passed":"passed", validated_at:new Date().toISOString(), runtime_ms:Date.now() - started,
-        result_count:rows.length, result_limit:VALIDATION_RESULT_LIMIT, sample_results:rows};
+        result_count:rows.length, result_limit:VALIDATION_RESULT_LIMIT, sample_results:[]};
       artifact.status = planningDraft ? "draft" : "testing";
       artifact.state = artifact.status;
       artifact.updated_at = artifact.validation.validated_at;
@@ -738,7 +744,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         announceSavedArtifact(artifact,savedRecord);
         $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
         setFeedback(planningDraft?"Planning search completed. SPL execution was tested, but telemetry readiness must be verified before peer review.":"Validation completed. " + rows.length + " result row" + (rows.length === 1 ? "" : "s") + " returned (cap " + VALIDATION_RESULT_LIMIT + ").", "success");
-      }).fail(function(error){ setFeedback("Validation passed but its lifecycle evidence could not be saved: "+String(error||"unknown persistence error"),"error"); });
+      }).fail(function(error){ setFeedback("Validation passed but its lifecycle evidence could not be saved: "+String(error&&error.message||error||"unknown persistence error"),"error"); });
     }).fail(function (xhr, status) {
       var error=validationError(xhr,status);
       var resolution=validationResolution(error,artifact.spl);
@@ -757,7 +763,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         announceSavedArtifact(artifact,savedRecord);
         $(document).trigger("dei:detection-validation-complete",[artifact.validation]);
         setFeedback(resolution.applied ? resolution.appliedSummary+" Review the update and run validation again." : artifact.validation.error, resolution.applied ? "working" : "error");
-      }).fail(function(error){ setFeedback("Validation evidence could not be saved: "+String(error||"unknown persistence error"),"error"); });
+      }).fail(function(error){ setFeedback("Validation evidence could not be saved: "+String(error&&error.message||error||"unknown persistence error"),"error"); });
     }).always(function () {
       $("#builder-run-validation").prop("disabled", false).text("Run validation");
     });
