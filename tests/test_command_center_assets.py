@@ -24,6 +24,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     )
     for element_id in (
         "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
+        "dei-discovery-window", "dei-window-note", "dei-source-summary",
         "dei-include-internal-indexes",
         "dei-analyze", "dei-feedback", "dei-discovery-next",
         "dei-discovery-result-state", "dei-discovery-next-summary",
@@ -113,12 +114,16 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert 'Splunk.util.getConfigValue("FORM_KEY")' in javascript
     assert '"search", "jobs", "export"' in javascript
     assert '"splunkjs/mvc/searchmanager"' not in javascript
-    assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
+    assert "| tstats count latest(_time) AS last_seen" in javascript
+    assert 'earliest=-"+days+"d latest=now' in javascript
     assert 'NOT match(index, "^_")' in javascript
     assert 'index!="ers"' in javascript
     assert "includeInternalIndexes" in javascript
     assert 'window.sessionStorage.getItem("dei.includeInternalIndexes")' in javascript
-    assert 'search index=* earliest=-7d latest=now sourcetype=' in javascript
+    assert "selectedWindowDays" in javascript
+    assert "windowDays:selectedWindowDays()" in javascript
+    assert "[ACTIVE]" in javascript
+    assert "[STALE]" in javascript
     assert 'output_mode: "json"' in javascript
     assert "fieldDiscoveryConcurrency = 6" in javascript
     assert "fieldSearchTimeoutMs = 12000" in javascript

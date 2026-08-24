@@ -61,6 +61,7 @@ def test_action_center_exposes_filters_and_direct_remediation_actions() -> None:
         "Missing required capability", "Observed adjacent telemetry",
         "destination identity (URL, domain, HTTP host, or TLS SNI)",
         "map an observed sourcetype only after verifying", "source_mappings",
+        "known_source_mappings", "stale_source_types", '(stale)',
         "returnTarget", '#action-return-to-detection',
     ):
         assert contract in javascript

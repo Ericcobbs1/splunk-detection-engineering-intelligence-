@@ -900,3 +900,4 @@ html {
   .dei-rec-top { flex-direction: column; }
   .dei-score-block { text-align: left; }
 }
+.dei-window-select{display:flex;align-items:center;gap:9px;margin-left:auto;color:#c8d6e3;font-size:13px;font-weight:700}.dei-window-select select{min-width:105px;min-height:40px;border:1px solid #526b82;border-radius:8px;background:#0b1621;color:#edf4fa;padding:0 30px 0 10px}.dei-window-select select:focus{outline:2px solid rgba(92,225,194,.45);outline-offset:2px}
