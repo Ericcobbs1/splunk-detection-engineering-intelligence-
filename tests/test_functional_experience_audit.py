@@ -68,7 +68,7 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     assert "script.onerror" in adapter
     assert "Waiting for this action to complete" in react_source
     assert "The guide advances automatically" in react_source
-    assert "Next" not in react_source
+    assert "reviewMode ? 'Next'" in react_source
     assert "window.DEIInteractiveGuide" in bundle
 
 
@@ -255,9 +255,9 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     assert 'action==="approve_review"' in adapter
     assert 'action==="return_draft"&&readStep()>=6&&readStep()<=9' in adapter
     assert 'target:"#lifecycle-external-id"' in adapter
-    assert "reviewReturnMode" not in adapter
-    assert "onContinueReview" not in react_source
-    assert "step.lockBack" in react_source
+    assert "reviewCeiling" in adapter
+    assert "onForward" in react_source
+    assert "step.lockBack" not in react_source
     assert 'index===4 && $("#detection-generator").attr("data-dei-generated-detection")' in adapter
     assert "completeDraft(id,record)" in adapter
     assert 'window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft}' in adapter
@@ -322,7 +322,7 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert 'index===8&&String($("#lifecycle-action-comment").val()||"").trim()' in adapter
     assert 'index===10&&String($("#lifecycle-external-id").val()||"").trim()' in adapter
     assert 'index===11&&!$(\'[data-action="record_deployment"]:visible\').length' in adapter
-    assert "if(reconcileCompletedStep(index)) return" in adapter
+    assert "if(reviewCeiling<0&&reconcileCompletedStep(index)) return" in adapter
     assert 'index>=6&&index<=11&&lifecycleState.indexOf("production")!==-1' in adapter
     assert 'index>=6&&index<=15&&lifecycleState.indexOf("monitoring")!==-1' in adapter
     assert 'index>=6&&index<=17&&lifecycleState.indexOf("tuning")!==-1' in adapter
@@ -334,7 +334,7 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
 def test_completion_step_never_highlights_the_entire_workspace():
     adapter = _source("dei_guide_adapter_v8.js")
     assert "if(step.completion||step.operationsChoice) return $()" in adapter
-    assert "if (!target.length&&!step.completion&&!step.operationsChoice)" in adapter
+    assert "if (!target.length&&!step.completion&&!step.operationsChoice&&reviewCeiling<0)" in adapter
     assert "if(stepChanged&&!step.completion&&!step.operationsChoice) focusTarget(false)" in adapter
     assert 'else if(!target.length)' in adapter
 
@@ -360,8 +360,8 @@ def test_completion_step_uses_finish_instead_of_show_me():
     bundle = _source("dei_interactive_guide_v3.js")
     assert 'completion:true' in adapter
     assert "step.completion ? 'Finish' : 'Show me'" in react_source
-    assert 'e.completion?"Finish":"Show me"' in bundle
-    assert "step.completion ? onClose : onFocusTarget" in react_source
+    assert 'n?"Next":e.operationsChoice?' in bundle
+    assert "reviewMode ? onForward" in react_source
 
 
 def test_deployment_recommendation_is_plain_text_not_selected_code():
@@ -376,9 +376,9 @@ def test_deployment_recommendation_is_plain_text_not_selected_code():
 def test_tutorial_state_machine_covers_every_required_action_through_completion():
     adapter = _source("dei_guide_adapter_v8.js")
     transitions = (
-        'readStep()===0) goToStep(1)',
+        'readStep()===0){ event.preventDefault(); goToStep(1)',
         'readStep()===1 && status.stage==="complete") advance()',
-        'readStep()===2) advance()',
+        'readStep()===2){ event.preventDefault(); advance()',
         'readStep()===3 && $(this).val()) advance()',
         '(step===5||step===19)&&validation&&validation.status==="passed") advance()',
         '(step===6||step===8||step===14||step===16||step===20||step===22)',
@@ -398,6 +398,12 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
     assert '$(document).on("change", "#lifecycle-external-id"' in adapter
     assert '$(document).on("input change", "#lifecycle-action-comment"' not in adapter
     assert '$(document).on("input change", "#lifecycle-external-id"' not in adapter
+
+
+def test_tutorial_cross_page_links_have_one_navigation_owner():
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert '".dei-open-environment-discovery", function(event){ if(readStep()===0){ event.preventDefault(); goToStep(1); } }' in adapter
+    assert '"#dei-open-environment-insights", function(event){ if(readStep()===2){ event.preventDefault(); advance(); } }' in adapter
 
 
 def test_every_tutorial_target_exists_in_its_runtime_page_or_renderer():
@@ -438,5 +444,6 @@ def test_approved_review_has_one_clear_inline_deployment_handoff():
     assert 'id="lifecycle-external-id"' in lifecycle
     assert 'id="catalog-external-id-field"' in catalog
     assert 'target:"#lifecycle-external-id"' in guide
-    assert 'lockBack:true' in guide
+    assert 'lockBack:true' not in guide
+    assert "reviewCeiling" in guide
     assert "selection.removeAllRanges" in guide
