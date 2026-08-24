@@ -68,6 +68,15 @@ def test_command_center_uses_the_shared_scan_engine() -> None:
     assert '$(document).on("dei:environment-refreshed"' in command_center
 
 
+def test_scan_separates_actionable_recommendations_from_unsupported_opportunities() -> None:
+    engine = (STATIC / "dei_environment_scan_v1.js").read_text(encoding="utf-8")
+    assert "include_unsupported:false" in engine
+    assert "include_unsupported:true" in engine
+    assert "unsupported_opportunity_count" in engine
+    assert "actionable recommendation" in engine
+    assert "unsupported library opportunit" in engine
+
+
 def test_environment_intelligence_exposes_proven_change_evidence() -> None:
     view = ElementTree.parse(
         APP / "default" / "data" / "ui" / "views" / "environment_insights.xml"
