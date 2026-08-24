@@ -4,11 +4,11 @@ import json
 from typing import Any
 
 from dei_intelligence.api.storage_handler import (
-    KVStore,
     LIFECYCLE,
     SCAN_HISTORY,
     SCAN_SUMMARIES,
     USER_PREFERENCES,
+    KVStore,
     StorageHandler,
 )
 
