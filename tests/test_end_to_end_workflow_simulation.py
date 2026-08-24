@@ -215,7 +215,6 @@ def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
     expected_titles = [
         "Open Environment Discovery",
         "Run current telemetry discovery",
-        "Open the Detection Engineering Workspace",
         "Choose a new detection opportunity",
         "Generate a reviewable draft",
         "Validate the detection",
@@ -251,11 +250,11 @@ def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
     assert "operationsChoice:true" in GUIDE
     assert "completion:true" in GUIDE
 
-    # The screenshot's untouched defaults are valid inputs and must advance 13 -> 14.
+    # The screenshot's untouched defaults are valid inputs and must advance 12 -> 13.
     period = "Last 24 hours"
     measurements = (0, 0, 0, 0)
     assert period and all(value >= 0 for value in measurements)
-    assert "index===13&&monitoringMetricsReady()" in GUIDE
+    assert "index===12&&monitoringMetricsReady()" in GUIDE
     assert "if(monitoringMetricsReady()) advance();" in GUIDE
 
 
@@ -284,7 +283,7 @@ def test_simulation_matches_the_ui_transition_and_gate_contracts():
 
 
 def test_tutorial_simulation_rejects_unrelated_and_nonproduction_progress():
-    step = 3
+    step = 2
     walkthrough_detection = None
 
     # Restored historical records at every stage cannot satisfy a fresh run.
@@ -292,41 +291,41 @@ def test_tutorial_simulation_rejects_unrelated_and_nonproduction_progress():
         selected = "historical-" + state
         assert walkthrough_detection is None
         assert selected != walkthrough_detection
-        assert step == 3
+        assert step == 2
 
     # Only a Recommendation can enter generation, and only its generated record owns the run.
     selected_stage = "recommendation"
     selected = "new-authentication-detection"
     if selected_stage == "recommendation":
-        step = 4
+        step = 3
     walkthrough_detection = selected
-    step = 5
+    step = 4
     assert walkthrough_detection == selected
 
     # An event for another record is ignored.
     unrelated_event_record = "old-retired-detection"
     assert unrelated_event_record != walkthrough_detection
-    assert step == 5
+    assert step == 4
 
     # Development and Staging evidence is retained but cannot claim Production completion.
-    step = 11
+    step = 10
     for saved_state in ("peer_review", "catalog"):
         if saved_state == "production":
-            step = 12
-        assert step == 11
+            step = 11
+        assert step == 10
     saved_state = "production"
     if saved_state == "production":
-        step = 12
-    assert step == 12
+        step = 11
+    assert step == 11
 
     # Returning a tuned version for changes goes back to editing, not completion.
-    step = 22
+    step = 21
     action = "return_draft"
-    if action == "return_draft" and 20 <= step <= 23:
-        step = 18
-    assert step == 18
+    if action == "return_draft" and 19 <= step <= 22:
+        step = 17
+    assert step == 17
 
-    # Retirement ends the walkthrough without displaying the successful 27/27 claim.
+    # Retirement ends the walkthrough without displaying the successful 26/26 claim.
     action = "retire"
     tutorial_open = True
     if action == "retire":
@@ -336,7 +335,7 @@ def test_tutorial_simulation_rejects_unrelated_and_nonproduction_progress():
 
 def test_new_scan_restarts_an_unfinished_or_visible_walkthrough_from_discovery():
     # Reproduce the reported defect: a stale completed step must not survive a new scan.
-    step = 26
+    step = 25
     seen = False
     scan_stage = "discover"
     guide_active = not seen

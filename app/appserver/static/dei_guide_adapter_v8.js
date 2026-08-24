@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v9";
+window.DEIGuideAssetVersion="v10";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -30,7 +30,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var STEP_KEY="dei.nextGuide.step";
   var SEEN_KEY="dei.nextGuide.seen";
   var DETECTION_KEY="dei.nextGuide.detection";
-  var GUIDE_STATE_VERSION="v9";
+  var REVIEW_KEY="dei.nextGuide.reviewCeiling";
+  var GUIDE_STATE_VERSION="v10";
   var OVERLAY_ID="dei-next-guide-overlay";
   var selectedDetection="";
   var renderTimer=null;
@@ -44,7 +45,6 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
-    {page:"environment",target:"#dei-open-environment-insights",title:"Open the Detection Engineering Workspace",instruction:"The scan is complete. Continue into the single workspace used for every remaining detection action.",actionLabel:"Select Open Detection Engineering Workspace"},
     {page:"builder",target:"#workflow-detection-select",title:"Choose a new detection opportunity",instruction:"Select an item labeled Recommendation. Existing Draft, Testing, Production, Monitoring, Tuning, and Retired records are retained for normal work but cannot satisfy a new tutorial run.",actionLabel:"Select a Recommendation"},
     {page:"builder",target:"#builder-generate",tab:"#workflow-tab-artifact",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
@@ -87,6 +87,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function sessionKey(base) {
     return base+"."+GUIDE_STATE_VERSION;
   }
+  function setReviewCeiling(value) {
+    reviewCeiling=value;
+    if(value<0) window.sessionStorage.removeItem(sessionKey(REVIEW_KEY));
+    else window.sessionStorage.setItem(sessionKey(REVIEW_KEY),String(value));
+  }
   function resetWalkthroughDetection() {
     selectedDetection="";
     window.sessionStorage.removeItem(sessionKey(DETECTION_KEY));
@@ -107,6 +112,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var option=$("#workflow-detection-select option:selected");
     return !!String(option.text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
   }
+  function applyTutorialSelectionScope(index) {
+    var select=$("#workflow-detection-select");
+    if(!select.length) return;
+    var tutorialSelection=index===2&&reviewCeiling<0;
+    select.find("option").each(function(){
+      var option=$(this),recommendation=!!String(option.text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
+      option.prop("disabled",tutorialSelection&&!!option.val()&&!recommendation);
+    });
+    if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change");
+    if(tutorialSelection&&!select.find("option").filter(function(){return !!$(this).val()&&!$(this).prop("disabled");}).length) {
+      $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Tutorial blocked: this scan has no unused Recommendation-stage detections. Restart an eligible record from Recommendation or expand the supported detection library, then scan again.");
+    }
+  }
   function route(name) {
     var base={home:"dei_home",environment:"command_center",environment_insights:"environment_insights",mitre:"mitre_coverage",builder:"detection_workflow",catalog:"detection_catalog"}[name];
     var detection=walkthroughDetection()||String(window.localStorage.getItem("dei.selectedDetectionDraft")||"");
@@ -114,6 +132,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function readStep() { var value=Number(window.sessionStorage.getItem(sessionKey(STEP_KEY))||0); return Math.max(0,Math.min(steps.length-1,value)); }
   function writeStep(value) { window.sessionStorage.setItem(sessionKey(STEP_KEY),String(value)); }
+  reviewCeiling=Number(window.sessionStorage.getItem(sessionKey(REVIEW_KEY))||-1);
+  if(!isFinite(reviewCeiling)||reviewCeiling<0) reviewCeiling=-1;
   function activeStep(index) {
     return steps[index];
   }
@@ -128,6 +148,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(tab.length&&tab.attr("aria-selected")!=="true") tab.trigger("click");
   }
   function targetFor(step) {
+    if(reviewCeiling>=0) return $();
     if(step.completion||step.operationsChoice) return $();
     var target=$(step.target).filter(":visible").filter(function(){ var rect=this.getBoundingClientRect(); return rect.width>0&&rect.height>0; }).first();
     if(!target.length) return target;
@@ -137,26 +158,26 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function reconcileCompletedStep(index) {
     var lifecycleState=String($("#lifecycle-action-state").text()||"").toLowerCase();
-    if(index>=5&&!walkthroughOwnsSelectedDetection()) return false;
-    if(index>=6&&index<=11&&lifecycleState.indexOf("production")!==-1){ goToStep(12); return true; }
-    if(index>=6&&index<=15&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
-    if(index>=6&&index<=17&&lifecycleState.indexOf("tuning")!==-1){ goToStep(18); return true; }
-    if(index<26&&lifecycleState.indexOf("retired")!==-1){ close(true); return true; }
-    if(index>=6&&index<=9&&$("#lifecycle-external-id:visible").length){ goToStep(10); return true; }
-    if(index===5&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(6); return true; }
-    if((index===6||index===7)&&$('[data-action="approve_review"]:visible').length){ goToStep(8); return true; }
-    if(index===8&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(9); return true; }
-    if(index===10&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(11); return true; }
-    if(index===11&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(12); return true; }
-    if(index===13&&monitoringMetricsReady()){ goToStep(14); return true; }
-    if(index===13&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
-    if((index===14||index===15)&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
-    if(index===18&&String($("#generator-spl").val()||"").trim()!==String($("#generator-spl").attr("data-dei-guide-original")||"").trim()&&$("#generator-spl").attr("data-dei-guide-original")!==undefined){ goToStep(19); return true; }
-    if(index===19&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(20); return true; }
-    if((index===20||index===21)&&$('[data-action="approve_review"]:visible').length){ goToStep(22); return true; }
-    if(index===22&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(23); return true; }
-    if(index===24&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(25); return true; }
-    if(index===25&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(26); return true; }
+    if(index>=4&&!walkthroughOwnsSelectedDetection()) return false;
+    if(index>=5&&index<=10&&lifecycleState.indexOf("production")!==-1){ goToStep(11); return true; }
+    if(index>=5&&index<=14&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(15); return true; }
+    if(index>=5&&index<=16&&lifecycleState.indexOf("tuning")!==-1){ goToStep(17); return true; }
+    if(index<25&&lifecycleState.indexOf("retired")!==-1){ close(true); return true; }
+    if(index>=5&&index<=8&&$("#lifecycle-external-id:visible").length){ goToStep(9); return true; }
+    if(index===4&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(5); return true; }
+    if((index===5||index===6)&&$('[data-action="approve_review"]:visible').length){ goToStep(7); return true; }
+    if(index===7&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(8); return true; }
+    if(index===9&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(10); return true; }
+    if(index===10&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(11); return true; }
+    if(index===12&&monitoringMetricsReady()){ goToStep(13); return true; }
+    if(index===12&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(15); return true; }
+    if((index===13||index===14)&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(15); return true; }
+    if(index===17&&String($("#generator-spl").val()||"").trim()!==String($("#generator-spl").attr("data-dei-guide-original")||"").trim()&&$("#generator-spl").attr("data-dei-guide-original")!==undefined){ goToStep(18); return true; }
+    if(index===18&&($("#builder-validation-state").hasClass("passed")||String($("#validation-status").text()||"").toLowerCase()==="passed")){ goToStep(19); return true; }
+    if((index===19||index===20)&&$('[data-action="approve_review"]:visible').length){ goToStep(21); return true; }
+    if(index===21&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(22); return true; }
+    if(index===23&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(24); return true; }
+    if(index===24&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(25); return true; }
     return false;
   }
   function focusFor(step,target) { var focus=step.focusTarget?$(step.focusTarget).filter(":visible").first():target; return focus.length?focus:target; }
@@ -253,6 +274,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function close(markSeen) {
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
+    if (markSeen!==false) setReviewCeiling(-1);
     window.clearTimeout(renderTimer);
     window.clearTimeout(focusPulseTimer);
     restoreGuide(false);
@@ -263,13 +285,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#"+OVERLAY_ID+",#dei-guide-action-marker,#dei-guide-action-frame,#dei-guide-return,#dei-guide-focus-status").remove();
     $(".dei-onboarding-target,.dei-guide-focus-pulse").removeClass("dei-onboarding-target dei-guide-focus-pulse").removeAttr("aria-describedby");
     $("body").removeClass("dei-onboarding-open dei-guide-focus-mode");
+    $("#workflow-detection-select option").prop("disabled",false);
   }
   function render() {
     if(!window.DEIInteractiveGuide){ loadGuide(function(ready){ if(ready) render(); }); return; }
     var index=readStep(),step=activeStep(index);
     if (page()!==step.page) { close(false); return; }
     prepareStep(step);
-    if(index===18&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
+    applyTutorialSelectionScope(index);
+    if(index===17&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
     if(reviewCeiling<0&&reconcileCompletedStep(index)) return;
     var target=targetFor(step);
     if (!target.length&&!step.completion&&!step.operationsChoice&&reviewCeiling<0) { scheduleRender(180); return; }
@@ -289,7 +313,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     position(target);
     if(stepChanged||targetChanged){
       renderingGuide=true;
-      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,reviewMode:reviewCeiling>=0,onBack:function(){ guideBack(index);},onForward:function(){ guideForward(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); },onContinueOperations:function(){ goToStep(13); },onFinishCore:function(){ close(true); }});
+      window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,reviewMode:reviewCeiling>=0,onBack:function(){ guideBack(index);},onForward:function(){ guideForward(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); },onContinueOperations:function(){ goToStep(12); },onFinishCore:function(){ close(true); }});
       renderedStep=index;
       window.setTimeout(function(){ renderingGuide=false; },0);
     }
@@ -305,31 +329,31 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function guideBack(index) {
     if(index<=0) return;
-    if(reviewCeiling<0) reviewCeiling=index;
+    if(reviewCeiling<0) setReviewCeiling(index);
     goToStep(index-1);
   }
   function guideForward(index) {
     if(reviewCeiling<0) return;
     if(index+1<reviewCeiling) { goToStep(index+1); return; }
-    reviewCeiling=-1;
+    setReviewCeiling(-1);
     goToStep(Math.min(index+1,steps.length-1));
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } goToStep(index+1); }
   function completeDraft(id,record) {
-    if(!id||!record||page()!=="builder"||readStep()!==4) return false;
+    if(!id||!record||page()!=="builder"||readStep()!==3) return false;
     var generatedKey=normalizeDetectionKey(id),selectedKey=selectedWorkflowDetection();
     if(selectedKey&&selectedKey!==generatedKey) return false;
     selectedDetection=generatedKey;
     window.sessionStorage.setItem(sessionKey(DETECTION_KEY),selectedDetection);
-    if(readStep()<=4){
-      writeStep(5);
+    if(readStep()<=3){
+      writeStep(4);
       renderedStep=-1;
       window.clearTimeout(renderTimer);
       renderTimer=window.setTimeout(render,0);
     }
-    return readStep()>=5;
+    return readStep()>=4;
   }
-  function start() { close(false); reviewCeiling=-1; resetWalkthroughDetection(); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
+  function start() { close(false); setReviewCeiling(-1); resetWalkthroughDetection(); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
   window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft};
   $(document).on("click", "#dei-guide-return", function(event){ event.preventDefault(); restoreGuide(true); });
@@ -351,38 +375,37 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("dei:scan-progress", function (_event,status) {
     var guideActive=$("#"+OVERLAY_ID).length||window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true";
     if(status.stage==="discover"&&guideActive&&page()==="environment") { resetWalkthroughDetection(); writeStep(1); renderedStep=-1; window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); scheduleRender(0); return; }
-    if(readStep()===1&&status.stage==="complete") { resetWalkthroughDetection(); advance(); }
+    if(readStep()===1&&status.stage==="complete") { resetWalkthroughDetection(); goToStep(2); }
   });
-  $(document).on("click", "#dei-open-environment-insights", function(event){ if(readStep()===2){ event.preventDefault(); advance(); } });
   $(document).on("change", "#workflow-detection-select", function(){
-    if(readStep()!==3||!$(this).val()) return;
-    if(!selectedRecommendationOpportunity()) { $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Tutorial: select a detection labeled Recommendation. Existing lifecycle records remain available outside this walkthrough."); return; }
+    if(readStep()!==2||!$(this).val()) return;
+    if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Tutorial: select a detection labeled Recommendation. Existing lifecycle records remain available outside this walkthrough."); return; }
     advance();
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
-  $(document).on("dei:detection-validation-complete", function(_event,validation){ var step=readStep(); if((step===5||step===19)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance(); });
-  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if(walkthroughOwnsSelectedDetection()&&(step===6||step===8||step===14||step===16||step===20||step===22)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("dei:detection-validation-complete", function(_event,validation){ var step=readStep(); if((step===4||step===18)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance(); });
+  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if(walkthroughOwnsSelectedDetection()&&(step===5||step===7||step===13||step===15||step===19||step===21)&&String($(this).val()||"").trim()) advance(); });
   $(document).on("change", "#lifecycle-review-period,#lifecycle-health,#lifecycle-result-volume,#lifecycle-runtime,#lifecycle-true-positives,#lifecycle-false-positives", function(){
-    if(readStep()!==13||!walkthroughOwnsSelectedDetection()) return;
+    if(readStep()!==12||!walkthroughOwnsSelectedDetection()) return;
     if(monitoringMetricsReady()) advance();
   });
-  $(document).on("input", "#generator-spl", function(){ if(readStep()===18&&walkthroughOwnsSelectedDetection()&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) goToStep(19); });
+  $(document).on("input", "#generator-spl", function(){ if(readStep()===17&&walkthroughOwnsSelectedDetection()&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) goToStep(18); });
   $(document).on("dei:lifecycle-action-complete", function(_event,action,saved){
-    if(readStep()>=5&&(!saved||recordKey(saved)!==walkthroughDetection())) return;
-    if(readStep()===7&&action==="submit_review") goToStep(8);
-    if(readStep()===9&&action==="approve_review") goToStep(10);
-    if(readStep()===11&&action==="record_deployment"&&saved.state==="production") goToStep(12);
-    if(readStep()===15&&action==="record_health") goToStep(16);
-    if(readStep()===17&&action==="start_tuning") goToStep(18);
-    if(readStep()===21&&action==="submit_review") goToStep(22);
-    if(readStep()===23&&action==="approve_review") goToStep(24);
-    if(readStep()===25&&action==="record_deployment"&&saved.state==="production") goToStep(26);
-    if(action==="return_draft"&&readStep()>=6&&readStep()<=9) goToStep(5);
-    if(action==="return_draft"&&readStep()>=20&&readStep()<=23) goToStep(18);
-    if(action==="restart_recommendation"&&readStep()>=5&&readStep()<=23) { resetWalkthroughDetection(); goToStep(3); }
+    if(readStep()>=4&&(!saved||recordKey(saved)!==walkthroughDetection())) return;
+    if(readStep()===6&&action==="submit_review") goToStep(7);
+    if(readStep()===8&&action==="approve_review") goToStep(9);
+    if(readStep()===10&&action==="record_deployment"&&saved.state==="production") goToStep(11);
+    if(readStep()===14&&action==="record_health") goToStep(15);
+    if(readStep()===16&&action==="start_tuning") goToStep(17);
+    if(readStep()===20&&action==="submit_review") goToStep(21);
+    if(readStep()===22&&action==="approve_review") goToStep(23);
+    if(readStep()===24&&action==="record_deployment"&&saved.state==="production") goToStep(25);
+    if(action==="return_draft"&&readStep()>=5&&readStep()<=8) goToStep(4);
+    if(action==="return_draft"&&readStep()>=19&&readStep()<=22) goToStep(17);
+    if(action==="restart_recommendation"&&readStep()>=4&&readStep()<=22) { resetWalkthroughDetection(); goToStep(2); }
     if(action==="retire") close(true);
   });
-  $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&(readStep()===10||readStep()===24)&&String($(this).val()||"").trim()) goToStep(readStep()+1); });
+  $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&(readStep()===9||readStep()===23)&&String($(this).val()||"").trim()) goToStep(readStep()+1); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
