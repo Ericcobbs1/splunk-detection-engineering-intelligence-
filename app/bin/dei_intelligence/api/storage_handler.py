@@ -96,20 +96,33 @@ class KVStore:
             raise RuntimeError("KV read returned an unexpected response")
         return [item for item in value if isinstance(item, dict)]
 
+    def contains(self, collection: str, key: str) -> bool:
+        query = quote(json.dumps({"_key": key}, separators=(",", ":")), safe="")
+        path = f"{self.endpoint(collection)}?query={query}&limit=1"
+        status, content = self._request(self._session_key, "GET", path, None)
+        if status != 200:
+            raise RuntimeError(f"KV existence check failed with HTTP {status}")
+        value = json.loads(content or "[]")
+        if not isinstance(value, list):
+            raise RuntimeError("KV existence check returned an unexpected response")
+        return any(isinstance(item, dict) and str(item.get("_key", "")) == key for item in value)
+
     def upsert(self, collection: str, record: dict[str, Any]) -> None:
         key = str(record.get("_key", "")).strip()
         if not key:
             raise ValueError("record _key is required")
-        replacement = dict(record)
-        replacement.pop("_key", None)
-        status, _ = self._request(
-            self._session_key, "POST", self.endpoint(collection, key), replacement
-        )
-        if status in (200, 201):
+        if self.contains(collection, key):
+            replacement = dict(record)
+            replacement.pop("_key", None)
+            status, _ = self._request(
+                self._session_key, "POST", self.endpoint(collection, key), replacement
+            )
+            if status not in (200, 201):
+                raise RuntimeError(f"KV update failed with HTTP {status}")
             return
-        if status != 404:
-            raise RuntimeError(f"KV update failed with HTTP {status}")
-        status, _ = self._request(self._session_key, "POST", self.endpoint(collection), record)
+        status, _ = self._request(
+            self._session_key, "POST", self.endpoint(collection), record
+        )
         if status not in (200, 201):
             raise RuntimeError(f"KV create failed with HTTP {status}")
 
