@@ -1,5 +1,7 @@
 """Tests for authenticated server-side governed persistence."""
 
+from __future__ import annotations
+
 import json
 from typing import Any
 
