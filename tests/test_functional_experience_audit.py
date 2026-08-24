@@ -322,6 +322,7 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert 'index===8&&String($("#lifecycle-action-comment").val()||"").trim()' in adapter
     assert 'index===10&&String($("#lifecycle-external-id").val()||"").trim()' in adapter
     assert 'index===11&&!$(\'[data-action="record_deployment"]:visible\').length' in adapter
+    assert 'index===13&&monitoringMetricsReady()' in adapter
     assert "if(reviewCeiling<0&&reconcileCompletedStep(index)) return" in adapter
     assert 'index>=6&&index<=11&&lifecycleState.indexOf("production")!==-1' in adapter
     assert 'index>=6&&index<=15&&lifecycleState.indexOf("monitoring")!==-1' in adapter
@@ -329,6 +330,20 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert 'index>=6&&index<=9&&$("#lifecycle-external-id:visible").length' in adapter
     assert 'if(reconcileCompletedStep(readStep())) return false' in adapter
     assert "Updating to the next available action" in adapter
+
+
+def test_monitoring_tutorial_skips_valid_defaults_and_explains_both_next_actions():
+    adapter = _source("dei_guide_adapter_v8.js")
+    lifecycle = _source("detection_lifecycle_v3.js")
+    stylesheet = _source("detection_lifecycle_v1.css")
+    assert "function monitoringMetricsReady()" in adapter
+    assert "if(monitoringMetricsReady()) advance()" in adapter
+    assert 'alternate:{stage:"tuning",action:"start_tuning"' in lifecycle
+    assert 'class="dei-monitoring-choice"' in lifecycle
+    assert "To remain in Monitoring" in lifecycle
+    assert "To revise the detection" in lifecycle
+    assert "← Start tuning version" not in lifecycle
+    assert ".dei-monitoring-choice" in stylesheet
 
 
 def test_completion_step_never_highlights_the_entire_workspace():

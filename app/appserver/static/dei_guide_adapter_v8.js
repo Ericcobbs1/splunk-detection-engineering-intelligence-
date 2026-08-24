@@ -91,6 +91,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function activeStep(index) {
     return steps[index];
   }
+  function monitoringMetricsReady() {
+    var reviewPeriod=String($("#lifecycle-review-period").val()||"").trim();
+    var values=["#lifecycle-result-volume","#lifecycle-runtime","#lifecycle-true-positives","#lifecycle-false-positives"].map(function(selector){return Number($(selector).val());});
+    return !!reviewPeriod&&values.every(function(value){return isFinite(value)&&value>=0;});
+  }
   function prepareStep(step) {
     if(!step.tab) return;
     var tab=$(step.tab).filter(":visible").first();
@@ -116,6 +121,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(index===8&&String($("#lifecycle-action-comment").val()||"").trim()){ goToStep(9); return true; }
     if(index===10&&String($("#lifecycle-external-id").val()||"").trim()){ goToStep(11); return true; }
     if(index===11&&!$('[data-action="record_deployment"]:visible').length&&lifecycleState.indexOf("production")!==-1){ goToStep(12); return true; }
+    if(index===13&&monitoringMetricsReady()){ goToStep(14); return true; }
     if(index===13&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
     if((index===14||index===15)&&lifecycleState.indexOf("monitoring")!==-1){ goToStep(16); return true; }
     if(index===18&&String($("#generator-spl").val()||"").trim()!==String($("#generator-spl").attr("data-dei-guide-original")||"").trim()&&$("#generator-spl").attr("data-dei-guide-original")!==undefined){ goToStep(19); return true; }
@@ -322,8 +328,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if((step===6||step===8||step===14||step===16||step===20||step===22)&&String($(this).val()||"").trim()) advance(); });
   $(document).on("change", "#lifecycle-review-period,#lifecycle-health,#lifecycle-result-volume,#lifecycle-runtime,#lifecycle-true-positives,#lifecycle-false-positives", function(){
     if(readStep()!==13) return;
-    var values=["#lifecycle-result-volume","#lifecycle-runtime","#lifecycle-true-positives","#lifecycle-false-positives"].map(function(selector){return Number($(selector).val());});
-    if(String($("#lifecycle-review-period").val()||"").trim()&&values.every(function(value){return isFinite(value)&&value>=0;})) advance();
+    if(monitoringMetricsReady()) advance();
   });
   $(document).on("input", "#generator-spl", function(){ if(readStep()===18&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) goToStep(19); });
   $(document).on("dei:lifecycle-action-complete", function(_event,action){
