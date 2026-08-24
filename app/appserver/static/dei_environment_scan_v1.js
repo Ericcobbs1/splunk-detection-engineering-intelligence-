@@ -1,7 +1,13 @@
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var appId="splunk_detection_engineering_intelligence", active=false, scanCollection="dei_scan_summaries",historyCollection="dei_scan_history";
-  var discoverySpl='| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype | where NOT match(index, "^_") AND isnotnull(sourcetype) | sort - count';
+  var discoveryBase='| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype';
+  function discoverySearch(includeInternalIndexes) {
+    var filter=includeInternalIndexes
+      ? '| where isnotnull(sourcetype)'
+      : '| where NOT match(index, "^_") AND index!="ers" AND isnotnull(sourcetype)';
+    return discoveryBase+' '+filter+' | sort - count';
+  }
   function emit(stage,message,detail) { $(document).trigger("dei:scan-progress",[{stage:stage,message:message,detail:detail||{}}]); }
   function unique(values) { var seen={}; return (values||[]).filter(function (value) { var key=String(value||"").trim().toLowerCase(); if (!key||seen[key]) { return false; } seen[key]=true; return true; }); }
   function list(value) { return Array.isArray(value)?value:(value===undefined||value===null||value===""?[]:[value]); }
@@ -70,16 +76,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       window.sessionStorage.setItem("dei.latestDiscoveryExport",discoveryExport(snapshot.discovery_rows));
       window.sessionStorage.setItem("dei.latestDiscoveryTime",String(snapshot.completed_at_ms||Date.now()));
       window.sessionStorage.setItem("dei.latestEnterpriseSecurityEnabled",snapshot.enterprise_security_enabled?"true":"false");
+      window.sessionStorage.setItem("dei.includeInternalIndexes",snapshot.include_internal_indexes?"true":"false");
       window.sessionStorage.setItem("dei.latestScanChanges",JSON.stringify(snapshot.change_analysis||{}));
       window.sessionStorage.removeItem("dei.dashboardCleared");
     } catch (error) { /* Persistence failure does not invalidate a completed scan. */ }
   }
-  function persist(report,discoveryRows,esEnabled,sources,indexes,profileFailures,fieldsBySource,fieldsByScope,telemetryRoutes,baseline) {
+  function persist(report,discoveryRows,esEnabled,includeInternalIndexes,sources,indexes,profileFailures,fieldsBySource,fieldsByScope,telemetryRoutes,baseline) {
     var completed=Date.now();
     var snapshot={_key:"latest",assessment_id:"scan-"+completed,completed_at_ms:completed,completed_at:new Date(completed).toISOString(),
       initiated_by:username(),active_sourcetype_count:(sources||[]).length,active_index_count:(indexes||[]).length,
       recommendation_count:(report.recommendations||[]).length,field_profile_failures:profileFailures||[],
-      enterprise_security_enabled:esEnabled===true,source_types:sources||[],indexes:indexes||[],
+      enterprise_security_enabled:esEnabled===true,include_internal_indexes:includeInternalIndexes===true,source_types:sources||[],indexes:indexes||[],
       discovery_rows:discoveryRows||[],fields_by_source:fieldsBySource||{},fields_by_scope:fieldsByScope||{},telemetry_routes:telemetryRoutes||[],report:report};
     snapshot.change_analysis=compareSnapshots(baseline,snapshot);
     persistSession(snapshot);
@@ -103,7 +110,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function run(options) {
     var settings=options||{},deferred=$.Deferred(); if (active) { deferred.reject({message:"An intelligence scan is already running."}); return deferred.promise(); } active=true; emit("discover","Discovering active Splunk telemetry from the last 7 days.");
-    exportSearch(discoverySpl,20000).done(function (text) {
+    var includeInternalIndexes=settings.includeInternalIndexes===true;
+    exportSearch(discoverySearch(includeInternalIndexes),20000).done(function (text) {
       var discovered=rows(text),sources=unique(discovered.map(function (row) { return row.sourcetype; })),indexes=unique(discovered.map(function (row) { return row.index; }));
       if (!sources.length) { var empty="Discovery completed but found no searchable source types. Verify DEI role index permissions and retry."; active=false; emit("failed",empty); deferred.reject({message:empty}); return; }
       emit("profile","Telemetry inventory complete. Profiling index, sourcetype, and channel routes.",{sources:sources.length,indexes:indexes.length});
@@ -111,7 +119,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         emit("recommend","Evaluating route-scoped telemetry and field-level detection readiness.");
         recommendations({sources:sources,fields_by_source:result.inventory,telemetry_routes:result.telemetry_routes,enterprise_security_enabled:settings.enterpriseSecurityEnabled===true,include_unsupported:true}).done(function (report) {
           loadLatest().done(function(baseline){
-            persist(report,discovered,settings.enterpriseSecurityEnabled===true,sources,indexes,result.failures,result.inventory,result.scoped_inventory,result.telemetry_routes,baseline).done(function(snapshot){
+            persist(report,discovered,settings.enterpriseSecurityEnabled===true,includeInternalIndexes,sources,indexes,result.failures,result.inventory,result.scoped_inventory,result.telemetry_routes,baseline).done(function(snapshot){
               active=false;
               var changes=snapshot.change_analysis;
               var message="Analysis complete. Discovered "+sources.length+" source types across "+indexes.length+" indexes and generated "+(report.recommendations||[]).length+" recommendations. "+(changes.baseline_available?changes.change_count+" telemetry or readiness change(s) detected.":"This scan established the initial telemetry baseline.");
@@ -125,7 +133,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).fail(function (xhr,status) { var message=errorMessage(xhr,status); active=false; emit("failed",message); deferred.reject({message:message}); });
     return deferred.promise();
   }
-  window.DEIEnvironmentScan={run:run,hydrate:hydrate,isRunning:function () { return active; },compareSnapshots:compareSnapshots};
+  window.DEIEnvironmentScan={run:run,hydrate:hydrate,isRunning:function () { return active; },compareSnapshots:compareSnapshots,discoverySearch:discoverySearch};
   $(document).trigger("dei:scan-service-ready");
   hydrate();
 });

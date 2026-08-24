@@ -6,6 +6,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var DISCOVERY_KEY = "dei.latestDiscoveryExport";
   var DISCOVERY_TIME_KEY = "dei.latestDiscoveryTime";
   var ES_KEY = "dei.latestEnterpriseSecurityEnabled";
+  var INTERNAL_INDEX_KEY = "dei.includeInternalIndexes";
   var CLEAR_KEY = "dei.dashboardCleared";
   var DISCOVERY_TOKEN = "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype";
   var originalAjax = $.ajax;
@@ -28,7 +29,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (request && request.readyState !== 4) { request.abort(); }
     });
     activeEnvironmentRequests = [];
-    [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY].forEach(function (key) {
+    [REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY, INTERNAL_INDEX_KEY].forEach(function (key) {
       try { window.sessionStorage.removeItem(key); } catch (error) {
         // Storage failures must not prevent the visible dashboard reset.
       }
@@ -46,6 +47,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#portfolio-ready, #portfolio-partial, #portfolio-field-gaps, #portfolio-unverified").text("0");
     $("#dei-sources").val("");
     $("#dei-es-enabled").prop("checked", false);
+    $("#dei-include-internal-indexes").prop("checked", false);
     $("#recommendations").empty();
     $("#recommendation-count").text("");
     $("#environment-snapshot-age").text("No saved snapshot");
@@ -221,6 +223,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (window.sessionStorage.getItem(ES_KEY) === "true") {
       $("#dei-es-enabled").prop("checked", true);
     }
+    $("#dei-include-internal-indexes").prop("checked", window.sessionStorage.getItem(INTERNAL_INDEX_KEY) === "true");
     if (window.sessionStorage.getItem(REPORT_KEY)) {
       $("#dei-analyze").find("span").text("Refresh environment");
     }

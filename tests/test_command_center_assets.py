@@ -24,6 +24,7 @@ def test_command_center_view_is_valid_and_references_assets() -> None:
     )
     for element_id in (
         "dei-command-center", "dei-telemetry", "dei-sources", "dei-es-enabled",
+        "dei-include-internal-indexes",
         "dei-analyze", "dei-feedback", "dei-discovery-next",
         "dei-discovery-result-state", "dei-discovery-next-summary",
         "dei-review-scan-results", "dei-open-environment-insights",
@@ -114,6 +115,9 @@ def test_command_center_static_assets_are_packaged() -> None:
     assert '"splunkjs/mvc/searchmanager"' not in javascript
     assert "| tstats count WHERE index=* earliest=-7d latest=now" in javascript
     assert 'NOT match(index, "^_")' in javascript
+    assert 'index!="ers"' in javascript
+    assert "includeInternalIndexes" in javascript
+    assert 'window.sessionStorage.getItem("dei.includeInternalIndexes")' in javascript
     assert 'search index=* earliest=-7d latest=now sourcetype=' in javascript
     assert 'output_mode: "json"' in javascript
     assert "fieldDiscoveryConcurrency = 6" in javascript

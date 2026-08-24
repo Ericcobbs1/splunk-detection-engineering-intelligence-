@@ -451,6 +451,13 @@
   margin-top: 16px;
 }
 
+.dei-scan-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+
 .dei-toggle {
   display: inline-flex !important;
   align-items: center;

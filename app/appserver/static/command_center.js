@@ -26,11 +26,15 @@ require([
     )
   };
 
-  var discoverySpl = [
-    "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
-    '| where NOT match(index, "^_") AND isnotnull(sourcetype)',
-    "| sort - count"
-  ].join(" ");
+  function discoverySearch(includeInternalIndexes) {
+    return [
+      "| tstats count WHERE index=* earliest=-7d latest=now BY index sourcetype",
+      includeInternalIndexes
+        ? '| where isnotnull(sourcetype)'
+        : '| where NOT match(index, "^_") AND index!="ers" AND isnotnull(sourcetype)',
+      "| sort - count"
+    ].join(" ");
+  }
 
   var riskDataModelSpl = [
     "| from datamodel:Risk.All_Risk",
@@ -372,7 +376,8 @@ require([
     }
     feedback.text("Discovering active Splunk telemetry from the last 7 days.");
 
-    exportSearch(discoverySpl, 20000).done(function (text) {
+    var includeInternalIndexes = $("#dei-include-internal-indexes").is(":checked");
+    exportSearch(discoverySearch(includeInternalIndexes), 20000).done(function (text) {
       var rows = parseExportRows(text);
       var sources = uniqueValues(rows.map(function (row) { return row.sourcetype; }));
       var indexes = uniqueValues(rows.map(function (row) { return row.index; }));
@@ -420,7 +425,10 @@ require([
   $("#dei-analyze").on("click", function () {
     if (window.DEIEnvironmentScan) {
       $(this).prop("disabled", true).text("Discovering...");
-      window.DEIEnvironmentScan.run({enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked")})
+      window.DEIEnvironmentScan.run({
+        enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked"),
+        includeInternalIndexes:$("#dei-include-internal-indexes").is(":checked")
+      })
         .always(resetAnalyzeButton);
       return;
     }
@@ -441,6 +449,13 @@ require([
     $("#dei-sources").val(uniqueValues(discoveredRows.map(function (row) { return row.sourcetype; })).join("\n"));
     if (report && report.recommendations) { renderReport(report); }
   });
+
+  try {
+    $("#dei-include-internal-indexes").prop(
+      "checked",
+      window.sessionStorage.getItem("dei.includeInternalIndexes") === "true"
+    );
+  } catch (error) { /* The default remains safely disabled when storage is unavailable. */ }
 
   $.ajax({url: endpoints.health, method: "GET", dataType: "json", timeout: 10000})
     .then(parsePayload).done(function (health) {
