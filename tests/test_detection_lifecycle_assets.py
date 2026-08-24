@@ -250,7 +250,7 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "latest_time:artifact.schedule.latest" in javascript
     assert 'artifact.status = planningDraft ? "draft" : "testing"' in javascript
     assert 'status:planningDraft?"planning_passed":"passed"' in javascript
-    assert "sample_results:rows" in javascript
+    assert "sample_results:[]" in javascript
     assert "saveCurrentDraft" in javascript
     assert "validationResolution" in javascript
     assert "renderValidationResolution" in javascript
@@ -295,10 +295,10 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert builder.find(".//*[@id='detection-generator']").attrib["style"] == "display:none"
 
 
-def test_dashboard_clear_removes_detection_drafts() -> None:
-    javascript = (STATIC_ROOT / "persistent_environment.js").read_text(encoding="utf-8")
-    assert 'ARTIFACT_KEY = "dei.detectionDraftArtifacts"' in javascript
-    assert "DISCOVERY_TIME_KEY, ES_KEY, ARTIFACT_KEY" in javascript
+def test_dashboard_clear_removes_scan_state_without_erasing_detection_drafts() -> None:
+    javascript = (STATIC_ROOT / "dashboard_state_v2.js").read_text(encoding="utf-8")
+    assert "REPORT_KEY, REPORT_TIME_KEY, DISCOVERY_KEY, DISCOVERY_TIME_KEY, ES_KEY, INTERNAL_INDEX_KEY" in javascript
+    assert 'removeItem("dei.detectionDraftArtifacts")' not in javascript
 
 
 def test_generate_draft_is_single_flight_and_confirms_persistence_before_completion() -> None:

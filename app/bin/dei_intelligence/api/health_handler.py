@@ -14,10 +14,39 @@ from dei_intelligence.knowledgepacks.loader import KnowledgePackError, Knowledge
 from dei_intelligence.recommendations.engine import RecommendationEngine, RecommendationError
 
 HealthReportFactory = Callable[[], HealthReport]
+DependencyChecker = Callable[[str], dict[str, dict[str, Any]]]
 APP_ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_PATH = APP_ROOT / "schemas" / "knowledge-pack.schema.json"
 PACK_ROOT = APP_ROOT / "knowledgepacks"
 DETECTION_SCHEMA_PATH = APP_ROOT / "schemas" / "detection.schema.json"
+
+
+def _session_key(request_data: dict[str, Any]) -> str:
+    for source in (request_data, request_data.get("session", {}), request_data.get("connection", {})):
+        if isinstance(source, dict):
+            value = source.get("sessionKey") or source.get("session_key") or source.get("authtoken")
+            if isinstance(value, str) and value:
+                return value
+    return ""
+
+
+def _default_dependency_checker(session_key: str) -> dict[str, dict[str, Any]]:
+    from splunk.rest import simpleRequest  # type: ignore[import-not-found]
+
+    endpoints = {
+        "splunk_api": "/services/server/info?output_mode=json",
+        "search_api": "/services/search/jobs?count=0&output_mode=json",
+        "kv_store": "/servicesNS/nobody/splunk_detection_engineering_intelligence/storage/collections/config/dei_lifecycle_records?output_mode=json",
+    }
+    checks: dict[str, dict[str, Any]] = {}
+    for name, path in endpoints.items():
+        try:
+            response, _ = simpleRequest(path, sessionKey=session_key, method="GET", raiseAllErrors=False)
+            status = int(response.get("status", 0))
+            checks[name] = {"ready": status == 200, "http_status": status}
+        except Exception as exc:
+            checks[name] = {"ready": False, "detail": str(exc)[:240]}
+    return checks
 
 
 def _default_report_factory() -> HealthReport:
@@ -46,10 +75,12 @@ class HealthHandler:
         command_line: Sequence[str] | None = None,
         command_arg: Sequence[str] | None = None,
         report_factory: HealthReportFactory = _default_report_factory,
+        dependency_checker: DependencyChecker = _default_dependency_checker,
     ) -> None:
         self._command_line = tuple(command_line or ())
         self._command_arg = tuple(command_arg or ())
         self._report_factory = report_factory
+        self._dependency_checker = dependency_checker
 
     def handle(self, request: str) -> dict[str, Any]:
         """Return a Splunk persistent-handler response for a GET request."""
@@ -73,4 +104,16 @@ class HealthHandler:
                 {"error": "knowledge pack validation failed", "detail": str(exc)},
             )
 
-        return persistent_response(200, report.to_mapping())
+        payload = report.to_mapping()
+        session_key = _session_key(request_data)
+        if session_key:
+            dependencies = self._dependency_checker(session_key)
+            ready = all(bool(item.get("ready")) for item in dependencies.values())
+            payload["dependencies"] = dependencies
+            payload["readiness"] = "ready" if ready else "degraded"
+            if not ready:
+                payload["status"] = "degraded"
+        else:
+            payload["dependencies"] = {"authenticated_checks": {"ready": False, "detail": "session unavailable"}}
+            payload["readiness"] = "unknown"
+        return persistent_response(200, payload)

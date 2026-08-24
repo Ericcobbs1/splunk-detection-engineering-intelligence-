@@ -54,7 +54,7 @@ def test_completed_scan_reveals_an_explicit_next_step() -> None:
     assert '"The scan generated "+recommendationCount+" detection recommendation"' in javascript
     assert '$("#dei-review-scan-results").toggleClass("ready",ready)' in javascript
     assert ".dei-discovery-next[hidden]" in stylesheet
-    assert "#dei-review-scan-results.ready" in stylesheet
+    assert "#dei-open-environment-insights.ready" in stylesheet
 
 
 def test_environment_insights_contains_saved_results_without_discovery_form() -> None:
@@ -201,7 +201,7 @@ def test_command_center_static_assets_are_packaged() -> None:
 def test_official_home_is_focused_on_pipeline_and_workspace_actions() -> None:
     home_path = APP_ROOT / "default" / "data" / "ui" / "views" / "dei_home.xml"
     root = ElementTree.parse(home_path).getroot()
-    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v12.js,dei_home_globe_react_v1.js,dei_theme_v1.js"
+    assert root.attrib["script"] == "dei_environment_scan_v1.js,dei_lifecycle_store_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v14.js,dei_home_globe_react_v1.js,dei_theme_v1.js"
     assert "dei_workspace_layout_v1.css" in root.attrib["stylesheet"]
     for element_id in (
         "dei-home-page", "dei-home-pipeline", "dei-home-flow-title",

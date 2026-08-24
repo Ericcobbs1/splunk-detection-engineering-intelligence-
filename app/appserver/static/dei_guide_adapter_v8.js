@@ -122,7 +122,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     });
     if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change");
     if(tutorialSelection&&!select.find("option").filter(function(){return !!$(this).val()&&!$(this).prop("disabled");}).length) {
-      $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Tutorial blocked: this scan has no unused Recommendation-stage detections. Restart an eligible record from Recommendation or expand the supported detection library, then scan again.");
+      $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").html('Tutorial blocked: this scan has no unused Recommendation-stage detections. <a id="dei-tutorial-recovery" href="detection_catalog#lifecycle-map">Open Lifecycle and restart an eligible detection from Recommendation</a>, then return here; tutorial progress will be preserved.');
     }
   }
   function route(name) {
@@ -375,7 +375,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("dei:scan-progress", function (_event,status) {
     var guideActive=$("#"+OVERLAY_ID).length||window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true";
     if(status.stage==="discover"&&guideActive&&page()==="environment") { resetWalkthroughDetection(); writeStep(1); renderedStep=-1; window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); scheduleRender(0); return; }
-    if(readStep()===1&&status.stage==="complete") { resetWalkthroughDetection(); goToStep(2); }
+    if(readStep()===1&&(status.stage==="complete"||status.stage==="complete_with_warning")) { resetWalkthroughDetection(); goToStep(2); }
   });
   $(document).on("change", "#workflow-detection-select", function(){
     if(readStep()!==2||!$(this).val()) return;

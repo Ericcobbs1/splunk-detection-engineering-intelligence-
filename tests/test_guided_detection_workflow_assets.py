@@ -85,7 +85,7 @@ def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -
     assert '$("#builder-detection-select").trigger("change")' in javascript
     guide = (STATIC / "dei_guide_adapter_v8.js").read_text(encoding="utf-8")
     assert 'target:"#workflow-detection-select"' in guide
-    assert 'status.stage==="complete") { resetWalkthroughDetection(); goToStep(2); }' in guide
+    assert 'status.stage==="complete"||status.stage==="complete_with_warning"' in guide
 
 
 def test_selecting_a_saved_draft_does_not_populate_spl_before_generate() -> None:

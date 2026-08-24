@@ -38,14 +38,31 @@ rsync -a \
 
 gzip -t "$PACKAGE_PATH"
 
-TOP_LEVEL="$(tar -tzf "$PACKAGE_PATH" | sed 's#^\./##' | cut -d/ -f1 | sort -u)"
+PACKAGE_CONTENTS="$(tar -tzf "$PACKAGE_PATH")"
+TOP_LEVEL="$(printf '%s\n' "$PACKAGE_CONTENTS" | sed 's#^\./##' | cut -d/ -f1 | sort -u)"
 if [[ "$TOP_LEVEL" != "$APP_ID" ]]; then
   echo "Invalid package top-level directory: $TOP_LEVEL" >&2
   exit 1
 fi
 
-if tar -tzf "$PACKAGE_PATH" | grep -Eq '(^|/)(\.DS_Store|\._|__MACOSX)(/|$)'; then
+if printf '%s\n' "$PACKAGE_CONTENTS" | grep -Eq '(^|/)(\.DS_Store|\._|__MACOSX)(/|$)'; then
   echo "Package contains macOS metadata files." >&2
+  exit 1
+fi
+
+if ! printf '%s\n' "$PACKAGE_CONTENTS" | grep -q "^$APP_ID/appserver/static/appLogo.png$"; then
+  echo "Package is missing appserver/static/appLogo.png." >&2
+  exit 1
+fi
+
+if printf '%s\n' "$PACKAGE_CONTENTS" | grep -Eq '(^|/)(__pycache__|.*\.pyc)$'; then
+  echo "Package contains generated Python cache files." >&2
+  exit 1
+fi
+
+LEGACY_ASSETS='dei_design_system_v1\.css|persistent_environment\.js|mitre_workspace\.js|dei_home_globe_v[56]\.css|command_center\.css|dei_workspace_layout_v12\.js'
+if printf '%s\n' "$PACKAGE_CONTENTS" | grep -Eq "(^|/)($LEGACY_ASSETS)$"; then
+  echo "Package contains retired static assets." >&2
   exit 1
 fi
 

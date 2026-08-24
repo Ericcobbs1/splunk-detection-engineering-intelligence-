@@ -64,4 +64,4 @@ body.dei-onboarding-open .dei-next-guide-dialog{width:min(380px,calc(100vw - 32p
 .dei-next-guide.is-collapsed .dei-next-guide-instruction,.dei-next-guide.is-collapsed .dei-next-guide-details,.dei-next-guide.is-collapsed .dei-next-guide-status,.dei-next-guide.is-collapsed .dei-next-guide-progress,.dei-next-guide.is-collapsed .dei-next-guide-hint{display:none}
 .dei-next-guide.is-collapsed .dei-next-guide-action{margin-top:10px;padding:8px}
 .dei-next-guide.is-collapsed .dei-next-guide-footer{margin-top:10px}
-@media(max-width:900px){body.dei-onboarding-open .dei-next-guide-dialog{max-height:calc(100vh - 24px)}}
+@media(max-width:900px){body.dei-onboarding-open .dei-next-guide-dialog{max-height:min(48vh,48dvh);overflow:hidden}.dei-next-guide{max-height:min(48vh,48dvh);overflow:auto;overscroll-behavior:contain}.dei-next-guide-header{position:sticky;top:-18px;z-index:2;margin:-18px -18px 0;padding:18px 18px 10px;background:#081522}.dei-next-guide-footer{position:sticky;bottom:-18px;margin:14px -18px -18px;padding:10px 18px 18px;background:#081522}}
