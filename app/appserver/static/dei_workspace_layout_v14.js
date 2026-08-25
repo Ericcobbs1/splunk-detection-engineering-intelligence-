@@ -434,7 +434,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(interactive){
       var Scan=window.DEIEnvironmentScan;
       if(!Scan||!Scan.hydrate){failures.push("environment service unavailable");environmentDone=true;complete();}
-      else Scan.hydrate().fail(function(){failures.push("shared environment assessment unavailable");})
+      else Scan.hydrate({force:true}).fail(function(){failures.push("shared environment assessment unavailable");})
         .always(function(){environmentDone=true;complete();});
     }
   }
@@ -489,9 +489,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (!issues[key] || Number(issue.priority||0)>Number(issues[key].priority||0)) { issues[key]=issue; }
     }
     recommendations.forEach(function (item,index) {
-      if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(item.readiness)===-1) { return; }
+      if (["partial","field_gap","field_unverified","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)===-1) { return; }
       var key=itemKey(item,index);
-      var canBuild=["field_gap","field_unverified"].indexOf(item.readiness)!==-1;
+      var canBuild=["partial","field_gap","field_unverified","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)!==-1;
       putIssue(key,{name:item.name || key,
         reason:"Readiness is "+String(item.readiness||"unknown").replace(/_/g," ")+". "+(item.next_action || "Resolve the required telemetry or field evidence."),
         href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
@@ -928,7 +928,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       candidate=artifacts.filter(function (item) { return item.spl && (!item.validation || item.validation.status!=="passed"); })[0];
     } else if (stage==="generate") {
       candidate=recommendations.filter(function (item) {
-        return ["production_ready","field_unverified","field_gap"].indexOf(item.readiness)!==-1;
+        return ["production_ready","field_unverified","field_gap","partial","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)!==-1;
       })[0];
     }
     return candidate ? String(candidate._key || candidate.detection_id || candidate.id || "").replace(/^dei-/,"") : "";

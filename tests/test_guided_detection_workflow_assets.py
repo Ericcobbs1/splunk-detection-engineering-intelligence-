@@ -318,3 +318,21 @@ def test_unobserved_library_detection_stays_in_integrated_planning_builder() -> 
     assert readiness in generator
     assert '(buildable||planning)?"#builder-generate":remediationHref' in workflow
     assert 'selectorGroup(items, "not_observed", "Detection library · telemetry not observed")' in generator
+
+
+def test_all_detection_entry_points_handoff_planning_states_to_builder() -> None:
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    action_center = (STATIC / "detection_action_center_v1.js").read_text(encoding="utf-8")
+    lifecycle = (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
+    coverage = (STATIC / "mitre_workspace_v4.js").read_text(encoding="utf-8")
+    home = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
+
+    for state in ("partial", "unsupported", "requires_es", "requires_enterprise_security", "not_observed"):
+        assert state in workflow
+        assert state in generator
+        assert state in action_center
+        assert state in lifecycle
+        assert state in home
+    assert 'var nextHref = "detection_workflow?detection="' in coverage
+    assert 'replace(/^(library:|instance:)/,"")' in generator

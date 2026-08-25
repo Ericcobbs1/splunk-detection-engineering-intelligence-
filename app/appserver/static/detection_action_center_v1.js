@@ -86,9 +86,9 @@
 
   function recommendationFinding(item,index) {
     var readiness=String(item.readiness || "unknown");
-    if (["partial","field_gap","field_unverified","unsupported","requires_es"].indexOf(readiness)===-1) { return null; }
+    if (["partial","field_gap","field_unverified","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(readiness)===-1) { return null; }
     var key=itemKey(item,index);
-    var canBuild=["field_gap","field_unverified"].indexOf(readiness)!==-1;
+    var canBuild=["partial","field_gap","field_unverified","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(readiness)!==-1;
     var missingSources=(item.missing_sources || []);
     var missingFields=[]; Object.keys(item.missing_fields || {}).forEach(function (source) {
       (item.missing_fields[source] || []).forEach(function (fields) { missingFields.push(source+": "+fields); });

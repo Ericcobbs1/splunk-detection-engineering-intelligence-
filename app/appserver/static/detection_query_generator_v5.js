@@ -825,7 +825,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function requestedDetectionId() {
     var match = String(window.location.search || "").match(/[?&]detection=([^&]+)/);
     if (match) {
-      try { return decodeURIComponent(match[1].replace(/\+/g, " ")); } catch (error) { return match[1]; }
+      try { return decodeURIComponent(match[1].replace(/\+/g, " ")).replace(/^(library:|instance:)/,""); } catch (error) { return match[1].replace(/^(library:|instance:)/,""); }
     }
     try {
       var handoff=String(window.sessionStorage.getItem(TUTORIAL_HANDOFF_KEY) || "");
@@ -886,7 +886,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       $("#builder-detection-select").val(requested);
       $("#builder-generate").prop("disabled", false);
       var requestedItem=items.filter(function (item) { return item.detection_id===requested; })[0];
-      setStartFeedback(requestedItem&&["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(requestedItem.readiness)!==-1?"Ready to create a planning draft. Telemetry readiness will remain blocked.":"Ready to generate a clean detection draft.", "ready");
+      setStartFeedback(requestedItem&&["partial","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(requestedItem.readiness)!==-1?"Ready to create a planning draft. Telemetry readiness will remain blocked.":"Ready to generate a clean detection draft.", "ready");
       resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.");
       $("#builder-detection-select").trigger("change");
     } else {

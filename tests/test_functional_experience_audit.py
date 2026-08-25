@@ -42,7 +42,8 @@ def test_home_scan_is_consolidated_into_environment_discovery():
     assert "active_index_count" in service
     assert "field_profile_failures" in service
     assert "enterprise_security_enabled" in service
-    assert "function hydrate()" in service
+    assert "function hydrate(options)" in service
+    assert "settings.force===true" in service
 
 
 def test_assisted_tour_opens_once_per_session_and_is_dismissible():
