@@ -8,6 +8,8 @@ body.dei-onboarding-open .dei-onboarding-dialog[data-placement="left"]{right:aut
 body.dei-onboarding-open .dei-onboarding-dialog::before{content:"";position:absolute;top:46%;width:16px;height:16px;border:1px solid rgba(92,225,194,.62);background:#0a1724;transform:rotate(45deg)}
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="right"]::before{left:-9px;border-top:0;border-right:0}
 body.dei-onboarding-open .dei-onboarding-dialog[data-placement="left"]::before{right:-9px;border-bottom:0;border-left:0}
+body.dei-onboarding-open .dei-onboarding-dialog[data-placement="above"]::before{top:auto;right:50%;bottom:-9px;border-top:0;border-left:0}
+body.dei-onboarding-open .dei-onboarding-dialog[data-placement="below"]::before{top:-9px;right:50%;border-right:0;border-bottom:0}
 body.dei-onboarding-open .dei-onboarding-target{z-index:10001!important;pointer-events:auto}
 body.dei-onboarding-open .dei-onboarding-target{outline:3px solid #70ffe0!important;outline-offset:6px;box-shadow:0 0 0 4px rgba(92,225,194,.2),0 0 30px rgba(92,225,194,.95),0 0 58px rgba(110,168,255,.58)!important;animation:deiGuideTargetPulse 1.25s ease-in-out infinite}
 body.dei-onboarding-open .dei-onboarding-target.dei-guide-focus-pulse{animation:deiGuideShowMe 1.8s ease-out 1!important}

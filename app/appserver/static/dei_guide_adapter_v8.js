@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v14";
+window.DEIGuideAssetVersion="v15";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -268,10 +268,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function position(target) {
     var dialog=$(".dei-onboarding-dialog"); if (!dialog.length||dialog.hasClass("dei-guide-positioned")) return;
-    var placement="right";
-    if (target.length && window.innerWidth>900) { var rect=target[0].getBoundingClientRect(); placement=(rect.left+rect.width/2)<window.innerWidth/2?"right":"left"; }
-    else if (target.length) { placement=target[0].getBoundingClientRect().top>window.innerHeight/2?"top":"bottom"; }
-    dialog.attr("data-placement",placement);
+    if(!target.length) { dialog.attr("data-placement","right").css({left:"auto",right:"16px",top:"16px",bottom:"auto"}); return; }
+    var rect=target[0].getBoundingClientRect(),gap=22,pad=12,width=dialog.outerWidth(),height=dialog.outerHeight();
+    var spaces={left:rect.left-pad,right:window.innerWidth-rect.right-pad,above:rect.top-pad,below:window.innerHeight-rect.bottom-pad};
+    var placement=spaces.right>=width?"right":spaces.left>=width?"left":spaces.below>=height?"below":spaces.above>=height?"above":Object.keys(spaces).sort(function(a,b){return spaces[b]-spaces[a];})[0];
+    var left,top;
+    if(placement==="right"){left=rect.right+gap;top=rect.top+(rect.height-height)/2;}
+    else if(placement==="left"){left=rect.left-width-gap;top=rect.top+(rect.height-height)/2;}
+    else if(placement==="below"){left=rect.left+(rect.width-width)/2;top=rect.bottom+gap;}
+    else{left=rect.left+(rect.width-width)/2;top=rect.top-height-gap;}
+    left=Math.max(pad,Math.min(window.innerWidth-width-pad,left)); top=Math.max(pad,Math.min(window.innerHeight-height-pad,top));
+    dialog.attr("data-placement",placement).css({left:left,right:"auto",top:top,bottom:"auto"});
   }
   function savedGuidePosition() {
     try { return JSON.parse(window.sessionStorage.getItem("dei.guide.position")||"null"); } catch(error) { return null; }
