@@ -303,7 +303,8 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "Generated SPL integrity check failed" in javascript
     assert "DEI blocked an invalid generated query" in javascript
     assert "function resetDraftWorkspace(message)" in javascript
-    assert '$("#detection-generator,#generator-output").hide()' in javascript
+    assert '$("#detection-generator").show()' in javascript
+    assert '$("#generator-output").hide()' in javascript
     assert '$("#detection-generator").show()' in javascript
     assert 'return String(window.localStorage.getItem(SELECTED_DETECTION_KEY)' not in javascript
     assert "generateSelectedDetection();" not in javascript

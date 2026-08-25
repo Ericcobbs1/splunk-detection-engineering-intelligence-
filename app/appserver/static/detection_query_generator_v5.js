@@ -839,7 +839,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     generatedBaseline = null;
     pendingValidationFix = null;
     $("#detection-generator").removeAttr("data-dei-generated-detection");
-    $("#detection-generator,#generator-output").hide();
+    // The generator container owns the selection and Generate controls. Keep
+    // that shell visible while clearing only the generated artifact output;
+    // otherwise the tutorial advances to a control that reset just hid.
+    $("#detection-generator").show();
+    $("#generator-output").hide();
     $("#generator-empty").show().text(message || "Choose Generate detection draft to start a clean workspace.");
     $("#generator-title").text("Detection draft");
     $("#generator-badges,#builder-quality-dimensions,#generator-es-output").empty();

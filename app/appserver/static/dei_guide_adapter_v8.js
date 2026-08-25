@@ -117,6 +117,19 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function selectedRecommendationOpportunity() {
     return String($("#workflow-detection-select").val()||"").indexOf("library:")===0;
   }
+  function advanceFromLibrarySelectionWhenReady() {
+    if(!guideActive()||readStep()!==2||!selectedRecommendationOpportunity()) return false;
+    var button=$("#builder-generate").filter(":visible").first();
+    var selected=normalizeDetectionKey($("#workflow-detection-select").val()||"");
+    var builderSelected=normalizeDetectionKey($("#builder-detection-select").val()||"");
+    if(!button.length||button.prop("disabled")||!selected||builderSelected!==selected) {
+      $("#workflow-tutorial-status").prop("hidden",false).removeClass("unhealthy").text("Preparing the draft controls for the selected library detection…");
+      return false;
+    }
+    $("#workflow-tutorial-status").prop("hidden",true).empty();
+    advance();
+    return true;
+  }
   function applyTutorialSelectionScope(index) {
     var select=$("#workflow-detection-select");
     if(!select.length) return;
@@ -419,9 +432,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#workflow-detection-select", function(){
     if(!guideActive()||readStep()!==2||!$(this).val()) return;
     if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection from the reusable library to continue the tutorial."); return; }
-    advance();
+    window.setTimeout(advanceFromLibrarySelectionWhenReady,0);
   });
   $(document).on("dei:builder-selection-ready", function(){
+    if(guideActive()&&page()==="builder"&&readStep()===2) { advanceFromLibrarySelectionWhenReady(); return; }
     if(guideActive()&&page()==="builder"&&readStep()===3) scheduleRender(0);
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
