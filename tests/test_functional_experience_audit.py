@@ -386,6 +386,25 @@ def test_tutorial_is_manual_launch_only_and_does_not_hijack_normal_work():
     assert 'window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true"' not in adapter
 
 
+def test_tutorial_placement_avoids_covering_wide_targets():
+    adapter = _source("dei_guide_adapter_v8.js")
+    stylesheet = _source("dei_guided_tour_v6.css")
+    assert "var spaces={left:rect.left-pad,right:window.innerWidth-rect.right-pad,above:rect.top-pad,below:window.innerHeight-rect.bottom-pad}" in adapter
+    assert 'spaces.below>=height?"below":spaces.above>=height?"above"' in adapter
+    assert 'data-placement="above"' in stylesheet
+    assert 'data-placement="below"' in stylesheet
+
+
+def test_builder_renders_scan_choices_before_durable_records_finish_loading():
+    workflow = _source("detection_workflow_v2.js")
+    store = _source("dei_lifecycle_store_v1.js")
+    assert "if(attempt===0) populate();" in workflow
+    assert "records are taking longer than expected" in workflow
+    assert "current scan recommendations remain available" in workflow
+    assert 'while(value&&typeof value==="object"&&value.payload!==undefined&&depth<3)' in store
+    assert "response&&response.data&&Array.isArray(response.data.records)" in store
+
+
 def test_tutorial_branch_actions_cannot_report_false_completion():
     adapter = _source("dei_guide_adapter_v8.js")
     assert 'action==="record_deployment"&&saved.state==="production"' in adapter
@@ -421,7 +440,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v14"' in adapter
+    assert 'window.DEIGuideAssetVersion="v15"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter

@@ -35,7 +35,11 @@
   function request(payload) {
     return $.ajax({url:endpoint(), method:"POST", data:JSON.stringify(payload), dataType:"json",
       timeout:30000, headers:headers()}).then(function(response) {
-        return response&&typeof response.payload==="string"?JSON.parse(response.payload):response;
+        var value=response; var depth=0;
+        while(value&&typeof value==="object"&&value.payload!==undefined&&depth<3) {
+          value=typeof value.payload==="string"?safeJson(value.payload,{}):value.payload; depth+=1;
+        }
+        return value;
       });
   }
 
@@ -83,7 +87,8 @@
     request({resource:"lifecycle", operation:"read"})
       .done(function (response) {
         mode = "Splunk KV Store";
-        var durable=response&&Array.isArray(response.records) ? response.records : [];
+        var durable=response&&Array.isArray(response.records) ? response.records :
+          (response&&response.data&&Array.isArray(response.data.records)?response.data.records:[]);
         var fallback=fallbackRecords();
         recoveryPending=fallback.some(function(local){var key=String(local._key||local.id||"");return key&&!durable.some(function(shared){return String(shared._key||shared.id||"")===key&&String(shared.updated_at||"")===String(local.updated_at||"");});});
         if(recoveryPending)$(document).trigger("dei:persistence-recovery-required",[{count:fallback.length,message:"Browser recovery records differ from shared KV Store. Review them before overwriting governed data."}]);
