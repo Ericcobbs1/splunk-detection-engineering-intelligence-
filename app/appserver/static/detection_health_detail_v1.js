@@ -3,7 +3,7 @@ require(["jquery","splunkjs/mvc/simplexml/ready!"],function($){
   var records=[],report=null,loadError="",STALE_DAYS=30;
   var STAGES=["recommendation","draft","testing","peer_review","production","monitoring","tuning","retired"];
   function esc(v){return $("<div>").text(v==null?"":String(v)).html();}
-  function key(r){return String(r&&(r.detection_id||r._key||r.id)||"").replace(/^dei-/,"");}
+  function key(r){return String(r&&(r._key||r.detection_id||r.id)||"").replace(/^dei-/,"");}
   function label(v){return String(v||"unknown").replace(/_/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();});}
   function percent(n,d){return d?Math.round(n/d*100):0;}
   function dateValue(v){var value=Date.parse(v||"");return isFinite(value)?value:0;}

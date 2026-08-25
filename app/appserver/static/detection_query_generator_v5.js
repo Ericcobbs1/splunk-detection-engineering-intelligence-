@@ -16,6 +16,21 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var pendingValidationFix = null;
   var generatedBaseline = null;
   var Store = null;
+  var detectionLibrary = [];
+
+  function capabilitiesEndpoint() {
+    return Splunk.util.make_url("splunkd", "__raw", "servicesNS", "-", "splunk_detection_engineering_intelligence", "dei", "v1", "capabilities");
+  }
+
+  function loadDetectionLibrary() {
+    return $.ajax({url:capabilitiesEndpoint(),method:"GET",dataType:"json",timeout:30000,
+      headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).then(function(response) {
+        var payload=response&&typeof response.payload==="string"?safeJson(response.payload,{}):response;
+        detectionLibrary=Array.isArray(payload&&payload.detections)?payload.detections:[];
+        window.DEIDetectionLibrary=detectionLibrary.slice();
+        return detectionLibrary;
+      });
+  }
 
   function searchExportEndpoint() {
     return Splunk.util.make_url("splunkd", "__raw", "services", "search", "jobs", "export");
@@ -346,7 +361,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function buildArtifact(item) {
     var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
     var observedSources = observedSourcetypes(item, report);
-    var planning = ["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(item.readiness)!==-1;
+    var planning = ["partial","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)!==-1;
     var sources = observedSources.length ? observedSources : uniqueValues(item.required_sources || item.missing_sources || []);
     var timing = schedule(item);
     var spl = attachPlatformMitreMetadata("search (" + sourceClause(sources) + ") earliest=" + timing.earliest + " latest=" + timing.latest +
@@ -356,7 +371,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var esEnabled = window.sessionStorage.getItem(ES_KEY) === "true";
     var riskScore = item.severity === "critical" ? 80 : item.severity === "high" ? 60 : item.severity === "medium" ? 40 : 20;
     var artifact={
-      schema_version:"1.0.0", id:"dei-" + item.detection_id, name:item.name, status:"draft", analytic_family:analyticFamily(item.detection_id),
+      schema_version:"1.0.0", id:"dei-" + item.instance_id, detection_id:item.detection_id,
+      template_detection_id:item.detection_id, name:item.name, status:"draft", analytic_family:analyticFamily(item.detection_id),
       description:item.why, severity:item.severity, capability:item.capability,
       source_readiness:item.readiness, telemetry_verified:!planning&&observedSources.length>0,
       planning_draft:planning, observed_sourcetypes:observedSources,
@@ -424,7 +440,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function lifecycleRecord(artifact) {
     var record = $.extend(true, {}, artifact);
     record._key = String(artifact.id || "").replace(/^dei-/, "");
-    record.detection_id = record._key;
+    record.detection_id = String(artifact.template_detection_id || artifact.detection_id || record._key).replace(/^dei-/, "");
+    record.template_detection_id = record.detection_id;
     record.state = artifact.status === "testing" ? "testing" : (artifact.state || artifact.status || "draft");
     record.status = record.state;
     record.version = Number(record.version || 1);
@@ -806,9 +823,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var report = safeJson(window.sessionStorage.getItem(REPORT_KEY), {});
     var allowed = {production_ready:true, field_unverified:true, field_gap:true,partial:true,
       unsupported:true,requires_es:true,requires_enterprise_security:true};
-    return (report.recommendations || []).filter(function (item) {
-      return allowed[item.readiness] === true;
-    });
+    var recommendations=report.recommendations||[]; var byId={};
+    recommendations.forEach(function(item){byId[item.detection_id]=item;});
+    return detectionLibrary.map(function(template){
+      var evidence=byId[template.detection_id]||{};
+      return $.extend(true,{},template,evidence,{readiness:evidence.readiness||"not_observed"});
+    }).filter(function(item){ return !!item.detection_id; });
   }
 
   function requestedDetectionId() {
@@ -864,14 +884,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       selectorGroup(items, "partial", "Planning drafts · partial telemetry") +
       selectorGroup(items, "unsupported", "Planning drafts · telemetry unavailable") +
       selectorGroup(items, "requires_es", "Planning drafts · Enterprise Security required") +
-      selectorGroup(items, "requires_enterprise_security", "Planning drafts · Enterprise Security required"));
-    if (!report || !report.recommendations) {
-      setStartFeedback("No environment analysis is loaded. Run Environment Discovery before generating a draft.", "error");
-      $("#builder-generate").prop("disabled", true);
-      return;
-    }
+      selectorGroup(items, "requires_enterprise_security", "Planning drafts · Enterprise Security required")+
+      selectorGroup(items, "not_observed", "Detection library · telemetry not observed"));
     if (!items.length) {
-      setStartFeedback("No recommendations are available. Run Environment Discovery first.", "error");
+      setStartFeedback("The packaged detection library could not be loaded. Refresh the page or review the capabilities endpoint.", "error");
       $("#builder-generate").prop("disabled", true);
       return;
     }
@@ -897,7 +913,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return candidate.detection_id === id;
     })[0];
     if (!item) {
-      setStartFeedback("Select a qualified recommendation before generating SPL.", "error");
+      setStartFeedback("Select a detection from the library before generating SPL.", "error");
       $("#builder-detection-select").focus();
       return;
     }
@@ -919,7 +935,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { window.localStorage.setItem(SELECTED_DETECTION_KEY, id); } catch (error) {
       // Generation remains available when browser storage is unavailable.
     }
-    var existingArtifact = storedArtifact("dei-" + item.detection_id);
+    item.instance_id=item.detection_id+"--"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+    var existingArtifact = null;
     var artifact;
     try { artifact=buildArtifact(item); }
     catch (error) {
@@ -952,11 +969,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     saveArtifact(artifact).done(function (savedRecord) {
       var confirmedRecord=savedRecord||lifecycleRecord(artifact);
-      $("#detection-generator").attr("data-dei-generated-detection", item.detection_id);
+      $("#detection-generator").attr("data-dei-generated-detection", confirmedRecord._key);
       if(window.DEINextGuide&&typeof window.DEINextGuide.completeDraft==="function"){
-        window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord);
+        window.DEINextGuide.completeDraft(confirmedRecord._key,confirmedRecord);
       }
-      $(document).trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord]);
+      $(document).trigger("dei:detection-draft-generated", [confirmedRecord._key, confirmedRecord]);
       setStartFeedback(artifact.planning_draft?"Planning draft generated. Review the SPL; telemetry readiness is still required before peer review.":"Detection draft generated and saved. Review the SPL and validation workspace below.", "success");
       setFeedback(existingArtifact ? "A fresh detection draft replaced the prior saved SPL. Historical lifecycle and validation evidence was preserved." : "Generated a fresh detection draft from the current telemetry recommendation.", "success");
       finishGeneration();
@@ -1080,7 +1097,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         if (artifact && artifact.id) { merged[artifact.id] = artifact; }
       });
       window.localStorage.setItem(ARTIFACT_KEY, JSON.stringify(browserSafeArtifact(Object.keys(merged).map(function (key) { return merged[key]; }))));
-      populateDetectionSelector();
+      loadDetectionLibrary().always(populateDetectionSelector);
       $("#generator-es-state").attr("title", "Persistence: " + Store.mode());
     });
   }

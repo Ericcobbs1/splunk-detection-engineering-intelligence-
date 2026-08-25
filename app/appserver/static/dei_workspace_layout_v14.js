@@ -152,7 +152,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function completionConfirmation(action,saved) {
     var labels={submit_review:"Validation handoff saved",approve_review:"Peer review approved",record_deployment:"Deployment evidence saved",record_health:"Health evidence saved",return_draft:"Draft reopened",restart_recommendation:"Recommendation restarted",start_tuning:"Tuning version opened",retire:"Retirement evidence saved"};
-    var title=labels[action] || "Lifecycle progress saved",id=saved && (saved.detection_id || saved._key || saved.id),state=saved && saved.state || "updated";
+    var title=labels[action] || "Lifecycle progress saved",id=saved && (saved._key || saved.detection_id || saved.id),state=saved && saved.state || "updated";
     $("#dei-engagement-confirmation").remove(); $("#lifecycle-action-feedback").after('<section id="dei-engagement-confirmation" class="dei-engagement-confirmation"><strong>✓ '+title+'</strong><span>Current stage: '+String(state).replace(/_/g," ")+'. The governed record and audit history were updated.</span><a href="detection_workflow?detection='+encodeURIComponent(id||"")+'">Continue next required action →</a></section>');
     addActivity(action,title,(saved&&saved.name||id||"Detection")+" · "+String(state).replace(/_/g," "),"detection_workflow?detection="+encodeURIComponent(id||""),id);
   }
@@ -467,7 +467,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         !(item.monitoring && item.monitoring.last_checked_at);
     }).length;
     function itemKey(item,index) {
-      return String(item.detection_id || item._key || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
+      return String(item._key || item.detection_id || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
     }
     var issues={};
     function putIssue(key, issue) {
@@ -916,7 +916,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         return ["production_ready","field_unverified","field_gap"].indexOf(item.readiness)!==-1;
       })[0];
     }
-    return candidate ? String(candidate.detection_id || candidate._key || candidate.id || "").replace(/^dei-/,"") : "";
+    return candidate ? String(candidate._key || candidate.detection_id || candidate.id || "").replace(/^dei-/,"") : "";
   }
 
   function homeStageDestination(stage) {
