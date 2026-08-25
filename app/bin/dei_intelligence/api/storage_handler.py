@@ -351,15 +351,17 @@ class StorageHandler:
                     if state not in ALLOWED_TRANSITIONS.get(previous_state, {previous_state}):
                         return persistent_response(409, {"error": f"illegal lifecycle transition: {previous_state} to {state}"})
                     expected = payload.get("expected_revision")
-                    current = int(existing.get("_revision", 1))
-                    if expected is None:
+                    legacy_unversioned = "_revision" not in existing
+                    current = int(existing.get("_revision", 0))
+                    if expected is None and not legacy_unversioned:
                         return persistent_response(409, {"error": "expected_revision is required for lifecycle updates", "current_revision": current})
-                    try:
-                        expected_revision = int(expected)
-                    except (TypeError, ValueError):
-                        return persistent_response(400, {"error": "expected_revision must be an integer"})
-                    if expected_revision != current:
-                        return persistent_response(409, {"error": "lifecycle record changed; reload before saving", "current_revision": current})
+                    if expected is not None:
+                        try:
+                            expected_revision = int(expected)
+                        except (TypeError, ValueError):
+                            return persistent_response(400, {"error": "expected_revision must be an integer"})
+                        if expected_revision != current:
+                            return persistent_response(409, {"error": "lifecycle record changed; reload before saving", "current_revision": current})
                 else:
                     if state not in {"recommendation", "draft"}:
                         return persistent_response(409, {"error": "new lifecycle records must begin in Recommendation or Draft"})
