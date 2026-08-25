@@ -34,7 +34,7 @@
               <button id="action-reset-filters" type="button">Reset filters</button>
             </div>
             <div id="action-loading" class="dei-action-empty">Loading recommendation and lifecycle evidence…</div>
-            <div id="action-empty" class="dei-action-empty" hidden="hidden"><strong>No findings match these filters.</strong><p>Reset the filters or run a fresh environment intelligence scan.</p><a class="dei-link-button dei-scan-discovery-link" href="command_center#dei-telemetry">Open Environment Discovery →</a></div>
+            <div id="action-empty" class="dei-action-empty" hidden="hidden"><strong>No findings match these filters.</strong><p>Reset the filters or run a fresh environment intelligence scan.</p><a class="dei-link-button dei-scan-discovery-link" href="detection_workflow#workflow-environment-panel">Open Environment Discovery →</a></div>
             <div id="action-findings" class="dei-action-findings" aria-live="polite"></div>
           </section>
         </main>

@@ -1,4 +1,4 @@
-<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,dei_detection_library_v1.js,detection_query_generator_v5.js,detection_lifecycle_v3.js,detection_workflow_v2.js,dei_detection_usability_v1.js,dei_environment_scan_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v14.js,dei_theme_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css,dei_detection_usability_v1.css,dei_theme_v1.css">
+<form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,dei_detection_standards_v1.js,dei_detection_library_v1.js,dei_environment_scan_v1.js,command_center.js,detection_query_generator_v5.js,detection_lifecycle_v3.js,detection_workflow_v2.js,dei_detection_usability_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v14.js,dei_theme_v1.js" stylesheet="command_center_v2.css,environment_intelligence.css,environment_intelligence_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_workflow_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css,dei_detection_usability_v1.css,dei_theme_v1.css">
   <label>Guided Detection Builder</label>
   <description>Build, validate, approve, enable, and monitor one detection through a single guided workspace.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
@@ -14,8 +14,19 @@
 
           <header class="dei-workflow-hero">
             <div><p class="dei-eyebrow">Guided Detection Builder</p><h1>Move one detection from idea to operation.</h1><p>Select a detection. DEI will show its lifecycle position and keep generation, validation, approval, enablement, and monitoring actions on this page.</p></div>
-            <a href="detection_catalog#lifecycle-map">View lifecycle overview →</a>
+            <a href="#workflow-stage-rail">View lifecycle overview →</a>
           </header>
+
+          <details id="workflow-environment-panel" class="dei-workflow-environment" open="open">
+            <summary><span><strong>1 · Establish environment evidence</strong><small>Run or review the telemetry scan here—no separate Discovery page is required.</small></span><b id="workflow-environment-state">Ready</b></summary>
+            <section id="dei-telemetry" class="dei-control-panel">
+              <div class="dei-control-header"><div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry discovery</h2><p>Known source types remain visible while recent evidence determines production readiness.</p></div><span id="dei-window-note" class="dei-control-note">30-day known · 7-day active</span></div>
+              <div class="dei-source-frame"><div class="dei-source-frame-head"><span>Known telemetry routes</span><small id="dei-source-summary">Active ≤7d · Stale 8d–selected window</small></div><textarea id="dei-sources" aria-label="Known telemetry routes discovered by the intelligence scan" rows="7" readonly="readonly" placeholder="Run environment analysis to discover index and sourcetype routes..."></textarea></div>
+              <div class="dei-actions"><div class="dei-scan-options"><label class="dei-toggle"><input id="dei-es-enabled" type="checkbox"/><span class="dei-toggle-track"></span><span>Enterprise Security enabled</span></label><label class="dei-toggle" title="Off by default. Enable only when Splunk internal and results indexes are intentionally part of the detection use case."><input id="dei-include-internal-indexes" type="checkbox"/><span class="dei-toggle-track"></span><span>Include internal indexes</span></label><label class="dei-window-select"><span>Discovery window</span><select id="dei-discovery-window"><option value="7">7 days</option><option value="30" selected="selected">30 days</option><option value="90">90 days</option></select></label></div><button id="dei-analyze" type="button"><span>Run intelligence scan</span><b>→</b></button></div>
+              <p id="dei-feedback" class="dei-feedback" aria-live="polite"></p>
+              <div id="recommendations" style="display:none"></div><span id="recommendation-count" style="display:none"></span>
+            </section>
+          </details>
 
           <section class="dei-workflow-selector" aria-labelledby="workflow-selector-title">
             <div><span>Detection</span><h2 id="workflow-selector-title">Choose where to continue</h2></div>
@@ -23,7 +34,7 @@
           </section>
           <div id="workflow-tutorial-status" class="dei-workflow-tutorial-status" role="status" aria-live="polite" hidden="hidden"></div>
 
-          <section id="workflow-empty" class="dei-workflow-empty"><strong>Select a detection to begin.</strong><p>Run an environment scan first if no detection recommendations are available.</p><a class="dei-link-button dei-scan-discovery-link" href="command_center#dei-telemetry">Open Environment Discovery →</a></section>
+          <section id="workflow-empty" class="dei-workflow-empty"><strong>Select a detection to begin.</strong><p>The complete detection library remains available. Run or review Environment Intelligence above when telemetry evidence needs updating.</p><a class="dei-link-button dei-scan-discovery-link" href="#workflow-environment-panel">Review environment evidence ↑</a></section>
 
           <section id="workflow-driver" class="dei-workflow-driver" hidden="hidden" aria-labelledby="workflow-detection-title">
             <div class="dei-workflow-current">
@@ -36,7 +47,7 @@
               <article class="dei-workflow-next-card">
                 <p>Do this next</p><h3 id="workflow-next-title">Review the recommendation</h3><p id="workflow-next-explanation"></p>
                 <div id="workflow-requirements" class="dei-workflow-requirements"></div>
-                <div class="dei-workflow-next-actions"><a id="workflow-primary-action" href="#detection-generator">Continue →</a><a id="workflow-secondary-action" href="detection_action_center?category=telemetry" hidden="hidden">Resolve telemetry evidence →</a></div>
+                <div class="dei-workflow-next-actions"><a id="workflow-primary-action" href="#detection-generator">Continue →</a><a id="workflow-secondary-action" href="#workflow-environment-panel" hidden="hidden">Review telemetry evidence ↑</a></div>
                 <small id="workflow-action-note">The required workspace is available below.</small>
               </article>
               <aside class="dei-workflow-help-card">
@@ -67,7 +78,7 @@
 
             <section id="detection-generator" class="dei-lifecycle-section dei-generator-section" style="display:none">
               <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Query Builder</p><h2>Reviewable platform and ES artifacts</h2><p>Review telemetry-scoped SPL, ATT&amp;CK mappings, scheduling, Enterprise Security settings, and validation evidence.</p></div><span id="generator-es-state" class="dei-lifecycle-contract">Select a telemetry-ready detection</span></div>
-              <div id="generator-empty" class="dei-generator-empty">Select a recommendation above to begin. Unsupported detections and recommendations without observed telemetry remain blocked.</div>
+              <div id="generator-empty" class="dei-generator-empty">Select a library detection above to begin. You may create a planning draft without observed telemetry; production advancement remains evidence-gated.</div>
               <div id="generator-output" class="dei-generator-output" style="display:none">
                 <div class="dei-generator-heading"><div><h3 id="generator-title">Detection draft</h3><div id="generator-badges" class="dei-generator-badges"></div></div><div class="dei-generator-actions"><button id="builder-save-draft" type="button">Save draft</button><button id="builder-reset-draft" type="button">Reset generated values</button><button id="builder-clear-spl" type="button">Clear SPL</button><button id="copy-generated-spl" type="button">Copy SPL</button><button id="copy-generated-json" type="button">Copy definition</button><button id="download-generated-json" type="button">Download JSON</button></div></div>
                 <div id="builder-feedback" class="dei-builder-feedback" role="status" aria-live="polite">Generated draft is ready for review.</div>

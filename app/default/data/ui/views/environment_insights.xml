@@ -14,7 +14,7 @@
 
           <section class="dei-environment-insights-head">
             <div><p class="dei-eyebrow">Environment Intelligence</p><h1>Understand the discovery results.</h1><p>Review readiness, coverage, telemetry domains, and snapshot evidence before moving into MITRE analysis or Guided Detection Builder.</p></div>
-            <a class="dei-link-button dei-back-to-discovery" href="command_center#dei-telemetry">← Back to telemetry discovery</a>
+            <a class="dei-link-button dei-back-to-discovery" href="detection_workflow#workflow-environment-panel">← Back to telemetry discovery</a>
           </section>
 
           <section class="dei-metrics" aria-label="Detection intelligence summary">
@@ -41,7 +41,7 @@
           <section id="dei-coverage-section" class="dei-environment-v2" aria-label="Telemetry DNA and ATT&amp;CK coverage intelligence">
             <div class="dei-env-titlebar">
               <div><p class="dei-eyebrow">Environment Intelligence</p><h2>Telemetry DNA + ATT&amp;CK Coverage</h2><p>One persistent snapshot of detection potential, telemetry-domain distribution, and ATT&amp;CK effectiveness analysis.</p></div>
-              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-clear-environment" class="dei-clear-button-v2" type="button"><span>×</span> Clear dashboard</button><a id="dei-refresh-environment" class="dei-refresh-button-v2" href="command_center#dei-telemetry"><span>↻</span> Run new scan in Discovery</a></div>
+              <div class="dei-env-title-actions"><span id="environment-snapshot-age" class="dei-snapshot-pill">No saved snapshot</span><button id="dei-clear-environment" class="dei-clear-button-v2" type="button"><span>×</span> Clear dashboard</button><a id="dei-refresh-environment" class="dei-refresh-button-v2" href="detection_workflow#workflow-environment-panel"><span>↻</span> Run new scan in Discovery</a></div>
             </div>
 
             <div class="dei-env-summary-card">

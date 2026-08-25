@@ -213,7 +213,7 @@ def test_restart_and_direct_retirement_branches_are_simulated():
 
 def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
     expected_titles = [
-        "Open Environment Discovery",
+        "Open the Detection Workspace",
         "Run current telemetry discovery",
         "Choose a reusable detection",
         "Generate a reviewable draft",

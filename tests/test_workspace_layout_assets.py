@@ -419,8 +419,7 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
     assert "field-evidence verification" in lifecycle
     assert "telemetry ready" in lifecycle
     for destination in (
-        "command_center#dei-telemetry", "environment_insights#dei-portfolio-section",
-        "environment_insights#metric-ready", "mitre_coverage#mitre-detection-list",
+            "detection_workflow#workflow-environment-panel", "detection_workflow#workflow-detection-select",
         "detection_workflow#workflow-driver", "detection_workflow#guided-builder-workspace",
         "detection_workflow#builder-validation-title",
     ):
@@ -434,10 +433,10 @@ def test_landing_assessment_uses_real_scan_and_lifecycle_evidence() -> None:
 def test_every_home_topology_step_targets_an_existing_owned_section() -> None:
     javascript = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
     routes = {
-        "discover": ("command_center", "dei-telemetry"),
-        "profile": ("environment_insights", "dei-portfolio-section"),
-        "qualify": ("environment_insights", "metric-ready"),
-        "recommend": ("mitre_coverage", "mitre-detection-list"),
+        "discover": ("detection_workflow", "workflow-environment-panel"),
+        "profile": ("detection_workflow", "workflow-environment-panel"),
+        "qualify": ("detection_workflow", "workflow-environment-panel"),
+        "recommend": ("detection_workflow", "workflow-detection-select"),
         "design": ("detection_workflow", "workflow-driver"),
         "generate": ("detection_workflow", "guided-builder-workspace"),
         "validate": ("detection_workflow", "builder-validation-title"),

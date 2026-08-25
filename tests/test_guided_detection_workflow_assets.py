@@ -78,7 +78,7 @@ def test_unsupported_recommendation_has_safe_planning_and_remediation_paths() ->
     generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     for contract in (
         "Create planning draft", "Resolve telemetry evidence", "planning draft",
-        'detection_action_center?category=telemetry&detection=', "secondaryHref",
+        'var remediationHref="#workflow-environment-panel"', "secondaryHref",
     ):
         assert contract in workflow
     for contract in (
@@ -114,7 +114,7 @@ def test_selecting_a_saved_draft_does_not_populate_spl_before_generate() -> None
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
     javascript = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
-    for destination in ("#detection-generator", "#lifecycle-action-center", "detection_action_center?category=telemetry"):
+    for destination in ("#workflow-environment-panel", "#detection-generator", "#lifecycle-action-center"):
         assert destination in javascript
     for action in (
         "Start detection draft", "Review telemetry actions", "Review SPL and validate", "Open validation handoff",
@@ -212,7 +212,8 @@ def test_action_center_is_functionally_owned_by_guided_workflow() -> None:
     assert "dei:detection-draft-generated" in generator
     assert '$(document).on("dei:artifact-inspection-requested"' in generator
     assert 'artifact = record ? $.extend(true, {}, record)' in generator
-    assert 'window.location.href="detection_catalog?detection="' in lifecycle
+    assert 'activateWorkspacePanel("all")' in lifecycle
+    assert 'dei:artifact-inspection-requested' in lifecycle
     assert 'action:"record_deployment"' in lifecycle
     assert 'id="lifecycle-external-id"' in lifecycle
     for action in (
