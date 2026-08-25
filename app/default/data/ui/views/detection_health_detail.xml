@@ -6,7 +6,7 @@
     <main id="dei-health-detail-page" class="dei-shell dei-health-detail-page">
       <section class="dei-product-bar" aria-label="DEI workspace navigation">
         <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection Health Metrics</span></div></div>
-        <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Operate</a><a class="active" href="detection_health">Health</a></nav>
+<nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a href="detection_workflow">Build</a><a href="detection_catalog">Detection Catalog</a><a class="active" href="detection_health">Health</a></nav>
       </section>
 
       <header class="dei-health-detail-hero"><div><p class="dei-eyebrow">Continuous detection assurance</p><h1>Detection lifecycle and health metrics</h1><p>Measure whether detections remain deployed, observable, efficient, analytically useful, reviewed, and supported by current evidence.</p></div><div class="dei-health-detail-actions"><a class="dei-link-button" href="detection_health">Health overview</a><button id="health-detail-refresh" type="button">Refresh metrics</button></div></header>

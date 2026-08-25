@@ -79,7 +79,7 @@ def test_detection_lifecycle_compatibility_route_is_not_duplicated_in_navigation
     assert root.find(".//view[@name='detection_workflow']") is not None
     assert root.find(".//view[@name='detection_action_center']") is None
     assert root.find(".//view[@name='detection_builder']") is None
-    assert root.find(".//collection[@label='Operate']/view[@name='detection_catalog']") is not None
+    assert root.find(".//collection[@label='Detection Catalog']/view[@name='detection_catalog']") is not None
     assert root.find(".//view[@name='detection_operations']") is None
 
 

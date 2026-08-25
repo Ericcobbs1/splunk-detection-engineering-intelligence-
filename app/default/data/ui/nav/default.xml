@@ -6,7 +6,7 @@
     <view name="mitre_heatmap" />
     <view name="detection_workflow" />
   </collection>
-  <collection label="Operate">
+  <collection label="Detection Catalog">
     <view name="detection_catalog" />
     <view name="detection_health" />
     <view name="detection_health_detail" />

@@ -49,6 +49,23 @@ def test_home_resume_activity_and_completion_guidance_are_packaged() -> None:
         ".dei-engagement-confirmation", ".dei-scan-change-summary",
     ):
         assert selector in stylesheet
+    assert '.dei-official-home>#dei-engagement-home{order:5}' in stylesheet
+
+
+def test_shared_current_detection_context_is_idempotent() -> None:
+    source = (STATIC / "dei_workspace_layout_v14.js").read_text(encoding="utf-8")
+    renderer = source[source.index("function renderWorkContext()") : source.index("function renderEngagementHome()")]
+    assert renderer.index('$("#dei-work-context").remove()') < renderer.index("var markup=")
+
+
+def test_primary_navigation_names_detection_catalog_explicitly() -> None:
+    nav = (APP / "default/data/ui/nav/default.xml").read_text(encoding="utf-8")
+    assert '<collection label="Detection Catalog">' in nav
+    for view in VIEWS.glob("*.xml"):
+        source = view.read_text(encoding="utf-8")
+        if 'href="detection_catalog"' in source and 'dei-workspace-nav' in source:
+            assert '>Detection Catalog</a>' in source, view.name
+            assert '>Operate</a>' not in source, view.name
 
 
 def test_lifecycle_records_accept_accountable_ownership_and_due_dates() -> None:

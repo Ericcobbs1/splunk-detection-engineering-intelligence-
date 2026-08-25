@@ -370,7 +370,7 @@ def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
     assert "function selectedRecommendationOpportunity()" in adapter
     assert 'if(index>=4&&!walkthroughOwnsSelectedDetection()) return false' in adapter
     assert 'readStep()!==3' in adapter
-    assert 'Tutorial: select a detection labeled Recommendation.' in adapter
+    assert 'Select a detection labeled Recommendation to continue the tutorial.' in adapter
     assert 'if(index===3 && $("#workflow-detection-select").val())' not in adapter
     assert 'if(index===4 && $("#detection-generator")' not in adapter
     assert 'status.stage==="discover"&&guideActive&&page()==="environment"' in adapter
@@ -412,7 +412,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v12"' in adapter
+    assert 'window.DEIGuideAssetVersion="v13"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter
@@ -423,6 +423,17 @@ def test_guide_asset_version_bypasses_splunk_static_cache():
         if "dei_guide_adapter_" in source:
             assert "dei_guide_adapter_v8.js" in source, view.name
             assert "dei_guide_adapter_v7.js" not in source, view.name
+
+
+def test_tutorial_waits_for_async_recommendations_without_corrupting_global_status():
+    adapter = _source("dei_guide_adapter_v8.js")
+    workflow = _source("detection_workflow_v2.js")
+    view = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
+    assert view.find(".//*[@id='workflow-tutorial-status']") is not None
+    assert '$(document).on("dei:workflow-options-updated"' in adapter
+    assert 'Loading Recommendation-stage detections' in adapter
+    assert '$("#workflow-data-status").removeClass("healthy").addClass("unhealthy")' not in adapter
+    assert 'trigger("dei:workflow-options-updated"' in workflow
 
 
 def test_completion_step_uses_finish_instead_of_show_me():
@@ -487,7 +498,8 @@ def test_tutorial_back_navigation_and_selection_scope_survive_page_changes():
     assert 'var tutorialSelection=index===2&&reviewCeiling<0' in adapter
     assert 'option.prop("disabled",tutorialSelection&&!!option.val()&&!recommendation)' in adapter
     assert 'if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change")' in adapter
-    assert 'Tutorial blocked: this scan has no unused Recommendation-stage detections.' in adapter
+    assert 'No Recommendation-stage detection is currently available.' in adapter
+    assert 'Loading Recommendation-stage detections' in adapter
     assert 'if(!selectedRecommendationOpportunity()) { restoreGuide(true);' in adapter
 
 
