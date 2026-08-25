@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v16";
+window.DEIGuideAssetVersion="v17";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -44,6 +44,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var dragState=null;
   var reviewCeiling=-1;
   var reviewPollTimer=null;
+  var targetWaitStep=-1;
+  var targetWaitStarted=0;
+  var EVENT_TRANSITIONS={draft_generated:{3:4},validation_passed:{4:5,18:19},review_note:{5:6,7:8,19:20,21:22},submit_review:{6:7,20:21},approve_review:{8:9,22:23},deployment_reference:{9:10,23:24},record_deployment:{10:11,24:25},monitoring_metrics:{12:13},monitoring_note:{13:14},record_health:{14:15},tuning_note:{15:16},start_tuning:{16:17},spl_changed:{17:18}};
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
@@ -237,7 +240,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var status=$(".dei-next-guide-status span");
     if (!target.length) {
       if(reconcileCompletedStep(readStep())) return false;
-      status.text("Updating to the next available action…");
+      status.text("Required control unavailable. Retry this step, use Back, or close the tutorial without affecting manual work.");
       scheduleRender(80);
       return false;
     }
@@ -322,7 +325,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(index===17&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
     if(reviewCeiling<0&&reconcileCompletedStep(index)) return;
     var target=targetFor(step);
-    if (!target.length&&!step.completion&&!step.operationsChoice&&reviewCeiling<0) { scheduleRender(180); return; }
+    if (!target.length&&!step.completion&&!step.operationsChoice&&reviewCeiling<0) {
+      if(targetWaitStep!==index){targetWaitStep=index;targetWaitStarted=Date.now();}
+      if(Date.now()-targetWaitStarted<1800){scheduleRender(180);return;}
+      step=$.extend({},step,{targetUnavailable:true,instruction:step.instruction+" The required control is not currently available. Use Back to verify the prior action, or select Retry after the workspace finishes loading.",actionLabel:"Retry current step"});
+    } else { targetWaitStep=-1;targetWaitStarted=0; }
     var stepChanged=index!==renderedStep;
     var targetChanged=(target[0]||null)!==activeTarget;
     if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); }
@@ -365,6 +372,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     goToStep(Math.min(index+1,steps.length-1));
   }
   function advance() { var index=readStep(); if (index>=steps.length-1) { close(true); return; } goToStep(index+1); }
+  function advanceFor(eventName,payload) {
+    var index=readStep(),next=EVENT_TRANSITIONS[eventName]&&EVENT_TRANSITIONS[eventName][index];
+    if(next===undefined) return false;
+    if((eventName==="validation_passed")&&(!payload||payload.status!=="passed")) return false;
+    if(eventName==="record_deployment"&&(!payload||payload.state!=="production")) return false;
+    goToStep(next); return true;
+  }
   function completeDraft(id,record) {
     if(!id||!record||page()!=="builder"||readStep()!==3) return false;
     var generatedKey=normalizeDetectionKey(id),selectedKey=selectedWorkflowDetection();
@@ -372,7 +386,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     selectedDetection=generatedKey;
     window.sessionStorage.setItem(sessionKey(DETECTION_KEY),selectedDetection);
     if(readStep()<=3){
-      writeStep(4);
+      writeStep(EVENT_TRANSITIONS.draft_generated[3]);
       renderedStep=-1;
       window.clearTimeout(renderTimer);
       renderTimer=window.setTimeout(render,0);
@@ -411,23 +425,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(guideActive()&&page()==="builder"&&readStep()===3) scheduleRender(0);
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
-  $(document).on("dei:detection-validation-complete", function(_event,validation){ var step=readStep(); if((step===4||step===18)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance(); });
-  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(); if(walkthroughOwnsSelectedDetection()&&(step===5||step===7||step===13||step===15||step===19||step===21)&&String($(this).val()||"").trim()) advance(); });
+  $(document).on("dei:detection-validation-complete", function(_event,validation){ if(walkthroughOwnsSelectedDetection()) advanceFor("validation_passed",validation); });
+  $(document).on("change", "#lifecycle-action-comment", function(){ var step=readStep(),eventName={5:"review_note",7:"review_note",13:"monitoring_note",15:"tuning_note",19:"review_note",21:"review_note"}[step]; if(walkthroughOwnsSelectedDetection()&&eventName&&String($(this).val()||"").trim()) advanceFor(eventName); });
   $(document).on("change", "#lifecycle-review-period,#lifecycle-health,#lifecycle-result-volume,#lifecycle-runtime,#lifecycle-true-positives,#lifecycle-false-positives", function(){
     if(readStep()!==12||!walkthroughOwnsSelectedDetection()) return;
-    if(monitoringMetricsReady()) advance();
+    if(monitoringMetricsReady()) advanceFor("monitoring_metrics");
   });
-  $(document).on("input", "#generator-spl", function(){ if(readStep()===17&&walkthroughOwnsSelectedDetection()&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) goToStep(18); });
+  $(document).on("input", "#generator-spl", function(){ if(walkthroughOwnsSelectedDetection()&&String($(this).val()||"").trim()!==String($(this).attr("data-dei-guide-original")||"").trim()) advanceFor("spl_changed"); });
   $(document).on("dei:lifecycle-action-complete", function(_event,action,saved){
     if(readStep()>=4&&(!saved||recordKey(saved)!==walkthroughDetection())) return;
-    if(readStep()===6&&action==="submit_review") goToStep(7);
-    if(readStep()===8&&action==="approve_review") goToStep(9);
-    if(readStep()===10&&action==="record_deployment"&&saved.state==="production") goToStep(11);
-    if(readStep()===14&&action==="record_health") goToStep(15);
-    if(readStep()===16&&action==="start_tuning") goToStep(17);
-    if(readStep()===20&&action==="submit_review") goToStep(21);
-    if(readStep()===22&&action==="approve_review") goToStep(23);
-    if(readStep()===24&&action==="record_deployment"&&saved.state==="production") goToStep(25);
+    if(action==="submit_review") advanceFor("submit_review",saved);
+    if(action==="approve_review") advanceFor("approve_review",saved);
+    if(action==="record_deployment") advanceFor("record_deployment",saved);
+    if(action==="record_health") advanceFor("record_health",saved);
+    if(action==="start_tuning") advanceFor("start_tuning",saved);
     if(action==="return_draft"&&readStep()>=5&&readStep()<=8) goToStep(4);
     if(action==="return_draft"&&readStep()>=19&&readStep()<=22) goToStep(17);
     if(action==="restart_recommendation"&&readStep()>=4&&readStep()<=22) { resetWalkthroughDetection(); goToStep(2); }
@@ -438,7 +449,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(reviewCeiling<0&&(index===7||index===8||index===21||index===22)&&reconcileCompletedStep(index)) return;
     if(reviewPollTimer) scheduleRender(0);
   });
-  $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&(readStep()===9||readStep()===23)&&String($(this).val()||"").trim()) goToStep(readStep()+1); });
+  $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&String($(this).val()||"").trim()) advanceFor("deployment_reference"); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
   window.setTimeout(function(){ if(guideActive()) render(); },250);

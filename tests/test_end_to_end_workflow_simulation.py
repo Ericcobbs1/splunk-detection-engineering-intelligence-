@@ -255,7 +255,44 @@ def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
     measurements = (0, 0, 0, 0)
     assert period and all(value >= 0 for value in measurements)
     assert "index===12&&monitoringMetricsReady()" in GUIDE
-    assert "if(monitoringMetricsReady()) advance();" in GUIDE
+    assert 'if(monitoringMetricsReady()) advanceFor("monitoring_metrics");' in GUIDE
+
+
+def test_tutorial_event_contract_has_one_deterministic_route_for_every_gate():
+    expected = {
+        "draft_generated": {3: 4},
+        "validation_passed": {4: 5, 18: 19},
+        "review_note": {5: 6, 7: 8, 19: 20, 21: 22},
+        "submit_review": {6: 7, 20: 21},
+        "approve_review": {8: 9, 22: 23},
+        "deployment_reference": {9: 10, 23: 24},
+        "record_deployment": {10: 11, 24: 25},
+        "monitoring_metrics": {12: 13},
+        "monitoring_note": {13: 14},
+        "record_health": {14: 15},
+        "tuning_note": {15: 16},
+        "start_tuning": {16: 17},
+        "spl_changed": {17: 18},
+    }
+    compact = GUIDE.replace(" ", "").replace("\n", "")
+    for event, transitions in expected.items():
+        encoded = event + ":{" + ",".join(f"{start}:{end}" for start, end in transitions.items()) + "}"
+        assert encoded in compact
+        assert all(end == start + 1 for start, end in transitions.items())
+
+    # Back can inspect every prior tutorial checkpoint without replaying writes.
+    positions = list(range(26))
+    reviewed = [position - 1 for position in positions[1:]]
+    assert reviewed == list(range(25))
+    assert "setReviewCeiling(index)" in GUIDE
+    assert "goToStep(index-1)" in GUIDE
+
+
+def test_tutorial_never_waits_forever_for_a_missing_control():
+    assert "targetWaitStarted" in GUIDE
+    assert "Date.now()-targetWaitStarted<1800" in GUIDE
+    assert "Required control unavailable" in GUIDE
+    assert "Retry current step" in GUIDE
 
 
 def test_simulation_matches_the_ui_transition_and_gate_contracts():

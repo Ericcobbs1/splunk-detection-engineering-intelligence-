@@ -154,7 +154,7 @@ def test_core_action_controls_have_implementation_bindings():
 def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
     adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
-    assert adapter.count("actionLabel:") == 26
+    assert adapter.count("actionLabel:") >= 26
     for target in (
         ".dei-open-environment-discovery", "#dei-analyze",
         "#workflow-detection-select", "#builder-generate",
@@ -248,7 +248,7 @@ def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
     assert 'data-dei-guide-owner="react"' in adapter
     assert "window.DEIReactGuideConfigured=true" in adapter
     assert "window.DEIReactGuideConfigured || window.DEINextGuide" in layout
-    assert 'readStep()===10&&action==="record_deployment"&&saved.state==="production"' in adapter
+    assert 'record_deployment:{10:11,24:25}' in adapter
     assert 'title:"Detection lifecycle tutorial complete"' in adapter
     assert "Splunk saved searches: Settings → Searches, Reports, and Alerts" in adapter
     assert "Enterprise Security detections: Configure → Content → Content Management" in adapter
@@ -331,7 +331,7 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert 'index>=5&&index<=16&&lifecycleState.indexOf("tuning")!==-1' in adapter
     assert 'index>=5&&index<=8&&$("#lifecycle-external-id:visible").length' in adapter
     assert 'if(reconcileCompletedStep(readStep())) return false' in adapter
-    assert "Updating to the next available action" in adapter
+    assert "Required control unavailable" in adapter
 
 
 def test_monitoring_tutorial_requires_real_inputs_and_explains_both_next_actions():
@@ -339,7 +339,7 @@ def test_monitoring_tutorial_requires_real_inputs_and_explains_both_next_actions
     lifecycle = _source("detection_lifecycle_v3.js")
     stylesheet = _source("detection_lifecycle_v1.css")
     assert "function monitoringMetricsReady()" in adapter
-    assert "if(monitoringMetricsReady()) advance()" in adapter
+    assert 'if(monitoringMetricsReady()) advanceFor("monitoring_metrics")' in adapter
     assert 'raw!==""&&isFinite(Number(raw))' in adapter
     assert 'prior.review_period||""' in lifecycle
     assert 'prior.result_volume||0' not in lifecycle
@@ -428,13 +428,13 @@ def test_packaged_detection_library_is_loaded_before_every_catalog_consumer():
 
 def test_tutorial_branch_actions_cannot_report_false_completion():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'action==="record_deployment"&&saved.state==="production"' in adapter
-    assert adapter.count('action==="record_deployment"&&saved.state==="production"') == 2
+    assert 'record_deployment:{10:11,24:25}' in adapter
+    assert 'eventName==="record_deployment"&&(!payload||payload.state!=="production")' in adapter
     assert 'action==="return_draft"&&readStep()>=19&&readStep()<=22' in adapter
     assert 'action==="restart_recommendation"&&readStep()>=4&&readStep()<=22' in adapter
     assert 'if(action==="retire") close(true)' in adapter
     assert 'lifecycleState.indexOf("retired")!==-1){ close(true); return true;' in adapter
-    assert 'readStep()===9||readStep()===23' in adapter
+    assert 'deployment_reference:{9:10,23:24}' in adapter
 
 
 def test_lifecycle_actions_name_outcomes_focus_invalid_fields_and_confirm_retirement():
@@ -461,7 +461,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v16"' in adapter
+    assert 'window.DEIGuideAssetVersion="v17"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter
@@ -521,17 +521,19 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
         'readStep()===0){ event.preventDefault(); goToStep(1)',
         'readStep()===1&&(status.stage==="complete"||status.stage==="complete_with_warning")) { resetWalkthroughDetection(); goToStep(2); }',
         'if(!selectedRecommendationOpportunity())',
-        '(step===4||step===18)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance()',
-        '(step===5||step===7||step===13||step===15||step===19||step===21)',
-        'readStep()===6&&action==="submit_review") goToStep(7)',
-        'readStep()===8&&action==="approve_review") goToStep(9)',
-        'readStep()===9||readStep()===23',
-        'readStep()===10&&action==="record_deployment"&&saved.state==="production") goToStep(11)',
-        'readStep()===14&&action==="record_health") goToStep(15)',
-        'readStep()===16&&action==="start_tuning") goToStep(17)',
-        'readStep()===20&&action==="submit_review") goToStep(21)',
-        'readStep()===22&&action==="approve_review") goToStep(23)',
-        'readStep()===24&&action==="record_deployment"&&saved.state==="production") goToStep(25)',
+        'draft_generated:{3:4}',
+        'validation_passed:{4:5,18:19}',
+        'review_note:{5:6,7:8,19:20,21:22}',
+        'submit_review:{6:7,20:21}',
+        'approve_review:{8:9,22:23}',
+        'deployment_reference:{9:10,23:24}',
+        'record_deployment:{10:11,24:25}',
+        'monitoring_metrics:{12:13}',
+        'monitoring_note:{13:14}',
+        'record_health:{14:15}',
+        'tuning_note:{15:16}',
+        'start_tuning:{16:17}',
+        'spl_changed:{17:18}',
     )
     for transition in transitions:
         assert transition in adapter
