@@ -2,7 +2,9 @@
   "name": "splunk-detection-engineering-intelligence-ui",
   "private": true,
   "scripts": {
-    "build:guide": "node ui/build-guide.mjs"
+    "build:guide": "node ui/build-guide.mjs",
+    "test:ui": "playwright test --config playwright.config.mjs",
+    "test:release": "bash tools/run_ui_release_gate.sh"
   },
   "dependencies": {
     "@splunk/react-ui": "5.13.0",
@@ -12,6 +14,7 @@
     "styled-components": "5.3.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/react": "18.3.24",
     "@types/react-dom": "18.3.7",
     "esbuild": "0.25.9"
