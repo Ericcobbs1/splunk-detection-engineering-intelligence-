@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v15";
+window.DEIGuideAssetVersion="v16";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -47,7 +47,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
-    {page:"builder",target:"#workflow-detection-select",title:"Choose a new detection opportunity",instruction:"Select an item labeled Recommendation. Existing Draft, Testing, Production, Monitoring, Tuning, and Retired records are retained for normal work but cannot satisfy a new tutorial run.",actionLabel:"Select a Recommendation"},
+    {page:"builder",target:"#workflow-detection-select",title:"Choose a reusable detection",instruction:"Select any definition under Detection Library to start a new governed use case. Existing lifecycle records remain available separately and never remove a definition from the library.",actionLabel:"Select a library detection"},
     {page:"builder",target:"#builder-generate",tab:"#workflow-tab-artifact",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
     {page:"builder",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document the validation handoff",instruction:"Summarize the validated analytic intent, expected analyst behavior, evidence, and known limitations for peer review.",actionLabel:"Enter the review submission note"},
@@ -215,6 +215,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var current=targetFor(step);
       if(!current.length||current[0]!==target[0]) return;
       updateMarker(current);
+      position(current);
       var focus=focusFor(step,current);
       focus.attr("tabindex",focus.attr("tabindex")||"-1").trigger("focus");
     });
@@ -267,17 +268,18 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function position(target) {
     var dialog=$(".dei-onboarding-dialog"); if (!dialog.length||dialog.hasClass("dei-guide-positioned")) return;
-    if(!target.length) { dialog.attr("data-placement","right").css({left:"auto",right:"16px",top:"16px",bottom:"auto"}); return; }
-    var rect=target[0].getBoundingClientRect(),gap=22,pad=12,width=dialog.outerWidth(),height=dialog.outerHeight();
-    var spaces={left:rect.left-pad,right:window.innerWidth-rect.right-pad,above:rect.top-pad,below:window.innerHeight-rect.bottom-pad};
-    var placement=spaces.right>=width?"right":spaces.left>=width?"left":spaces.below>=height?"below":spaces.above>=height?"above":Object.keys(spaces).sort(function(a,b){return spaces[b]-spaces[a];})[0];
-    var left,top;
-    if(placement==="right"){left=rect.right+gap;top=rect.top+(rect.height-height)/2;}
-    else if(placement==="left"){left=rect.left-width-gap;top=rect.top+(rect.height-height)/2;}
-    else if(placement==="below"){left=rect.left+(rect.width-width)/2;top=rect.bottom+gap;}
-    else{left=rect.left+(rect.width-width)/2;top=rect.top-height-gap;}
-    left=Math.max(pad,Math.min(window.innerWidth-width-pad,left)); top=Math.max(pad,Math.min(window.innerHeight-height-pad,top));
-    dialog.attr("data-placement",placement).css({left:left,right:"auto",top:top,bottom:"auto"});
+    var pad=14,width=dialog.outerWidth(),height=dialog.outerHeight();
+    if(!target.length) { dialog.attr("data-placement","right").css({left:window.innerWidth-width-pad,right:"auto",top:pad,bottom:"auto"}); return; }
+    var rect=target[0].getBoundingClientRect(),targetX=rect.left+rect.width/2,targetY=rect.top+rect.height/2;
+    var candidates=[
+      {name:"top-left",left:pad,top:pad},{name:"top-right",left:window.innerWidth-width-pad,top:pad},
+      {name:"bottom-left",left:pad,top:window.innerHeight-height-pad},{name:"bottom-right",left:window.innerWidth-width-pad,top:window.innerHeight-height-pad}
+    ];
+    function overlaps(candidate){return candidate.left<rect.right+18&&candidate.left+width>rect.left-18&&candidate.top<rect.bottom+18&&candidate.top+height>rect.top-18;}
+    candidates.forEach(function(candidate){var centerX=candidate.left+width/2,centerY=candidate.top+height/2;candidate.score=Math.pow(centerX-targetX,2)+Math.pow(centerY-targetY,2)-(overlaps(candidate)?1e12:0);});
+    candidates.sort(function(a,b){return b.score-a.score;}); var chosen=candidates[0];
+    var placement=chosen.left+width/2<targetX?"left":"right";
+    dialog.attr("data-placement",placement).css({left:Math.max(pad,chosen.left),right:"auto",top:Math.max(pad,chosen.top),bottom:"auto"});
   }
   function savedGuidePosition() {
     try { return JSON.parse(window.sessionStorage.getItem("dei.guide.position")||"null"); } catch(error) { return null; }
@@ -323,7 +325,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!target.length&&!step.completion&&!step.operationsChoice&&reviewCeiling<0) { scheduleRender(180); return; }
     var stepChanged=index!==renderedStep;
     var targetChanged=(target[0]||null)!==activeTarget;
-    if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); applySavedGuidePosition(); }
+    if (!$("#"+OVERLAY_ID).length) { $("body").append('<div id="'+OVERLAY_ID+'" class="dei-onboarding-overlay" data-dei-guide-owner="react"><div class="dei-onboarding-dialog dei-next-guide-dialog"><div id="dei-onboarding-react-root"></div></div></div>').addClass("dei-onboarding-open"); }
     observeTargets();
     if(targetChanged&&target.length){
       $(".dei-onboarding-target").removeClass("dei-onboarding-target").removeAttr("aria-describedby");
@@ -339,7 +341,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       renderingGuide=true;
       window.DEIInteractiveGuide.render({step:step,stepNumber:index+1,totalSteps:steps.length,reviewMode:reviewCeiling>=0,onBack:function(){ guideBack(index);},onForward:function(){ guideForward(index);},onClose:function(){close(true);},onFocusTarget:function(){ focusTarget(true); },onContinueOperations:function(){ goToStep(12); },onFinishCore:function(){ close(true); }});
       renderedStep=index;
-      window.setTimeout(function(){ renderingGuide=false; },0);
+      window.setTimeout(function(){ renderingGuide=false; position(targetFor(activeStep(readStep()))); },0);
     }
     if(stepChanged&&!step.completion&&!step.operationsChoice) focusTarget(false);
   }

@@ -215,7 +215,7 @@ def test_tutorial_all_steps_targets_back_next_and_default_monitoring_state():
     expected_titles = [
         "Open Environment Discovery",
         "Run current telemetry discovery",
-        "Choose a new detection opportunity",
+        "Choose a reusable detection",
         "Generate a reviewable draft",
         "Validate the detection",
         "Document the validation handoff",

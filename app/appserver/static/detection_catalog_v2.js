@@ -33,6 +33,22 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function mitre(record) { return (record.mitre_attack||[]).map(function (item) { return typeof item==="string"?item:(item.id||item.technique_id||""); }).filter(Boolean).join(" · "); }
   function health(record) { return record.monitoring && record.monitoring.health ? label(record.monitoring.health) : "Not measured"; }
+  function safeJson(value,fallback) { try { return JSON.parse(value||"null")||fallback; } catch(error) { return fallback; } }
+  function capabilityPayload(response) {
+    var value=response,depth=0;
+    while(value!=null&&depth<10) {
+      if(typeof value==="string") { value=safeJson(value,null); depth+=1; continue; }
+      if(Array.isArray(value)) { value=value.length===1?value[0]:null; depth+=1; continue; }
+      if(!value||typeof value!=="object") break;
+      if(Array.isArray(value.detections)) return value;
+      if(Array.isArray(value.entry)) { value=value.entry.length?value.entry[0]:null; depth+=1; continue; }
+      if(value.content!==undefined) { value=value.content; depth+=1; continue; }
+      if(value.payload!==undefined) { value=value.payload; depth+=1; continue; }
+      if(value.data!==undefined) { value=value.data; depth+=1; continue; }
+      break;
+    }
+    return {detections:[]};
+  }
   function renderLibrary() {
     var query=String($("#catalog-library-search").val()||"").toLowerCase();
     var visible=library.filter(function(item){return !query||[item.name,item.detection_id,item.knowledge_pack,item.capability,(item.required_sources||[]).join(" "),(item.mitre_techniques||[]).join(" ")].join(" ").toLowerCase().indexOf(query)!==-1;});
@@ -41,7 +57,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function loadLibrary() {
     var url=Splunk.util.make_url("splunkd","__raw","servicesNS","-","splunk_detection_engineering_intelligence","dei","v1","capabilities");
-    $.ajax({url:url,method:"GET",dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).done(function(response){var payload=response&&typeof response.payload==="string"?JSON.parse(response.payload):response; library=Array.isArray(payload&&payload.detections)?payload.detections:[]; renderLibrary();}).fail(function(){ $("#catalog-library-summary").text("Detection library unavailable."); $("#catalog-library-table").html('<tr><td colspan="5">Unable to load installed detection definitions.</td></tr>'); });
+    $.ajax({url:url,method:"GET",data:{output_mode:"json"},dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).done(function(response){var payload=capabilityPayload(response); library=payload.detections||[]; if(!library.length){$("#catalog-library-summary").text("Detection library returned no definitions.");$("#catalog-library-table").html('<tr><td colspan="5">No packaged detection definitions were returned. Reload or contact the app administrator.</td></tr>');return;} renderLibrary();}).fail(function(){ $("#catalog-library-summary").text("Detection library unavailable."); $("#catalog-library-table").html('<tr><td colspan="5">Unable to load installed detection definitions.</td></tr>'); });
   }
 
   function filteredRecords() {

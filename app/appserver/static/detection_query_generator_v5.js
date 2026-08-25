@@ -22,11 +22,28 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return Splunk.util.make_url("splunkd", "__raw", "servicesNS", "-", "splunk_detection_engineering_intelligence", "dei", "v1", "capabilities");
   }
 
+  function capabilityPayload(response) {
+    var value=response,depth=0;
+    while(value!=null&&depth<10) {
+      if(typeof value==="string") { value=safeJson(value,null); depth+=1; continue; }
+      if(Array.isArray(value)) { value=value.length===1?value[0]:null; depth+=1; continue; }
+      if(!value||typeof value!=="object") break;
+      if(Array.isArray(value.detections)) return value;
+      if(Array.isArray(value.entry)) { value=value.entry.length?value.entry[0]:null; depth+=1; continue; }
+      if(value.content!==undefined) { value=value.content; depth+=1; continue; }
+      if(value.payload!==undefined) { value=value.payload; depth+=1; continue; }
+      if(value.data!==undefined) { value=value.data; depth+=1; continue; }
+      break;
+    }
+    return {detections:[]};
+  }
+
   function loadDetectionLibrary() {
-    return $.ajax({url:capabilitiesEndpoint(),method:"GET",dataType:"json",timeout:30000,
+    return $.ajax({url:capabilitiesEndpoint(),method:"GET",data:{output_mode:"json"},dataType:"json",timeout:30000,
       headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).then(function(response) {
-        var payload=response&&typeof response.payload==="string"?safeJson(response.payload,{}):response;
+        var payload=capabilityPayload(response);
         detectionLibrary=Array.isArray(payload&&payload.detections)?payload.detections:[];
+        if(!detectionLibrary.length) { return $.Deferred().reject("Detection library returned no definitions").promise(); }
         window.DEIDetectionLibrary=detectionLibrary.slice();
         return detectionLibrary;
       });

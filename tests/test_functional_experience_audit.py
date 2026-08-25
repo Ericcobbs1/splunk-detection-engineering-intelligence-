@@ -92,7 +92,9 @@ def test_tour_dialog_stays_above_spotlight_on_every_tour_page():
     assert '.dei-onboarding-dialog[data-placement="right"]' in tour_styles
     assert '.dei-onboarding-dialog[data-placement="left"]' in tour_styles
     assert '.dei-onboarding-dialog::before{content:""' in tour_styles
-    assert ".dei-next-guide{padding:18px" in tour_styles
+    assert ".dei-next-guide{padding:14px" in tour_styles
+    assert "background:#06121e" in tour_styles
+    assert "opacity:1!important" in tour_styles
     assert ".dei-next-guide-action" in tour_styles
     for view in (
         "dei_home.xml", "command_center.xml", "environment_insights.xml",
@@ -232,7 +234,7 @@ def test_guide_is_compact_collapsible_and_pointer_draggable():
     assert 'window.sessionStorage.setItem("dei.guide.position"' in adapter
     assert "dei-guide-positioned" in stylesheet
     assert ".dei-next-guide.is-collapsed" in stylesheet
-    assert "width:min(380px" in stylesheet
+    assert "width:min(320px" in stylesheet
 
 
 def test_react_guide_survives_dynamic_controls_and_finishes_in_workspace():
@@ -388,11 +390,10 @@ def test_tutorial_is_manual_launch_only_and_does_not_hijack_normal_work():
 
 def test_tutorial_placement_avoids_covering_wide_targets():
     adapter = _source("dei_guide_adapter_v8.js")
-    stylesheet = _source("dei_guided_tour_v6.css")
-    assert "var spaces={left:rect.left-pad,right:window.innerWidth-rect.right-pad,above:rect.top-pad,below:window.innerHeight-rect.bottom-pad}" in adapter
-    assert 'spaces.below>=height?"below":spaces.above>=height?"above"' in adapter
-    assert 'data-placement="above"' in stylesheet
-    assert 'data-placement="below"' in stylesheet
+    assert "function overlaps(candidate)" in adapter
+    assert "candidate.score=" in adapter
+    assert "-(overlaps(candidate)?1e12:0)" in adapter
+    assert "applySavedGuidePosition();" not in adapter
 
 
 def test_builder_renders_scan_choices_before_durable_records_finish_loading():
@@ -442,7 +443,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v15"' in adapter
+    assert 'window.DEIGuideAssetVersion="v16"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter
