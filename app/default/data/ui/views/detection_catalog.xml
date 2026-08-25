@@ -1,6 +1,6 @@
 <form version="1.1" theme="dark" script="dei_lifecycle_store_v1.js,detection_lifecycle_v3.js,detection_catalog_v2.js,dei_detection_usability_v1.js,dei_environment_scan_v1.js,dei_guide_adapter_v8.js,dei_workspace_layout_v14.js,dei_theme_v1.js" stylesheet="command_center_v2.css,dei_visual_polish_v1.css,detection_lifecycle_v1.css,dei_workspace_layout_v1.css,detection_catalog_v1.css,dei_guided_tour_v6.css,dei_responsive_v1.css,dei_design_system_v2.css,dei_detection_usability_v1.css,detection_catalog_state_v1.css,dei_theme_v1.css">
   <label>Detection Catalog</label>
-  <description>Approved and operational detections available for controlled enablement and monitoring.</description>
+  <description>Complete governed detection portfolio from recommendation through retirement.</description>
   <fieldset submitButton="false" autoRun="false"></fieldset>
   <row>
     <panel>
@@ -33,12 +33,12 @@
           </details>
 
           <section class="dei-lifecycle-hero dei-catalog-hero">
-            <div><p class="dei-eyebrow">Operational Detection Catalog</p><h1>Enable and operate approved detections.</h1><p>Peer-approved detections leave the engineering queue and enter this governed catalog. Record the exact platform object before enablement, then manage monitoring, tuning, disablement, or retirement.</p></div>
-            <div class="dei-lifecycle-hero-state"><span>Cataloged detections</span><strong id="catalog-total">0</strong><small>approved and operational</small></div>
+            <div><p class="dei-eyebrow">Detection Catalog</p><h1>View every governed detection use case.</h1><p>Track the complete portfolio from Recommendation through Draft, Testing, Peer Review, deployment, Monitoring, and Retirement. Operational controls remain available only after the required approval gates.</p></div>
+            <div class="dei-lifecycle-hero-state"><span>Detection use cases</span><strong id="catalog-total">0</strong><small>across all lifecycle stages</small></div>
           </section>
 
           <section class="dei-catalog-summary" aria-label="Catalog status summary">
-            <button type="button" data-catalog-filter="all" class="active"><span>All cataloged</span><strong id="catalog-count-all">0</strong></button>
+            <button type="button" data-catalog-filter="all" class="active"><span>All use cases</span><strong id="catalog-count-all">0</strong></button>
             <button type="button" data-catalog-filter="ready"><span>Ready to deploy</span><strong id="catalog-count-ready">0</strong></button>
             <button type="button" data-catalog-filter="enabled" data-deployment-state="enabled"><span>Enabled</span><strong id="catalog-count-enabled">0</strong><small>Active in production</small></button>
             <button type="button" data-catalog-filter="disabled" data-deployment-state="disabled"><span>Disabled</span><strong id="catalog-count-disabled">0</strong><small>Not actively running</small></button>
@@ -47,8 +47,8 @@
           </section>
 
           <details class="dei-workspace-disclosure dei-catalog-troubleshooting"><summary>Find and troubleshoot the deployed search in Splunk</summary><div class="dei-disclosure-body"><div class="dei-troubleshooting-grid"><article><strong>Splunk Platform saved search or alert</strong><p>Open <strong>Settings → Searches, Reports, and Alerts</strong>. Filter by the exact object ID, app context, owner, and deployment environment recorded below.</p></article><article><strong>Enterprise Security correlation search</strong><p>Open <strong>ES → Configure → Content → Content Management</strong>, filter Type to Correlation Search, and search the exact deployed name.</p></article><article><strong>Configuration-level troubleshooting</strong><p>Correlation searches are represented as saved-search stanzas in <code>savedsearches.conf</code>. Confirm the effective app/local configuration and permissions.</p></article><article><strong>Execution troubleshooting</strong><p>Review Search Job Inspector, scheduler activity, runtime, result count, suppression, finding/notable actions, and risk events.</p></article></div></div></details><section class="dei-lifecycle-section dei-catalog-workspace">
-            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Portfolio</p><h2>Approved detection catalog</h2><p id="catalog-results-summary" aria-live="polite">Loading lifecycle records…</p></div><button id="catalog-refresh" type="button">Refresh catalog</button></div>
-            <div class="dei-catalog-filters"><input id="catalog-search" aria-label="Search the detection catalog" type="search" placeholder="Search detection, MITRE ID, sourcetype, or object ID…"/><select id="catalog-status-filter" aria-label="Filter the detection catalog by state"><option value="all">All catalog states</option><option value="ready">Ready to deploy</option><option value="development">Development</option><option value="staging">Staging</option><option value="enabled">Production enabled</option><option value="disabled">Disabled</option><option value="monitoring">Monitoring</option><option value="retired">Retired</option></select><button id="catalog-reset-filters" type="button">Reset filters</button></div>
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Detection Portfolio</p><h2>Complete detection catalog</h2><p id="catalog-results-summary" aria-live="polite">Loading lifecycle records…</p></div><button id="catalog-refresh" type="button">Refresh catalog</button></div>
+            <div class="dei-catalog-filters"><input id="catalog-search" aria-label="Search the detection catalog" type="search" placeholder="Search detection, MITRE ID, sourcetype, or object ID…"/><select id="catalog-status-filter" aria-label="Filter the detection catalog by state"><option value="all">All lifecycle states</option><option value="recommendation">Recommendation</option><option value="draft">Draft</option><option value="testing">Testing</option><option value="peer_review">Peer review</option><option value="ready">Ready to deploy</option><option value="development">Development</option><option value="staging">Staging</option><option value="enabled">Production enabled</option><option value="disabled">Disabled</option><option value="monitoring">Monitoring</option><option value="retired">Retired</option></select><button id="catalog-reset-filters" type="button">Reset filters</button></div>
             <div class="dei-lifecycle-table-wrap"><table class="dei-lifecycle-table"><thead><tr><th>Detection</th><th>MITRE ATT&amp;CK</th><th>Lifecycle</th><th>Catalog status</th><th>Deployment object</th><th>Health</th><th>Action</th></tr></thead><tbody id="catalog-table"><tr><td colspan="7">Loading detection catalog…</td></tr></tbody></table></div>
           </section>
 

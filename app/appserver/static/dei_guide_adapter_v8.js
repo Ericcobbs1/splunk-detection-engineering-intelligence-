@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v13";
+window.DEIGuideAssetVersion="v14";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -29,6 +29,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   var STEP_KEY="dei.nextGuide.step";
   var SEEN_KEY="dei.nextGuide.seen";
+  var ACTIVE_KEY="dei.nextGuide.active";
   var DETECTION_KEY="dei.nextGuide.detection";
   var REVIEW_KEY="dei.nextGuide.reviewCeiling";
   var GUIDE_STATE_VERSION="v10";
@@ -71,6 +72,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"builder",phase:"Operate and improve",target:'[data-action="record_deployment"]',tab:"#workflow-tab-change-control",title:"Return the tuned detection to Production",instruction:"Record the updated deployment to close the tuning loop and return this version to governed Production.",actionLabel:"Select Record deployment and enter Production"},
     {page:"builder",phase:"Lifecycle complete",target:"#lifecycle-action-center",title:"Detection lifecycle tutorial complete",instruction:"You built, validated, reviewed, deployed, monitored, tuned, revalidated, and redeployed one governed detection without leaving the workspace.",actionLabel:"Tutorial complete",completion:true,details:["Continue recording health on the cadence required by your organization; tune only when evidence justifies a change.","Retire is optional: confirm a replacement or accepted coverage gap, document the reason, disable the actual Splunk object separately, and retain the audit history. DEI retirement does not disable the saved search.","Detection Catalog manages the operational portfolio after enablement.","Splunk saved searches: Settings → Searches, Reports, and Alerts.","Enterprise Security detections: Configure → Content → Content Management."]}
   ];
+  function guideActive() { return window.sessionStorage.getItem(sessionKey(ACTIVE_KEY))==="true"; }
 
   function page() {
     if ($("#dei-home-page").length) return "home";
@@ -117,12 +119,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var select=$("#workflow-detection-select");
     if(!select.length) return;
     var tutorialSelection=index===2&&reviewCeiling<0;
-    select.find("option").each(function(){
-      var option=$(this),recommendation=!!String(option.text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
-      option.prop("disabled",tutorialSelection&&!!option.val()&&!recommendation);
-    });
-    if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change");
-    var eligible=select.find("option").filter(function(){return !!$(this).val()&&!$(this).prop("disabled");}).length;
+    // Guidance must never disable, clear, or replace a user's manual choice.
+    var eligible=select.find("option").filter(function(){
+      return !!$(this).val()&&!!String($(this).text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
+    }).length;
     var status=$("#workflow-tutorial-status");
     if(!tutorialSelection||eligible) status.prop("hidden",true).empty();
     else if(select.find("option[value]").length<=1) status.prop("hidden",false).removeClass("unhealthy").text("Loading Recommendation-stage detections…");
@@ -284,6 +284,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function close(markSeen) {
     window.clearInterval(reviewPollTimer); reviewPollTimer=null;
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
+    if (markSeen!==false) window.sessionStorage.removeItem(sessionKey(ACTIVE_KEY));
     if (markSeen!==false) setReviewCeiling(-1);
     window.clearTimeout(renderTimer);
     window.clearTimeout(focusPulseTimer);
@@ -370,7 +371,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }
     return readStep()>=4;
   }
-  function start() { close(false); setReviewCeiling(-1); resetWalkthroughDetection(); writeStep(0); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
+  function start() { close(false); setReviewCeiling(-1); resetWalkthroughDetection(); writeStep(0); window.sessionStorage.setItem(sessionKey(ACTIVE_KEY),"true"); window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); loadGuide(function(ready){ if(ready) render(); }); }
 
   window.DEINextGuide={start:start,render:render,close:close,completeDraft:completeDraft};
   $(document).on("click", "#dei-guide-return", function(event){ event.preventDefault(); restoreGuide(true); });
@@ -388,14 +389,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(!dragState) return; var rect=dragState.dialog[0].getBoundingClientRect(); dragState.dialog.removeClass("dei-guide-dragging"); window.sessionStorage.setItem("dei.guide.position",JSON.stringify({left:rect.left,top:rect.top})); dragState=null;
   });
   $(document).on("click", "#dei-home-tour", function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(); });
-  $(document).on("click", ".dei-open-environment-discovery", function(event){ if(readStep()===0){ event.preventDefault(); goToStep(1); } });
+  $(document).on("click", ".dei-open-environment-discovery", function(event){ if(guideActive()&&readStep()===0){ event.preventDefault(); goToStep(1); } });
   $(document).on("dei:scan-progress", function (_event,status) {
-    var guideActive=$("#"+OVERLAY_ID).length||window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true";
-    if(status.stage==="discover"&&guideActive&&page()==="environment") { resetWalkthroughDetection(); writeStep(1); renderedStep=-1; window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false"); scheduleRender(0); return; }
-    if(readStep()===1&&(status.stage==="complete"||status.stage==="complete_with_warning")) { resetWalkthroughDetection(); goToStep(2); }
+    if(status.stage==="discover"&&guideActive()&&page()==="environment") { resetWalkthroughDetection(); writeStep(1); renderedStep=-1; scheduleRender(0); return; }
+    if(guideActive()&&readStep()===1&&(status.stage==="complete"||status.stage==="complete_with_warning")) { resetWalkthroughDetection(); goToStep(2); }
   });
   $(document).on("change", "#workflow-detection-select", function(){
-    if(readStep()!==2||!$(this).val()) return;
+    if(!guideActive()||readStep()!==2||!$(this).val()) return;
     if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection labeled Recommendation to continue the tutorial."); return; }
     advance();
   });
@@ -430,5 +430,5 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&(readStep()===9||readStep()===23)&&String($(this).val()||"").trim()) goToStep(readStep()+1); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });
   $(window).on("resize.deiNextGuide scroll.deiNextGuide", function(){ if($("#"+OVERLAY_ID).length){ var target=targetFor(activeStep(readStep())); position(target); updateMarker(target); } });
-  window.setTimeout(function(){ if(window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true") render(); },250);
+  window.setTimeout(function(){ if(guideActive()) render(); },250);
 });

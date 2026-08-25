@@ -8,6 +8,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function key(record) { return String(record && (record._key||record.detection_id||record.id)||"").replace(/^dei-/,""); }
   function cataloged(record) { return !!(record && record.state!=="draft" && ((record.catalog && record.catalog.cataloged_at) || ["production","monitoring","retired"].indexOf(record.state)!==-1)); }
   function catalogStatus(record) {
+    if (!cataloged(record)) { return record.state||"recommendation"; }
     if (record.state==="retired") { return "retired"; }
     if (record.catalog && record.catalog.status==="disabled") { return "disabled"; }
     if (record.state==="monitoring") { return "monitoring"; }
@@ -35,7 +36,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function filteredRecords() {
     var query=String($("#catalog-search").val()||"").toLowerCase(); var status=String($("#catalog-status-filter").val()||"all");
-    return records.filter(cataloged).filter(function (record) {
+    return records.filter(function (record) {
       var deployment=record.deployment||{};
       var haystack=[record.name,key(record),mitre(record),(record.sourcetypes||[]).join(" "),deployment.external_object_id,record.state,catalogStatus(record)].join(" ").toLowerCase();
       return (!query||haystack.indexOf(query)!==-1) && (status==="all"||catalogStatus(record)===status);
@@ -43,21 +44,22 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function render() {
-    var all=records.filter(cataloged); var visible=filteredRecords();
+    var all=records.slice(); var visible=filteredRecords();
     $("#catalog-total,#catalog-count-all").text(all.length);
     ["ready","development","staging","enabled","disabled","monitoring"].forEach(function (status) {
       $("#catalog-count-"+status).text(all.filter(function (record) { return catalogStatus(record)===status; }).length);
     });
-    $("#catalog-results-summary").text(visible.length+" of "+all.length+" cataloged detection"+(all.length===1?"":"s")+" shown.");
+    $("#catalog-results-summary").text(visible.length+" of "+all.length+" governed detection use case"+(all.length===1?"":"s")+" shown.");
     $("#catalog-data-status").text("Catalog: "+(Store?Store.mode():"unavailable")).toggleClass("healthy",!!Store);
     if (!all.length) {
-      $("#catalog-table").html('<tr><td colspan="7"><strong>No approved detections are cataloged yet.</strong><br/>Complete validation and peer approval in Engineering Operations.</td></tr>'); return;
+      $("#catalog-table").html('<tr><td colspan="7"><strong>No governed detection use cases are available.</strong><br/>Run Environment Discovery to create recommendations.</td></tr>'); return;
     }
     $("#catalog-table").html(visible.length?visible.map(function (record) {
       var deployment=record.deployment||{}; var status=catalogStatus(record);
       var deploymentState=status==="enabled"||status==="monitoring"?"DEI record: production enabled":status==="disabled"?"DEI record: disabled":"DEI record: not enabled";
-      return '<tr data-catalog-status="'+esc(status)+'"><td><strong>'+esc(record.name||key(record))+'</strong><small>'+esc(key(record))+'</small></td><td>'+esc(mitre(record)||"Not mapped")+'</td><td><span class="dei-lifecycle-stage '+esc(record.state)+'">'+esc(label(record.state))+'</span></td><td><span class="dei-catalog-status '+esc(status)+'">'+esc(label(status))+'</span></td><td><span class="dei-deployment-state '+esc(status)+'">'+esc(deploymentState)+'</span><small>'+esc(deployment.external_object_id||"No deployment object recorded")+'</small></td><td>'+esc(health(record))+'</td><td><button class="dei-catalog-manage" type="button" data-key="'+esc(key(record))+'">Manage</button></td></tr>';
-    }).join(""):'<tr><td colspan="7">No cataloged detections match these filters. <button class="dei-catalog-inline-reset" type="button">Reset filters</button></td></tr>');
+      var action=cataloged(record)?'<button class="dei-catalog-manage" type="button" data-key="'+esc(key(record))+'">Manage</button>':'<a class="dei-catalog-continue" href="detection_workflow?detection='+encodeURIComponent(key(record))+'">Continue</a>';
+      return '<tr data-catalog-status="'+esc(status)+'"><td><strong>'+esc(record.name||key(record))+'</strong><small>'+esc(key(record))+'</small></td><td>'+esc(mitre(record)||"Not mapped")+'</td><td><span class="dei-lifecycle-stage '+esc(record.state)+'">'+esc(label(record.state))+'</span></td><td><span class="dei-catalog-status '+esc(status)+'">'+esc(label(status))+'</span></td><td><span class="dei-deployment-state '+esc(status)+'">'+esc(deploymentState)+'</span><small>'+esc(deployment.external_object_id||"No deployment object recorded")+'</small></td><td>'+esc(health(record))+'</td><td>'+action+'</td></tr>';
+    }).join(""):'<tr><td colspan="7">No detection use cases match these filters. <button class="dei-catalog-inline-reset" type="button">Reset filters</button></td></tr>');
   }
 
   function evidence(record) {
