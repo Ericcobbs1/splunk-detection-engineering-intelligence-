@@ -44,7 +44,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       ["MITRE mapping",techniques.length>0,techniques.length?techniques.join(" · "):"No ATT&CK technique is mapped."],
       ["Observed sourcetype",observed.length>0,observed.length?observed.join(" · "):"No observed sourcetype currently maps to the required source."]
     ];
-    var remediationHref="detection_action_center?category=telemetry&detection="+id+"&return="+encodeURIComponent("detection_workflow?detection="+key(item));
+    var remediationHref="#workflow-environment-panel";
     var guides={
       recommendation:{title:buildable?"Build the first detection draft":planning?"Create a telemetry-gated planning draft":"Resolve telemetry prerequisites",explanation:buildable?"The recommendation is available, but no versioned detection artifact exists yet.":planning?"You can author and syntax-test the SPL now. Lifecycle advancement remains blocked until the required telemetry is verified.":"This recommendation is blocked until its required telemetry or field evidence is available.",why:buildable?"The integrated builder converts telemetry and ATT&CK evidence into reviewable SPL without enabling anything.":"Planning drafts preserve engineering progress without treating unavailable telemetry as production-ready evidence.",requirements:recommendationRequirements,action:buildable?"Start detection draft":planning?"Create planning draft":"Review telemetry actions",href:(buildable||planning)?"#builder-generate":remediationHref,secondaryAction:planning?"Resolve telemetry evidence":"",secondaryHref:planning?remediationHref:"",note:buildable?"Generate and edit the draft in the workspace below.":planning?"The draft will remain at Recommendation/Draft until a new scan verifies its telemetry.":"The Action Center will show the exact evidence that must be resolved before building."},
       draft:{title:"Complete and validate the SPL",explanation:"A draft exists. Review its search logic and run bounded historical validation before review.",why:"Validation proves that the SPL parses, runs safely, and produces reviewable evidence against the available telemetry.",requirements:[["Detection SPL",!!record.spl],["Schedule",!!record.schedule],["Validation passed",validation.status==="passed"]],action:validation.status==="passed"?"Continue to review handoff":"Review SPL and validate",href:validation.status==="passed"?"#lifecycle-action-center":"#detection-generator",note:"Only passed validation can advance to peer review."},
@@ -117,6 +117,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   $("#workflow-detection-select").on("change",renderSelected); initialize(0);
   $(document).on("dei:lifecycle-records-updated",function (event,loaded) { records=Array.isArray(loaded)?loaded:records; populate(); });
+  $(document).on("dei:environment-refreshed",function () {
+    recommendations=(safeJson(window.sessionStorage.getItem(REPORT_KEY),{}).recommendations)||[];
+    $("#workflow-environment-state").text("Current");
+    $("#workflow-environment-panel").prop("open",false);
+    populate();
+    window.setTimeout(function(){var target=document.getElementById("workflow-detection-select");if(target){target.scrollIntoView({behavior:"smooth",block:"center"});target.focus();}},120);
+  });
   $(document).on("dei:artifact-inspection-requested",function (event,id,stage,record) { if (id) { $("#workflow-detection-select").val(String(id)); } applyArtifactMode(String(stage||"draft"),record); });
   $(document).on("dei:detection-draft-generated dei:detection-artifact-saved",function (event,id,record) {
     var value=String(id||"");

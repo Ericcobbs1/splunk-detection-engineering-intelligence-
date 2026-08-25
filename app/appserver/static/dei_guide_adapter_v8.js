@@ -48,8 +48,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var targetWaitStarted=0;
   var EVENT_TRANSITIONS={draft_generated:{3:4},validation_passed:{4:5,18:19},review_note:{5:6,7:8,19:20,21:22},submit_review:{6:7,20:21},approve_review:{8:9,22:23},deployment_reference:{9:10,23:24},record_deployment:{10:11,24:25},monitoring_metrics:{12:13},monitoring_note:{13:14},record_health:{14:15},tuning_note:{15:16},start_tuning:{16:17},spl_changed:{17:18}};
   var steps=[
-    {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
-    {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
+    {page:"home",target:".dei-open-environment-discovery",title:"Open the Detection Workspace",instruction:"Use the unified workspace to scan telemetry and complete the governed detection lifecycle without page hopping.",actionLabel:"Select Open Detection Workspace"},
+    {page:"builder",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the intelligence scan at the top of this workspace so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
     {page:"builder",target:"#workflow-detection-select",title:"Choose a reusable detection",instruction:"Select any definition under Detection Library to start a new governed use case. Existing lifecycle records remain available separately and never remove a definition from the library.",actionLabel:"Select a library detection"},
     {page:"builder",target:"#builder-generate",tab:"#workflow-tab-artifact",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
     {page:"builder",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
@@ -136,7 +136,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(readStep()===2&&reviewCeiling<0) restoreGuide(true);
   });
   function route(name) {
-    var base={home:"dei_home",environment:"command_center",environment_insights:"environment_insights",mitre:"mitre_coverage",builder:"detection_workflow",catalog:"detection_catalog"}[name];
+    var base={home:"dei_home",environment:"detection_workflow#workflow-environment-panel",environment_insights:"environment_insights",mitre:"mitre_coverage",builder:"detection_workflow",catalog:"detection_catalog"}[name];
     var detection=walkthroughDetection()||String(window.localStorage.getItem("dei.selectedDetectionDraft")||"");
     return detection&&(name==="builder"||name==="catalog")?base+"?detection="+encodeURIComponent(detection):base;
   }

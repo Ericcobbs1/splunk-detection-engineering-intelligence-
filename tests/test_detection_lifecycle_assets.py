@@ -105,7 +105,8 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
     assert 'status:"ready"' in javascript
     assert '"added_to_detection_catalog"' in javascript
     assert "saveApprovedReview" in javascript
-    assert 'window.location.href="detection_catalog?detection="' in javascript
+    assert 'activateWorkspacePanel("all")' in javascript
+    assert 'dei:artifact-inspection-requested' in javascript
     assert 'action:"record_deployment"' in javascript
     assert 'id="lifecycle-external-id"' in javascript
     assert '"Peer review approved. Continue below to record deployment without leaving this workspace."' in javascript

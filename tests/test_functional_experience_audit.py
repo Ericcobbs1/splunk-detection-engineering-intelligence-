@@ -25,10 +25,10 @@ def test_every_workspace_loads_the_shared_scan_service():
 def test_home_scan_is_consolidated_into_environment_discovery():
     layout = _source("dei_workspace_layout_v14.js")
     service = _source("dei_environment_scan_v1.js")
-    assert 'href="command_center#dei-telemetry"' in layout
+    assert 'href="detection_workflow#workflow-environment-panel"' in layout
     assert 'window.DEIEnvironmentScan.run(' not in layout
     assert 'dei-run-intelligence-scan' not in layout
-    assert 'command_center#dei-telemetry' in layout
+    assert 'detection_workflow#workflow-environment-panel' in layout
     assert "dei:scan-progress" in service
     assert "dei:environment-refreshed" in service
     assert "latestRecommendationReport" in service
@@ -50,7 +50,7 @@ def test_assisted_tour_opens_once_per_session_and_is_dismissible():
     adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
     bundle = _source("dei_interactive_guide_v3.js")
-    for page in ("home", "environment", "builder"):
+    for page in ("home", "builder"):
         assert f'page:"{page}"' in adapter
     for event in (
         "dei:scan-progress", "workflow-detection-select",
@@ -112,7 +112,7 @@ def test_home_pipeline_drilldowns_open_owned_workspaces():
     assert 'validate:"detection_workflow#builder-validation-title"' in layout
     assert '"detection_action_center"' in layout
     assert '"detection_health"' in layout
-    assert '"command_center#dei-telemetry"' in layout
+    assert '"detection_workflow#workflow-environment-panel"' in layout
     assert '"detection_catalog"' in layout
 
 
@@ -178,7 +178,7 @@ def test_react_tour_drives_real_analyst_actions_instead_of_long_form_content():
 def test_post_scan_tutorial_stays_in_the_detection_engineering_workspace():
     adapter = _source("dei_guide_adapter_v8.js")
     steps_source = adapter.split("var steps=[", 1)[1].split("];", 1)[0]
-    assert steps_source.count('page:"builder"') == 24
+    assert steps_source.count('page:"builder"') == 25
     assert 'page:"environment_insights"' not in steps_source
     assert 'page:"mitre"' not in steps_source
     assert 'page:"catalog"' not in steps_source

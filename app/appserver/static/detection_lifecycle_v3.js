@@ -445,7 +445,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     if (action==="open_catalog") {
-      window.location.href="detection_catalog?detection="+encodeURIComponent(recordKey(record));
+      activateWorkspacePanel("all");
+      $(document).trigger("dei:artifact-inspection-requested",[recordKey(record),record.state,record]);
       return;
     }
     if (action==="save_assignment") {

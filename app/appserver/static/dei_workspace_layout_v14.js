@@ -236,7 +236,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function advancedActions() {
     var actions={
       home:[
-        {label:"Run an environment scan",href:"command_center#dei-telemetry",detail:"Collect current telemetry and field evidence now."},
+        {label:"Run an environment scan",href:"detection_workflow#workflow-environment-panel",detail:"Collect current telemetry and field evidence now."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped tactics and recommended use cases."},
         {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate and validate reviewable SPL."},
         {label:"Continue guided workflow",href:"detection_workflow",detail:"Resume one detection at its exact next required action."}
@@ -247,7 +247,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Continue from telemetry evidence to ATT&CK mapping."}
       ],
       environment_insights:[
-        {label:"Run a new scan",href:"command_center#dei-telemetry",detail:"Replace the active session intelligence with fresh evidence."},
+        {label:"Run a new scan",href:"detection_workflow#workflow-environment-panel",detail:"Replace the active session intelligence with fresh evidence."},
         {label:"Review MITRE coverage",href:"mitre_coverage",detail:"Inspect mapped techniques and Detection Advisor recommendations."},
         {label:"Open Guided Detection Builder",href:"detection_workflow",detail:"Generate SPL from a telemetry-supported recommendation."}
       ],
@@ -279,14 +279,14 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
         {label:"Review detection action items",href:"detection_action_center",detail:"Open telemetry, validation, and health action items."}
       ],
       environment:[
-        {label:"Run intelligence scan",href:"command_center#dei-telemetry",detail:"Generate the evidence required for a real coverage assessment."},
+        {label:"Run intelligence scan",href:"detection_workflow#workflow-environment-panel",detail:"Generate the evidence required for a real coverage assessment."},
         {label:"Open coverage results",href:"environment_insights",detail:"Review detection potential, telemetry domains, and tactic coverage."},
         {label:"Investigate MITRE coverage",href:"mitre_coverage",detail:"Inspect technique mappings and protection detail."}
       ],
       environment_insights:[
         {label:"Inspect ATT&CK coverage",href:"mitre_coverage",detail:"Move from summary coverage into tactic and technique evidence."},
         {label:"Build a coverage-closing detection",href:"detection_workflow",detail:"Generate SPL for a qualified recommendation."},
-        {label:"Run a new assessment",href:"command_center#dei-telemetry",detail:"Replace the current coverage snapshot with fresh telemetry."}
+        {label:"Run a new assessment",href:"detection_workflow#workflow-environment-panel",detail:"Replace the current coverage snapshot with fresh telemetry."}
       ],
       mitre:[
         {label:"Filter by sourcetype",target:"#mitre-sourcetype-filter",detail:"Find coverage recommendations supported by one telemetry source."},
@@ -309,7 +309,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function guidedActions() {
     var currentLabel=String($("#dei-guided-workflow-cta").text() || "Continue guided workflow").replace(/\s*→\s*$/,"");
-    var currentHref=String($("#dei-guided-workflow-cta").attr("href") || "command_center#dei-telemetry");
+    var currentHref=String($("#dei-guided-workflow-cta").attr("href") || "detection_workflow#workflow-environment-panel");
     return [
       {label:currentLabel,href:currentHref,detail:String($("#dei-guided-workflow-help").text() || "Complete the highlighted workflow step.")},
       {label:"Open step guidance",target:".dei-guided-learning summary",activate:true,detail:"See what this step does, why it matters, and what evidence it creates."},
@@ -445,7 +445,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       return;
     }
     var empty={
-      awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"command_center#dei-telemetry",action:"Run intelligence scan"},
+      awaiting:{title:"No active assessment",detail:"Run an intelligence scan to populate the detection pipeline.",href:"detection_workflow#workflow-environment-panel",action:"Run intelligence scan"},
       building:{title:"Engineering is active",detail:"Review drafts, tests, and approvals in the lifecycle work queue.",href:"detection_catalog",action:"Open lifecycle work queue"},
       healthy:{title:"Operational detections are healthy",detail:"Review monitoring evidence and keep health measurements current.",href:"detection_catalog",action:"Review monitoring evidence"}
     }[healthState] || {title:"Review pipeline evidence",detail:"Inspect current lifecycle records and their next required actions.",href:"detection_catalog#lifecycle-map",action:"Open lifecycle workspace"};
@@ -494,7 +494,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var canBuild=["partial","field_gap","field_unverified","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)!==-1;
       putIssue(key,{name:item.name || key,
         reason:"Readiness is "+String(item.readiness||"unknown").replace(/_/g," ")+". "+(item.next_action || "Resolve the required telemetry or field evidence."),
-        href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
+        href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "detection_workflow#workflow-environment-panel",
         action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence",severity:"attention",priority:1});
     });
     artifacts.forEach(function (item,index) {
@@ -583,7 +583,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       .attr("data-pipeline-health",healthState).toggleClass("has-flow",progress>0);
     $("#dei-topology-core-health").text(healthDetail);
     $("#dei-topology-core-action").attr("data-health-destination",healthState==="critical" ? "detection_action_center" :
-      healthState==="healthy" ? "detection_health" : healthState==="awaiting" ? "command_center#dei-telemetry" : "detection_catalog")
+      healthState==="healthy" ? "detection_health" : healthState==="awaiting" ? "detection_workflow#workflow-environment-panel" : "detection_catalog")
       .attr("aria-label",healthLabel+". "+healthDetail+". Open the related pipeline workspace.")
       .attr("title",healthLabel+" | "+healthDetail);
     var stageStatus=current===-1 ? "All evidence stages complete" :
@@ -637,7 +637,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function workflowMarkup() {
     var steps=[
-      {key:"discover",label:"Discover",detail:"Analyze telemetry",href:"command_center#dei-telemetry"},
+      {key:"discover",label:"Discover",detail:"Analyze telemetry",href:"detection_workflow#workflow-environment-panel"},
       {key:"review",label:"Review",detail:"MITRE and readiness",href:"mitre_coverage"},
       {key:"build",label:"Build",detail:"Generate SPL",href:"detection_workflow"},
       {key:"validate",label:"Validate",detail:"Test evidence",href:"detection_workflow#builder-validation-title"},
@@ -654,7 +654,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       }).join(""),
       '</ol>',
       '<div class="dei-guided-workflow-action"><span id="dei-guided-workflow-status">Step 1 of 5</span>',
-      '<a id="dei-guided-workflow-cta" href="command_center#dei-telemetry">Analyze telemetry →</a>',
+      '<a id="dei-guided-workflow-cta" href="detection_workflow#workflow-environment-panel">Analyze telemetry →</a>',
       '<button id="dei-guided-workflow-advanced" type="button" aria-expanded="false" aria-controls="dei-advanced-action-center">Show advanced tools</button></div>',
       '</section>'
     ].join("");
@@ -683,7 +683,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     };
     var sequence=["discover","review","build","validate","operate"];
     var actions={
-      discover:{label:"Analyze telemetry",href:"command_center#dei-telemetry"},
+      discover:{label:"Analyze telemetry",href:"detection_workflow#workflow-environment-panel"},
       review:{label:"Review MITRE coverage",href:"mitre_coverage"},
       build:{label:"Build a detection",href:"detection_workflow"},
       validate:{label:"Validate generated SPL",href:"detection_workflow#builder-validation-title"},
@@ -793,7 +793,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     window.setTimeout(function () { $("#dei-onboarding-close").focus(); }, 0);
   }
 
-  function onboardingPage(step) { return {home:"dei_home",environment:"command_center#dei-telemetry",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_catalog#lifecycle-work-queue"}[step.page]; }
+  function onboardingPage(step) { return {home:"dei_home",environment:"detection_workflow#workflow-environment-panel",mitre:"mitre_coverage",builder:"detection_workflow#guided-builder-workspace",lifecycle:"detection_catalog#lifecycle-work-queue"}[step.page]; }
 
   function restartOnboarding() {
     if (window.DEINextGuide) { window.DEINextGuide.start(); return; }
@@ -860,13 +860,13 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!timestamp || !sources) {
       $("#dei-active-scan-context").attr("data-state","empty").html(
         '<span><b>No active environment scan</b> — downstream intelligence remains empty until you run discovery.</span>' +
-        '<a class="dei-scan-discovery-link" href="command_center#dei-telemetry">Open Environment Discovery</a>'
+        '<a class="dei-scan-discovery-link" href="detection_workflow#workflow-environment-panel">Open Environment Discovery</a>'
       );
       return;
     }
     $("#dei-active-scan-context").attr("data-state","active").html(
       '<span><b>Active environment scan</b> · ' + sources + ' source types · completed ' +
-      new Date(timestamp).toLocaleString() + '</span><a class="dei-scan-discovery-link" href="command_center#dei-telemetry">Run new scan in Discovery</a>'
+      new Date(timestamp).toLocaleString() + '</span><a class="dei-scan-discovery-link" href="detection_workflow#workflow-environment-panel">Run new scan in Discovery</a>'
     );
   }
 
@@ -935,10 +935,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function homeStageDestination(stage) {
-    var destination={discover:"command_center#dei-telemetry",profile:"environment_insights#dei-portfolio-section",
-      qualify:"environment_insights#metric-ready",recommend:"mitre_coverage#mitre-detection-list",
+    var destination={discover:"detection_workflow#workflow-environment-panel",profile:"detection_workflow#workflow-environment-panel",
+      qualify:"detection_workflow#workflow-environment-panel",recommend:"detection_workflow#workflow-detection-select",
       design:"detection_workflow#workflow-driver",generate:"detection_workflow#guided-builder-workspace",
-      validate:"detection_workflow#builder-validation-title"}[stage] || "detection_catalog#lifecycle-map";
+      validate:"detection_workflow#builder-validation-title"}[stage] || "detection_workflow#lifecycle-action-center";
     var detection=homeStageDetection(stage);
     if (detection) {
       destination="detection_workflow?detection="+encodeURIComponent(detection)+

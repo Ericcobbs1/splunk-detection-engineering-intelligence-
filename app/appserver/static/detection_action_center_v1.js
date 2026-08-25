@@ -100,7 +100,7 @@
       reason:missingSources.length?"The required telemetry capability has not been verified.":"Readiness is "+readiness.replace(/_/g," ")+".",
       recommendation:item.next_action || (missingSources.length?missingSourceAction(missingSources):"Resolve the required field evidence, run a new intelligence scan, then return to this detection."),
       evidence:missingFields.join(" · ") || (missingSources.length?missingSourceEvidence(missingSources):item.field_validation_reason || item.validation_detail || "Required field or telemetry evidence has not been verified."),
-      href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "command_center#dei-telemetry",
+      href:canBuild ? "detection_workflow?detection="+encodeURIComponent(key) : "detection_workflow#workflow-environment-panel",
       action:canBuild ? "Build engineering draft" : "Resolve telemetry evidence"
     };
   }

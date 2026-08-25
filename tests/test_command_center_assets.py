@@ -85,7 +85,7 @@ def test_environment_insights_contains_saved_results_without_discovery_form() ->
         assert root.find(f".//*[@id='{element_id}']") is not None
     assert root.find(".//*[@id='dei-telemetry']") is None
     assert root.find(".//*[@id='dei-analyze']") is None
-    assert root.find(".//a[@href='command_center#dei-telemetry']") is not None
+    assert root.find(".//a[@href='detection_workflow#workflow-environment-panel']") is not None
 
 def test_dei_home_is_default_navigation_view_and_workspaces_are_registered() -> None:
     root = ElementTree.parse(NAV_PATH).getroot()
