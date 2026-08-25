@@ -25,6 +25,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     try { return JSON.parse(value || "null") || fallback; } catch (error) { return fallback; }
   }
 
+  function browserSafeArtifact(value) {
+    if (Array.isArray(value)) { return value.map(browserSafeArtifact); }
+    if (!value || typeof value!=="object") { return value; }
+    return Object.keys(value).reduce(function(copy,key){
+      if (["sample_results","raw_results","_raw"].indexOf(key)===-1) { copy[key]=browserSafeArtifact(value[key]); }
+      return copy;
+    },{});
+  }
+
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -435,7 +444,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var eventName = artifact.status === "testing" ? "validation_completed" :
       (artifact.state === "tuning" ? "tuning_draft_saved" : "draft_saved");
     artifacts = artifacts.filter(function (entry) { return entry.id !== artifact.id; });
-    artifacts.push(artifact);
+    artifacts.push(browserSafeArtifact(artifact));
     window.localStorage.setItem(ARTIFACT_KEY, JSON.stringify(artifacts));
     $(document).trigger("dei:detection-artifacts-changed", [artifacts]);
     if (Store) {
@@ -445,7 +454,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       Store.write(record).done(function (saved) {
         artifact=$.extend(true,artifact,saved||{});
         var durableArtifacts=storedArtifacts().filter(function(entry){return entry.id!==artifact.id;});
-        durableArtifacts.push(artifact);
+        durableArtifacts.push(browserSafeArtifact(artifact));
         window.localStorage.setItem(ARTIFACT_KEY,JSON.stringify(durableArtifacts));
         deferred.resolve(artifact);
       })
@@ -1070,7 +1079,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       local.concat(sharedRecords || []).forEach(function (artifact) {
         if (artifact && artifact.id) { merged[artifact.id] = artifact; }
       });
-      window.localStorage.setItem(ARTIFACT_KEY, JSON.stringify(Object.keys(merged).map(function (key) { return merged[key]; })));
+      window.localStorage.setItem(ARTIFACT_KEY, JSON.stringify(browserSafeArtifact(Object.keys(merged).map(function (key) { return merged[key]; }))));
       populateDetectionSelector();
       $("#generator-es-state").attr("title", "Persistence: " + Store.mode());
     });

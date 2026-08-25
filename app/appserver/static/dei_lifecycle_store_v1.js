@@ -74,6 +74,7 @@
   function responseMessage(xhr) {
     var body=xhr&&xhr.responseJSON;
     if (body&&typeof body.payload==="string") { body=safeJson(body.payload,{}); }
+    if (body&&body.payload&&typeof body.payload==="object") { body=body.payload; }
     return String(body&&body.error||body&&body.message||"").trim();
   }
 

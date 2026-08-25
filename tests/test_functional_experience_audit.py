@@ -355,6 +355,10 @@ def test_submitter_gets_explicit_independent_review_handoff():
     assert "controls.reviewHandoff" in lifecycle
     assert "Waiting for an independent reviewer" in lifecycle
     assert "another authenticated Splunk user must open this detection" in lifecycle
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'trigger("dei:lifecycle-refresh-requested")' in adapter
+    assert 'on("dei:lifecycle-records-updated"' in adapter
+    assert "window.setInterval" in adapter
 
 
 def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
@@ -408,7 +412,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v11"' in adapter
+    assert 'window.DEIGuideAssetVersion="v12"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter

@@ -263,7 +263,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function stageControls(record) {
     var approved=record.review&&record.review.decision==="approved";
     if (record.state==="testing") { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return to Draft"},edit:{action:"open_builder",label:"Edit detection"},next:record.validation&&record.validation.status==="passed"?{stage:"peer_review",action:"submit_review",label:"Continue · Submit for peer review"}:null}; }
-    if (record.state==="peer_review"&&!approved) { var sameUser=record.review&&record.review.submitted_by&&String(record.review.submitted_by)===String(Store.username()); return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return for changes"},edit:{action:"open_builder",label:"Inspect detection"},next:sameUser?null:{stage:"catalog",action:"approve_review",label:"Continue · Approve version"},reviewHandoff:sameUser}; }
+    if (record.state==="peer_review"&&!approved) { var sameUser=record.review&&record.review.submitted_by&&String(record.review.submitted_by).toLowerCase()===String(Store.username()).toLowerCase(); return {previous:{stage:"draft",action:"return_draft",label:"Previous · Return for changes"},edit:{action:"open_builder",label:"Inspect detection"},next:sameUser?null:{stage:"catalog",action:"approve_review",label:"Continue · Approve version"},reviewHandoff:sameUser}; }
     if (record.state==="peer_review"&&approved) { return {previous:{stage:"draft",action:"return_draft",label:"Previous · Reopen Draft"},edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"production",action:"record_deployment",label:"Continue · Record deployment"}}; }
     if (record.state==="production") { return {previous:null,edit:{action:"open_builder",label:"Inspect detection"},next:{stage:"monitoring",action:"record_health",label:"Continue · Record health and start monitoring"}}; }
     if (record.state==="monitoring") { return {previous:null,alternate:{stage:"tuning",action:"start_tuning",label:"Start tuning version"},edit:null,next:{stage:"monitoring",action:"record_health",label:"Record health checkpoint"}}; }
@@ -319,7 +319,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       if (record.review && record.review.decision==="approved") {
         return ownership+'<div class="dei-action-fields-row"><label class="dei-action-field"><span>Deployment target *</span><select id="lifecycle-deployment-target"><option value="splunk_platform">Splunk saved search</option><option value="enterprise_security">Enterprise Security detection</option><option value="external">External deployment</option></select></label><label class="dei-action-field"><span>Environment *</span><select id="lifecycle-deployment-environment"><option value="production">Production</option><option value="staging">Staging</option><option value="development">Development</option></select></label><label class="dei-action-field"><span>Saved-search or object ID *</span><input id="lifecycle-external-id" type="text" aria-describedby="lifecycle-inline-error" placeholder="Exact deployed object name"/></label></div><label class="dei-action-field"><span>Change ticket or deployment note</span><textarea id="lifecycle-action-comment" placeholder="Optional deployment evidence or change reference."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
       }
-      var sameUser=record.review&&record.review.submitted_by&&String(record.review.submitted_by)===String(Store.username());
+      var sameUser=record.review&&record.review.submitted_by&&String(record.review.submitted_by).toLowerCase()===String(Store.username()).toLowerCase();
       return ownership+(sameUser?'<div id="lifecycle-review-handoff" class="dei-inline-action-error" role="status"><strong>Independent review required.</strong> You submitted this version, so another authenticated Splunk user must open this detection and approve or return it. The tutorial resumes from this record after that reviewer completes the gate.</div>':'')+'<label class="dei-action-field"><span id="lifecycle-action-comment-label">Peer-review decision rationale *</span><textarea id="lifecycle-action-comment" aria-describedby="lifecycle-inline-error" placeholder="Document why this version is approved or list the exact changes required."></textarea></label><div id="lifecycle-inline-error" class="dei-inline-action-error" role="alert" hidden="hidden"></div>';
     }
     if (record.state==="production" || record.state==="monitoring") {
@@ -570,6 +570,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       completePendingWorkspaceAction();
     });
   }
+  $(document).on("dei:lifecycle-refresh-requested",reloadRecords);
   function initialize(attempt) {
     Store=window.DEILifecycleStore;
     if (!Store && attempt<40) { window.setTimeout(function () { initialize(attempt+1); },50); return; }

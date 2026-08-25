@@ -25,4 +25,13 @@ def test_lifecycle_fallback_is_visible_and_not_described_as_durable() -> None:
     assert "The governed lifecycle change was rejected" in source
     assert "A sanitized, non-durable recovery copy was saved" in source
     assert '["sample_results", "raw_results", "_raw"]' in source
+    assert 'body.payload&&typeof body.payload==="object"' in source
     assert 'request({resource:"lifecycle", operation:"delete", key:key})' in source
+
+
+def test_builder_browser_cache_removes_raw_validation_rows() -> None:
+    source = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    assert "function browserSafeArtifact(value)" in source
+    assert '["sample_results","raw_results","_raw"]' in source
+    assert "artifacts.push(browserSafeArtifact(artifact))" in source
+    assert "durableArtifacts.push(browserSafeArtifact(artifact))" in source

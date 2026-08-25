@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v11";
+window.DEIGuideAssetVersion="v12";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -42,6 +42,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var renderingGuide=false;
   var dragState=null;
   var reviewCeiling=-1;
+  var reviewPollTimer=null;
   var steps=[
     {page:"home",target:".dei-open-environment-discovery",title:"Open Environment Discovery",instruction:"Use the single Discovery workspace to run a current, permission-aware scan of Splunk telemetry.",actionLabel:"Select Open Environment Discovery"},
     {page:"environment",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the seven-day intelligence scan so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
@@ -274,6 +275,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     dialog.addClass("dei-guide-positioned").css({left:Math.max(8,Math.min(window.innerWidth-dialog.outerWidth()-8,position.left)),top:Math.max(8,Math.min(window.innerHeight-dialog.outerHeight()-8,position.top)),right:"auto",bottom:"auto"});
   }
   function close(markSeen) {
+    window.clearInterval(reviewPollTimer); reviewPollTimer=null;
     if (markSeen!==false) window.sessionStorage.setItem(sessionKey(SEEN_KEY),"true");
     if (markSeen!==false) setReviewCeiling(-1);
     window.clearTimeout(renderTimer);
@@ -296,6 +298,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if((index===7||index===8||index===21||index===22)&&$("#lifecycle-review-handoff:visible").length){
       step=$.extend({},step,{target:"#lifecycle-review-handoff",title:"Hand off to an independent reviewer",instruction:"This version is saved at Peer Review. Ask the assigned reviewer to sign in with their own Splunk account, open this detection, inspect the evidence, and approve or return it. This tutorial resumes automatically after their decision."});
       step["action"+"Label"]="Waiting for the assigned reviewer";
+      if(!reviewPollTimer){ reviewPollTimer=window.setInterval(function(){ $(document).trigger("dei:lifecycle-refresh-requested"); },5000); }
+    } else if(reviewPollTimer) {
+      window.clearInterval(reviewPollTimer); reviewPollTimer=null;
     }
     applyTutorialSelectionScope(index);
     if(index===17&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
@@ -409,6 +414,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(action==="return_draft"&&readStep()>=19&&readStep()<=22) goToStep(17);
     if(action==="restart_recommendation"&&readStep()>=4&&readStep()<=22) { resetWalkthroughDetection(); goToStep(2); }
     if(action==="retire") close(true);
+  });
+  $(document).on("dei:lifecycle-records-updated",function(){
+    var index=readStep();
+    if(reviewCeiling<0&&(index===7||index===8||index===21||index===22)&&reconcileCompletedStep(index)) return;
+    if(reviewPollTimer) scheduleRender(0);
   });
   $(document).on("change", "#lifecycle-external-id", function(){ if(walkthroughOwnsSelectedDetection()&&(readStep()===9||readStep()===23)&&String($(this).val()||"").trim()) goToStep(readStep()+1); });
   $(document).on("keydown", function(event){ if(!$("#"+OVERLAY_ID).length) return; if(event.key==="Escape") close(true); if(event.key==="F6"){ if($("body").hasClass("dei-guide-focus-mode")) restoreGuide(true); else if($(event.target).closest(".dei-onboarding-dialog").length) focusTarget(false); else $(".dei-next-guide-close").focus(); event.preventDefault(); } });

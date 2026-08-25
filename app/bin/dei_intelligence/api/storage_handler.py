@@ -36,6 +36,49 @@ ALLOWED_TRANSITIONS = {
 }
 
 
+def _lifecycle_gate_error(record: dict[str, Any], state: str) -> str:
+    validation = record.get("validation")
+    review = record.get("review")
+    deployment = record.get("deployment")
+    monitoring = record.get("monitoring")
+    retirement = record.get("retirement")
+    if state in {"testing", "peer_review"} and (
+        not isinstance(validation, dict) or validation.get("status") != "passed"
+    ):
+        return "passed validation evidence is required for this lifecycle state"
+    if state == "peer_review" and (
+        not isinstance(review, dict)
+        or review.get("decision") not in {"pending", "approved"}
+        or not str(review.get("submitted_by", "")).strip()
+    ):
+        return "peer review submission evidence is required"
+    if state in {"production", "monitoring"}:
+        if not isinstance(review, dict) or review.get("decision") != "approved":
+            return "independent peer approval is required for production"
+        if not isinstance(deployment, dict) or not str(
+            deployment.get("external_object_id", "")
+        ).strip():
+            return "a deployment reference is required for production"
+    if state == "monitoring":
+        if not isinstance(monitoring, dict) or not str(
+            monitoring.get("last_checked_at", "")
+        ).strip():
+            return "health evidence is required for monitoring"
+        for field in ("result_volume", "runtime_ms"):
+            value = monitoring.get(field)
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+                return f"monitoring {field} must be a non-negative number"
+        if not str(monitoring.get("review_period", "")).strip() or not str(
+            monitoring.get("note", "")
+        ).strip():
+            return "monitoring review period and evidence note are required"
+    if state == "retired" and (
+        not isinstance(retirement, dict) or not str(retirement.get("reason", "")).strip()
+    ):
+        return "a retirement reason is required"
+    return ""
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -309,9 +352,17 @@ class StorageHandler:
                         return persistent_response(409, {"error": f"illegal lifecycle transition: {previous_state} to {state}"})
                     expected = payload.get("expected_revision")
                     current = int(existing.get("_revision", 1))
-                    if expected is not None and int(expected) != current:
+                    if expected is None:
+                        return persistent_response(409, {"error": "expected_revision is required for lifecycle updates", "current_revision": current})
+                    try:
+                        expected_revision = int(expected)
+                    except (TypeError, ValueError):
+                        return persistent_response(400, {"error": "expected_revision must be an integer"})
+                    if expected_revision != current:
                         return persistent_response(409, {"error": "lifecycle record changed; reload before saving", "current_revision": current})
                 else:
+                    if state not in {"recommendation", "draft"}:
+                        return persistent_response(409, {"error": "new lifecycle records must begin in Recommendation or Draft"})
                     current = 0
                 new_events = incoming_history[len(existing_history):]
                 stamped = existing_history + [dict(event, actor=session_user or "unknown", at=_now()) for event in new_events if isinstance(event, dict)]
@@ -321,15 +372,20 @@ class StorageHandler:
                 record["updated_by"] = session_user or "unknown"
                 record["updated_at"] = _now()
                 record["_revision"] = current + 1
+                record["state"] = state
+                record["status"] = state
                 review = record.get("review", {})
                 if isinstance(review, dict) and review.get("decision") == "approved":
                     submitted_by = str(review.get("submitted_by", "")).strip()
-                    if submitted_by and submitted_by == (session_user or ""):
+                    if submitted_by and submitted_by.casefold() == (session_user or "").casefold():
                         return persistent_response(409, {"error": "submitter cannot approve the same detection version"})
                     review = dict(review)
                     review["reviewed_by"] = session_user or "unknown"
                     review["reviewed_at"] = _now()
                     record["review"] = review
+                gate_error = _lifecycle_gate_error(record, state)
+                if gate_error:
+                    return persistent_response(409, {"error": gate_error})
                 store.upsert(LIFECYCLE, record)
                 return persistent_response(200, {"durable": True, "mode": "Splunk KV Store", "record": record})
             if resource == "preferences":
