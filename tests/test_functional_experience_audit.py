@@ -332,18 +332,29 @@ def test_tutorial_reconciles_completed_gates_before_requesting_an_action():
     assert "Updating to the next available action" in adapter
 
 
-def test_monitoring_tutorial_skips_valid_defaults_and_explains_both_next_actions():
+def test_monitoring_tutorial_requires_real_inputs_and_explains_both_next_actions():
     adapter = _source("dei_guide_adapter_v8.js")
     lifecycle = _source("detection_lifecycle_v3.js")
     stylesheet = _source("detection_lifecycle_v1.css")
     assert "function monitoringMetricsReady()" in adapter
     assert "if(monitoringMetricsReady()) advance()" in adapter
+    assert 'raw!==""&&isFinite(Number(raw))' in adapter
+    assert 'prior.review_period||""' in lifecycle
+    assert 'prior.result_volume||0' not in lifecycle
+    assert 'prior.runtime_ms||0' not in lifecycle
     assert 'alternate:{stage:"tuning",action:"start_tuning"' in lifecycle
     assert 'class="dei-monitoring-choice"' in lifecycle
     assert "To remain in Monitoring" in lifecycle
     assert "To revise the detection" in lifecycle
     assert "← Start tuning version" not in lifecycle
     assert ".dei-monitoring-choice" in stylesheet
+
+
+def test_submitter_gets_explicit_independent_review_handoff():
+    lifecycle = _source("detection_lifecycle_v3.js")
+    assert "controls.reviewHandoff" in lifecycle
+    assert "Waiting for an independent reviewer" in lifecycle
+    assert "another authenticated Splunk user must open this detection" in lifecycle
 
 
 def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
@@ -397,7 +408,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v10"' in adapter
+    assert 'window.DEIGuideAssetVersion="v11"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter

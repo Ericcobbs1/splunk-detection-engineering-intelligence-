@@ -330,13 +330,13 @@ require([
   }
 
   function resetAnalyzeButton() {
-    $("#dei-analyze").prop("disabled", false).text("Run intelligence scan");
+    $("#dei-analyze").prop("disabled", false).html("<span>Run intelligence scan</span><b>→</b>");
   }
 
   function runRecommendations(sources, indexCount, fieldsBySource, profilingFailures) {
     var feedback = $("#dei-feedback");
     var esEnabled = $("#dei-es-enabled").is(":checked");
-    $("#dei-analyze").text("Analyzing...");
+    $("#dei-analyze").find("span").text("Analyzing...");
     feedback.text("Evaluating telemetry and field-level detection readiness.");
     postJson(endpoints.recommendations, {
       sources: sources,
@@ -373,7 +373,7 @@ require([
     var days=selectedWindowDays();
 
     if (analyzeAfterDiscovery) {
-      button.prop("disabled", true).text("Discovering...");
+      button.prop("disabled", true).find("span").text("Discovering...");
     }
     feedback.text("Discovering known Splunk telemetry from the last "+days+" days.");
 
@@ -425,7 +425,7 @@ require([
 
   $("#dei-analyze").on("click", function () {
     if (window.DEIEnvironmentScan) {
-      $(this).prop("disabled", true).text("Discovering...");
+      $(this).prop("disabled", true).find("span").text("Discovering...");
       window.DEIEnvironmentScan.run({
         enterpriseSecurityEnabled:$("#dei-es-enabled").is(":checked"),
         includeInternalIndexes:$("#dei-include-internal-indexes").is(":checked"),
@@ -441,7 +441,7 @@ require([
     if (!status) { return; }
     $("#dei-feedback").text(status.message || "Telemetry scan in progress.");
     if (status.stage === "profile" && status.detail && status.detail.total) {
-      $("#dei-analyze").text("Profiling fields " + (status.detail.completed || 0) + "/" + status.detail.total);
+      $("#dei-analyze").find("span").text("Profiling fields " + (status.detail.completed || 0) + "/" + status.detail.total);
     }
   });
 
