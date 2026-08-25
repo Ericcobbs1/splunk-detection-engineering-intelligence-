@@ -17,7 +17,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function label(value) { return String(value || "unknown").replace(/_/g," ").replace(/\b\w/g,function (c) { return c.toUpperCase(); }); }
   function recommendations() { return report && report.recommendations ? report.recommendations : []; }
   function sourceMappings() { return report && report.source_mappings ? report.source_mappings : []; }
-  function recordKey(item) { return String(item && (item.detection_id || item._key || item.id) || "").replace(/^dei-/,""); }
+  function recordKey(item) { return String(item && (item._key || item.detection_id || item.id) || "").replace(/^dei-/,""); }
   function recordFor(item) { var key=recordKey(item); return records.filter(function (record) { return recordKey(record)===key; })[0] || null; }
   function guidedBuilderPage() { return $("#dei-guided-detection-page").length>0; }
   function draftStarted(key) { return generatedDrafts[String(key||"")]===true; }

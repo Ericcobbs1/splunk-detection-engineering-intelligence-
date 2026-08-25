@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -16,6 +17,8 @@ class CapabilityInventory:
     capability_count: int
     domain_count: int
     supported_source_count: int
+    detection_count: int
+    detections: tuple[dict[str, Any], ...]
     packs: tuple[dict[str, Any], ...]
 
     def to_mapping(self) -> dict[str, Any]:
@@ -35,6 +38,20 @@ class CapabilityService:
         capabilities = {
             capability for pack in packs for capability in pack.manifest.capabilities
         }
+        detections: list[dict[str, Any]] = []
+        for pack in packs:
+            for path in pack.detection_paths:
+                values = json.loads(path.read_text(encoding="utf-8"))
+                for value in values:
+                    if not isinstance(value, dict):
+                        continue
+                    entry = dict(value)
+                    entry["detection_id"] = str(entry.pop("id", ""))
+                    entry["knowledge_pack"] = pack.manifest.name
+                    detections.append(entry)
+        detections.sort(
+            key=lambda item: (str(item.get("name", "")), str(item.get("detection_id", "")))
+        )
         pack_entries = tuple(
             {
                 "id": pack.manifest.pack_id,
@@ -54,5 +71,7 @@ class CapabilityService:
             capability_count=len(capabilities),
             domain_count=len(domains),
             supported_source_count=len(sources),
+            detection_count=len(detections),
+            detections=tuple(detections),
             packs=pack_entries,
         )

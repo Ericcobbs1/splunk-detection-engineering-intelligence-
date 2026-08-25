@@ -84,9 +84,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return "other";
   }
   function recordKey(record) {
-    return String(record&&(record.detection_id||record._key||record.id)||"").replace(/^dei-/,"");
+    return String(record&&(record._key||record.detection_id||record.id)||"").replace(/^dei-/,"");
   }
-  function normalizeDetectionKey(value) { return String(value||"").replace(/^dei-/,""); }
+  function normalizeDetectionKey(value) { return String(value||"").replace(/^instance:/,"").replace(/^dei-/,""); }
   function sessionKey(base) {
     return base+"."+GUIDE_STATE_VERSION;
   }
@@ -112,8 +112,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     return !!expected&&selectedWorkflowDetection()===expected;
   }
   function selectedRecommendationOpportunity() {
-    var option=$("#workflow-detection-select option:selected");
-    return !!String(option.text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
+    return String($("#workflow-detection-select").val()||"").indexOf("library:")===0;
   }
   function applyTutorialSelectionScope(index) {
     var select=$("#workflow-detection-select");
@@ -121,12 +120,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var tutorialSelection=index===2&&reviewCeiling<0;
     // Guidance must never disable, clear, or replace a user's manual choice.
     var eligible=select.find("option").filter(function(){
-      return !!$(this).val()&&!!String($(this).text()||"").toLowerCase().match(/—\s*recommendation\s*$/);
+      return String($(this).val()||"").indexOf("library:")===0;
     }).length;
     var status=$("#workflow-tutorial-status");
     if(!tutorialSelection||eligible) status.prop("hidden",true).empty();
-    else if(select.find("option[value]").length<=1) status.prop("hidden",false).removeClass("unhealthy").text("Loading Recommendation-stage detections…");
-    else status.prop("hidden",false).addClass("unhealthy").html('No Recommendation-stage detection is currently available. <a id="dei-tutorial-recovery" href="detection_catalog#lifecycle-map">Open Detection Catalog to restart an eligible detection</a>, then return here; tutorial progress will be preserved.');
+    else if(select.find("option[value]").length<=1) status.prop("hidden",false).removeClass("unhealthy").text("Loading the detection library…");
+    else status.prop("hidden",false).addClass("unhealthy").text("The reusable detection library is unavailable. Refresh the page before continuing the tutorial.");
   }
 
   $(document).on("dei:workflow-options-updated",function(){
@@ -367,7 +366,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function completeDraft(id,record) {
     if(!id||!record||page()!=="builder"||readStep()!==3) return false;
     var generatedKey=normalizeDetectionKey(id),selectedKey=selectedWorkflowDetection();
-    if(selectedKey&&selectedKey!==generatedKey) return false;
+    if(selectedKey&&selectedKey!==generatedKey&&selectedKey!=="library:"+String(record.template_detection_id||record.detection_id||"")) return false;
     selectedDetection=generatedKey;
     window.sessionStorage.setItem(sessionKey(DETECTION_KEY),selectedDetection);
     if(readStep()<=3){
@@ -403,7 +402,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("change", "#workflow-detection-select", function(){
     if(!guideActive()||readStep()!==2||!$(this).val()) return;
-    if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection labeled Recommendation to continue the tutorial."); return; }
+    if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection from the reusable library to continue the tutorial."); return; }
     advance();
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });

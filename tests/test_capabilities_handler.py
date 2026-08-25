@@ -18,6 +18,9 @@ def test_default_inventory_aggregates_packaged_packs() -> None:
     assert inventory.capability_count >= len(expected_capabilities)
     assert inventory.domain_count > 0
     assert inventory.supported_source_count > 0
+    assert inventory.detection_count == len(load_catalog())
+    assert len(inventory.detections) == inventory.detection_count
+    assert len({item["detection_id"] for item in inventory.detections}) == inventory.detection_count
     assert [pack["id"] for pack in inventory.packs] == expected_pack_ids
 
 
@@ -30,6 +33,7 @@ def test_capabilities_handler_returns_inventory() -> None:
     assert response["status"] == 200
     assert payload["knowledge_pack_count"] == len(payload["packs"])
     assert payload["capability_count"] >= len({item["capability"] for item in load_catalog()})
+    assert payload["detection_count"] == len(payload["detections"])
 
 
 def test_capabilities_handler_rejects_non_get_method() -> None:

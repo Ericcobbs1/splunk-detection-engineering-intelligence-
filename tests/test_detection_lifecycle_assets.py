@@ -256,7 +256,8 @@ def test_detection_query_generator_is_review_safe_and_es_aware() -> None:
     assert "selectorGroup" in javascript
     assert "engineering_warnings" in javascript
     assert "unresolved_fields" in javascript
-    assert "No environment analysis is loaded" in javascript
+    assert "loadDetectionLibrary" in javascript
+    assert "Detection library · telemetry not observed" in javascript
     assert '"services", "search", "jobs", "export"' in javascript
     assert "VALIDATION_RESULT_LIMIT = 25" in javascript
     assert "VALIDATION_TIMEOUT_MS = 60000" in javascript
@@ -322,9 +323,10 @@ def test_generate_draft_is_single_flight_and_confirms_persistence_before_complet
     assert 'off("click.deiGenerate", "#builder-generate")' in javascript
     assert "return deferred.promise()" in javascript
     assert "saveArtifact(artifact).done(function (savedRecord)" in javascript
-    assert 'attr("data-dei-generated-detection", item.detection_id)' in javascript
-    assert 'window.DEINextGuide.completeDraft(item.detection_id,confirmedRecord)' in javascript
-    assert 'trigger("dei:detection-draft-generated", [item.detection_id, confirmedRecord' in javascript
+    assert 'attr("data-dei-generated-detection", confirmedRecord._key)' in javascript
+    assert 'template_detection_id:item.detection_id' in javascript
+    assert 'window.DEINextGuide.completeDraft(confirmedRecord._key,confirmedRecord)' in javascript
+    assert 'trigger("dei:detection-draft-generated", [confirmedRecord._key, confirmedRecord' in javascript
     assert "Detection draft generated and saved" in javascript
     assert 'trigger("dei:detection-artifact-saved"' in javascript
     assert 'saveArtifact(artifact).done(function(savedRecord)' in javascript

@@ -1,7 +1,7 @@
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
 
-  var REPORT_KEY="dei.latestRecommendationReport"; var Store=null; var recommendations=[]; var records=[]; var items=[];
+  var REPORT_KEY="dei.latestRecommendationReport"; var Store=null; var recommendations=[]; var library=[]; var records=[]; var items=[];
   var STAGES=[
     {id:"recommendation",label:"Recommendation"},{id:"draft",label:"Draft"},{id:"testing",label:"Testing"},
     {id:"peer_review",label:"Peer review"},{id:"catalog",label:"Catalog ready"},{id:"production",label:"Production"},
@@ -11,8 +11,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function safeJson(value,fallback) { try { return JSON.parse(value||"null")||fallback; } catch (error) { return fallback; } }
   function esc(value) { return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
   function label(value) { return String(value||"unknown").replace(/_/g," ").replace(/\b\w/g,function (c) { return c.toUpperCase(); }); }
-  function key(item) { return String(item&&(item.detection_id||item._key||item.id)||"").replace(/^dei-/,""); }
-  function recordFor(item) { var id=key(item); return records.filter(function (record) { return key(record)===id; })[0]||null; }
+  function key(item) { return String(item&&(item._workflow_key||item._key||item.detection_id||item.id)||"").replace(/^dei-/,""); }
+  function capabilitiesEndpoint() { return Splunk.util.make_url("splunkd","__raw","servicesNS","-","splunk_detection_engineering_intelligence","dei","v1","capabilities"); }
   function stageFor(item) { var record=item.record; if (!record) { return "recommendation"; } if (record.catalog&&["ready","development","staging"].indexOf(record.catalog.status)!==-1) { return "catalog"; } return record.state||"draft"; }
   function mitre(item) { var values=item.mitre_techniques||(item.record&&item.record.mitre_attack)||[]; return values.map(function (value) { return typeof value==="string"?value:(value.id||value.technique_id||""); }).filter(Boolean); }
   function sources(item) { return item.sourcetypes||item.observed_sourcetypes||item.observed_sources||(item.record&&item.record.sourcetypes)||[]; }
@@ -26,8 +26,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function mergeItems() {
-    var seen={}; items=recommendations.map(function (recommendation) { var copy=$.extend(true,{},recommendation); copy.record=recordFor(copy); seen[key(copy)]=true; return copy; });
-    records.forEach(function (record) { if (seen[key(record)]) { return; } items.push({detection_id:key(record),name:record.name,readiness:record.source_readiness||"persisted",record:record,sourcetypes:record.sourcetypes||[],mitre_techniques:record.mitre_attack||[]}); });
+    var evidence={}; recommendations.forEach(function(item){evidence[item.detection_id]=item;}); items=[];
+    library.forEach(function(template){ var copy=$.extend(true,{},template,evidence[template.detection_id]||{}); copy.detection_id=template.detection_id; copy.readiness=copy.readiness||"not_observed"; copy._workflow_key="library:"+template.detection_id; copy.library_template=true; items.push(copy); });
+    records.forEach(function (record) { items.push({detection_id:record.detection_id||key(record),_workflow_key:"instance:"+key(record),name:record.name,readiness:record.source_readiness||"persisted",record:record,sourcetypes:record.sourcetypes||[],mitre_techniques:record.mitre_attack||[]}); });
     items.sort(function (left,right) { return String(left.name||key(left)).localeCompare(String(right.name||key(right))); });
   }
 
@@ -75,15 +76,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver,#workflow-unified-workspace").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
     var stage=stageFor(item);
     $("#workflow-unified-workspace").prop("hidden",false);
-    if (String($("#builder-detection-select").val()||"")!==key(item)) {
-      $("#builder-detection-select").val(key(item)).trigger("change");
+    if (item.library_template && String($("#builder-detection-select").val()||"")!==item.detection_id) {
+      $("#builder-detection-select").val(item.detection_id).trigger("change");
     }
     applyArtifactMode(stage,item.record);
     window.setTimeout(function () { applyArtifactMode(stage,item.record); },0);
     // A saved Draft must not populate the SPL editor merely because its
     // recommendation was selected.  The Generate action owns draft creation
     // (and intentional regeneration); later governed stages remain inspectable.
-    if (item.record && stage!=="draft") { $(document).trigger("dei:artifact-inspection-requested",[key(item),stage,item.record]); }
+    if (item.record && stage!=="draft") { $(document).trigger("dei:artifact-inspection-requested",[key(item.record),stage,item.record]); }
     var current=Math.max(0,STAGES.map(function (value) { return value.id; }).indexOf(stage)); var config=guide(item); var record=item.record||{};
     $("#workflow-empty").prop("hidden",true); $("#workflow-driver").prop("hidden",false);
     $("#workflow-stage-count").text("Stage "+(current+1)+" of "+STAGES.length); $("#workflow-detection-title").text(item.name||key(item));
@@ -95,15 +96,15 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     $("#workflow-secondary-action").prop("hidden",!config.secondaryAction).attr("href",config.secondaryHref||"#").text((config.secondaryAction||"")+" →");
     $("#workflow-action-note").text(config.note); $("#workflow-why-title").text("Why "+label(stage)+" matters");
     var history=(record.history||[]).slice(-3).reverse(); $("#workflow-advanced-evidence").html('<dl><dt>Lifecycle state</dt><dd>'+esc(label(stage))+'</dd><dt>Record version</dt><dd>'+esc(record.version||"Not created")+'</dd><dt>Storage</dt><dd>'+esc(Store?Store.mode():"Unavailable")+'</dd></dl>'+(history.length?'<h4>Recent history</h4>'+history.map(function (entry) { return '<p><strong>'+esc(label(entry.event))+'</strong><br/><small>'+esc(entry.detail||"No detail")+'</small></p>'; }).join(""):""));
-    $(document).trigger("dei:workflow-detection-selected",[key(item)]);
+    $(document).trigger("dei:workflow-detection-selected",[item.record?key(item.record):item.detection_id]);
     try { window.history.replaceState({},"",window.location.pathname+"?detection="+encodeURIComponent(id)); } catch (error) { /* URL state is optional. */ }
   }
 
   function requested() { var match=String(window.location.search||"").match(/[?&]detection=([^&]+)/); if (!match) { return ""; } try { return decodeURIComponent(match[1]); } catch (error) { return match[1]; } }
-  function populate() { mergeItems(); var selected=requested()||String($("#workflow-detection-select").val()||""); $("#workflow-detection-select").html('<option value="">Select a detection</option>'+items.map(function (item) { return '<option value="'+esc(key(item))+'">'+esc(item.name||key(item))+' — '+esc(label(stageFor(item)))+'</option>'; }).join("")); if (selected&&items.some(function (item) { return key(item)===selected; })) { $("#workflow-detection-select").val(selected); } $("#workflow-data-status").removeClass("unhealthy").text("Workflow: "+items.length+" detections").toggleClass("healthy",items.length>0); renderSelected(); $(document).trigger("dei:workflow-options-updated",[items.slice()]); }
+  function populate() { mergeItems(); var selected=requested()||String($("#workflow-detection-select").val()||""); var templates=items.filter(function(item){return item.library_template;}); var instances=items.filter(function(item){return !item.library_template;}); $("#workflow-detection-select").html('<option value="">Select a detection</option><optgroup label="Detection Library · start a new use case">'+templates.map(function (item) { return '<option value="'+esc(key(item))+'">'+esc(item.name||item.detection_id)+'</option>'; }).join("")+'</optgroup>'+(instances.length?'<optgroup label="Lifecycle work · continue an existing use case">'+instances.map(function(item){return '<option value="'+esc(key(item))+'">'+esc(item.name||key(item))+' — '+esc(label(stageFor(item)))+'</option>';}).join("")+'</optgroup>':"")); if(selected&&items.some(function(item){return key(item)===selected;})){ $("#workflow-detection-select").val(selected); } else if(selected&&items.some(function(item){return key(item)==="instance:"+selected;})){ $("#workflow-detection-select").val("instance:"+selected); } $("#workflow-data-status").removeClass("unhealthy").text("Library: "+templates.length+" detections · "+instances.length+" lifecycle use cases").toggleClass("healthy",templates.length>0); renderSelected(); $(document).trigger("dei:workflow-options-updated",[items.slice()]); }
   function initialize(attempt) {
     recommendations=(safeJson(window.sessionStorage.getItem(REPORT_KEY),{}).recommendations)||[];
-    if(attempt===0) populate();
+    if(attempt===0) { $.ajax({url:capabilitiesEndpoint(),method:"GET",dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).done(function(response){var payload=response&&typeof response.payload==="string"?safeJson(response.payload,{}):response; library=Array.isArray(payload&&payload.detections)?payload.detections:[]; window.DEIDetectionLibrary=library.slice(); populate();}).fail(function(){ $("#workflow-data-status").addClass("unhealthy").text("Detection library unavailable"); }); populate(); }
     Store=window.DEILifecycleStore;
     if (!Store&&attempt<40) { window.setTimeout(function () { initialize(attempt+1); },50); return; }
     if (!Store) { records=[]; populate(); $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Workflow storage unavailable · showing current scan recommendations"); return; }
@@ -121,6 +122,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!value || !record) { return; }
     records=records.filter(function (item) { return key(item)!==value; });
     records.push(record);
+    try { window.history.replaceState({},"",window.location.pathname+"?detection="+encodeURIComponent("instance:"+value)); } catch (error) { /* URL state is optional. */ }
     populate();
+    $("#workflow-detection-select").val("instance:"+value); renderSelected();
   });
 });

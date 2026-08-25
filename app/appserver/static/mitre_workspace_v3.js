@@ -91,7 +91,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function detectionKey(item) {
-    return String(item && (item.detection_id || item._key || item.id) || "").replace(/^dei-/, "");
+    return String(item && (item._key || item.detection_id || item.id) || "").replace(/^dei-/, "");
   }
 
   function allDetections() {

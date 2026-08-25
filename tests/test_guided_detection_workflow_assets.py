@@ -55,7 +55,19 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '$(document).on("dei:detection-draft-generated dei:detection-artifact-saved"' in javascript
     assert "dei:detection-artifact-saved" in javascript
     assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
-    assert 'String($("#builder-detection-select").val()||"")!==key(item)' in javascript
+    assert 'String($("#builder-detection-select").val()||"")!==item.detection_id' in javascript
+    assert 'Detection Library · start a new use case' in javascript
+
+
+def test_reusable_library_templates_are_separate_from_lifecycle_instances() -> None:
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    catalog = (STATIC / "detection_catalog_v2.js").read_text(encoding="utf-8")
+    assert 'copy._workflow_key="library:"+template.detection_id' in workflow
+    assert '_workflow_key:"instance:"+key(record)' in workflow
+    assert 'item.instance_id=item.detection_id+"--"' in generator
+    assert 'record.template_detection_id = record.detection_id' in generator
+    assert 'Start new use case' in catalog
 
 
 def test_unsupported_recommendation_has_safe_planning_and_remediation_paths() -> None:
@@ -91,7 +103,7 @@ def test_builder_restores_tutorial_selection_when_splunk_encodes_route_query() -
 def test_selecting_a_saved_draft_does_not_populate_spl_before_generate() -> None:
     workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     assert 'if (item.record && stage!=="draft")' in workflow
-    assert 'trigger("dei:artifact-inspection-requested",[key(item),stage,item.record])' in workflow
+    assert 'trigger("dei:artifact-inspection-requested",[key(item.record),stage,item.record])' in workflow
     generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
     assert 'resetDraftWorkspace("Selection ready. Choose Generate detection draft to start.")' in generator
     assert '$(`#generator-spl`)' not in generator

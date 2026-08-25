@@ -370,7 +370,7 @@ def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
     assert "function selectedRecommendationOpportunity()" in adapter
     assert 'if(index>=4&&!walkthroughOwnsSelectedDetection()) return false' in adapter
     assert 'readStep()!==3' in adapter
-    assert 'Select a detection labeled Recommendation to continue the tutorial.' in adapter
+    assert 'Select a detection from the reusable library to continue the tutorial.' in adapter
     assert 'if(index===3 && $("#workflow-detection-select").val())' not in adapter
     assert 'if(index===4 && $("#detection-generator")' not in adapter
     assert 'status.stage==="discover"&&guideActive()&&page()==="environment"' in adapter
@@ -398,7 +398,9 @@ def test_tutorial_placement_avoids_covering_wide_targets():
 def test_builder_renders_scan_choices_before_durable_records_finish_loading():
     workflow = _source("detection_workflow_v2.js")
     store = _source("dei_lifecycle_store_v1.js")
-    assert "if(attempt===0) populate();" in workflow
+    assert "if(attempt===0)" in workflow
+    assert "populate();" in workflow
+    assert "capabilitiesEndpoint" in workflow
     assert "records are taking longer than expected" in workflow
     assert "current scan recommendations remain available" in workflow
     assert 'while(value&&typeof value==="object"&&value.payload!==undefined&&depth<3)' in store
@@ -459,7 +461,7 @@ def test_tutorial_waits_for_async_recommendations_without_corrupting_global_stat
     view = ElementTree.parse(VIEWS / "detection_workflow.xml").getroot()
     assert view.find(".//*[@id='workflow-tutorial-status']") is not None
     assert '$(document).on("dei:workflow-options-updated"' in adapter
-    assert 'Loading Recommendation-stage detections' in adapter
+    assert 'Loading the detection library' in adapter
     assert '$("#workflow-data-status").removeClass("healthy").addClass("unhealthy")' not in adapter
     assert 'trigger("dei:workflow-options-updated"' in workflow
 
@@ -527,8 +529,8 @@ def test_tutorial_back_navigation_and_selection_scope_survive_page_changes():
     assert 'Guidance must never disable, clear, or replace' in adapter
     assert 'option.prop("disabled",tutorialSelection' not in adapter
     assert 'select.val("").trigger("change")' not in adapter
-    assert 'No Recommendation-stage detection is currently available.' in adapter
-    assert 'Loading Recommendation-stage detections' in adapter
+    assert 'The reusable detection library is unavailable.' in adapter
+    assert 'Loading the detection library' in adapter
     assert 'if(!selectedRecommendationOpportunity()) { restoreGuide(true);' in adapter
 
 

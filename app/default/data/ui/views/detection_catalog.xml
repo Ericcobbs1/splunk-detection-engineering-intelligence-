@@ -37,6 +37,12 @@
             <div class="dei-lifecycle-hero-state"><span>Detection use cases</span><strong id="catalog-total">0</strong><small>across all lifecycle stages</small></div>
           </section>
 
+          <section class="dei-lifecycle-section dei-catalog-library">
+            <div class="dei-lifecycle-section-head"><div><p class="dei-eyebrow">Reusable Detection Library</p><h2>Packaged detection definitions</h2><p id="catalog-library-summary" aria-live="polite">Loading the installed detection library…</p></div></div>
+            <div class="dei-catalog-filters"><input id="catalog-library-search" aria-label="Search the reusable detection library" type="search" placeholder="Search detection, knowledge pack, capability, source, or MITRE ID…"/></div>
+            <div class="dei-lifecycle-table-wrap"><table class="dei-lifecycle-table"><thead><tr><th>Detection definition</th><th>Knowledge pack</th><th>Required sources</th><th>MITRE ATT&amp;CK</th><th>Action</th></tr></thead><tbody id="catalog-library-table"><tr><td colspan="5">Loading detection library…</td></tr></tbody></table></div>
+          </section>
+
           <section class="dei-catalog-summary" aria-label="Catalog status summary">
             <button type="button" data-catalog-filter="all" class="active"><span>All use cases</span><strong id="catalog-count-all">0</strong></button>
             <button type="button" data-catalog-filter="ready"><span>Ready to deploy</span><strong id="catalog-count-ready">0</strong></button>

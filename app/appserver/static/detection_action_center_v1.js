@@ -23,7 +23,7 @@
   }
 
   function itemKey(item,index) {
-    return String(item.detection_id || item._key || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
+    return String(item._key || item.detection_id || item.id || item.name || ("item-"+index)).replace(/^dei-/,"");
   }
 
   var telemetryGuidance={

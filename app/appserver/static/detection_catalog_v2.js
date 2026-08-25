@@ -1,7 +1,7 @@
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
 
-  var Store=null; var records=[]; var selected=null;
+  var Store=null; var records=[]; var library=[]; var selected=null;
 
   function esc(value) { return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
   function label(value) { return String(value||"unknown").replace(/_/g," ").replace(/\b\w/g,function (c) { return c.toUpperCase(); }); }
@@ -33,6 +33,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function mitre(record) { return (record.mitre_attack||[]).map(function (item) { return typeof item==="string"?item:(item.id||item.technique_id||""); }).filter(Boolean).join(" · "); }
   function health(record) { return record.monitoring && record.monitoring.health ? label(record.monitoring.health) : "Not measured"; }
+  function renderLibrary() {
+    var query=String($("#catalog-library-search").val()||"").toLowerCase();
+    var visible=library.filter(function(item){return !query||[item.name,item.detection_id,item.knowledge_pack,item.capability,(item.required_sources||[]).join(" "),(item.mitre_techniques||[]).join(" ")].join(" ").toLowerCase().indexOf(query)!==-1;});
+    $("#catalog-library-summary").text(visible.length+" of "+library.length+" reusable detection definition"+(library.length===1?"":"s")+" shown. Definitions remain available regardless of active lifecycle use cases.");
+    $("#catalog-library-table").html(visible.length?visible.map(function(item){return '<tr><td><strong>'+esc(item.name||item.detection_id)+'</strong><small>'+esc(item.detection_id)+'</small></td><td>'+esc(item.knowledge_pack||item.pack_id||"Packaged")+'</td><td>'+esc((item.required_sources||[]).join(" · ")||"Not specified")+'</td><td>'+esc((item.mitre_techniques||[]).join(" · ")||"Not mapped")+'</td><td><a href="detection_workflow?detection='+encodeURIComponent("library:"+item.detection_id)+'">Start new use case</a></td></tr>';}).join(""):'<tr><td colspan="5">No detection definitions match this search.</td></tr>');
+  }
+  function loadLibrary() {
+    var url=Splunk.util.make_url("splunkd","__raw","servicesNS","-","splunk_detection_engineering_intelligence","dei","v1","capabilities");
+    $.ajax({url:url,method:"GET",dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).done(function(response){var payload=response&&typeof response.payload==="string"?JSON.parse(response.payload):response; library=Array.isArray(payload&&payload.detections)?payload.detections:[]; renderLibrary();}).fail(function(){ $("#catalog-library-summary").text("Detection library unavailable."); $("#catalog-library-table").html('<tr><td colspan="5">Unable to load installed detection definitions.</td></tr>'); });
+  }
 
   function filteredRecords() {
     var query=String($("#catalog-search").val()||"").toLowerCase(); var status=String($("#catalog-status-filter").val()||"all");
@@ -123,7 +133,8 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   $("#catalog-action-buttons").on("click","button",function () { handle(String($(this).data("catalog-action")||"")); });
   $("#catalog-deployment-target,#catalog-deployment-environment").on("change",updateDeploymentWorkflow);
   $("#catalog-search,#catalog-status-filter").on("input change",render); $("#catalog-refresh").on("click",load);
+  $("#catalog-library-search").on("input",renderLibrary);
   $("#catalog-reset-filters").on("click",function () { $("#catalog-search").val(""); $("#catalog-status-filter").val("all"); $("[data-catalog-filter]").removeClass("active").filter('[data-catalog-filter="all"]').addClass("active"); render(); });
   $("[data-catalog-filter]").on("click",function () { var status=String($(this).data("catalog-filter")||"all"); $("[data-catalog-filter]").removeClass("active"); $(this).addClass("active"); $("#catalog-status-filter").val(status); render(); });
-  initialize(0);
+  loadLibrary(); initialize(0);
 });
