@@ -227,6 +227,23 @@ def test_existing_lifecycle_update_requires_revision() -> None:
     assert "expected_revision is required" in response["payload"]["error"]
 
 
+def test_legacy_unversioned_record_is_migrated_once_then_requires_revision() -> None:
+    store = FakeStore()
+    store.records[LIFECYCLE] = {
+        "det-legacy": {"_key": "det-legacy", "state": "draft", "status": "draft", "history": []}
+    }
+    handler = StorageHandler(lambda _session: store)
+    legacy = dict(store.records[LIFECYCLE]["det-legacy"], name="Migrated")
+    migrated = handler.handle(request({"resource": "lifecycle", "record": legacy}))
+    assert migrated["status"] == 200
+    assert migrated["payload"]["record"]["_revision"] == 1
+
+    saved = store.records[LIFECYCLE]["det-legacy"]
+    rejected = handler.handle(request({"resource": "lifecycle", "record": saved}))
+    assert rejected["status"] == 409
+    assert "expected_revision is required" in rejected["payload"]["error"]
+
+
 def test_server_enforces_lifecycle_evidence_gates() -> None:
     store = FakeStore()
     handler = StorageHandler(lambda _session: store)
