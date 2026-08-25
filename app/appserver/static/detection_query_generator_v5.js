@@ -975,13 +975,20 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   $("#builder-detection-select").on("change", function () {
-    var hasSelection = !!$(this).val();
+    var selectedId = String($(this).val() || "");
+    var hasSelection = !!selectedId;
     $("#builder-generate").prop("disabled", !hasSelection);
     setStartFeedback(hasSelection ? "Ready to generate a clean detection draft." : "Select a detection to enable draft generation.", "ready");
     resetDraftWorkspace(hasSelection ? "Selection ready. Choose Generate detection draft to start." : "Select a detection, then choose Generate detection draft to start.");
-    if (hasSelection && $("#workflow-detection-select").length && $("#workflow-detection-select").val() !== $(this).val()) {
-      $("#workflow-detection-select").val($(this).val()).trigger("change");
+    var workflowSelect=$("#workflow-detection-select");
+    var currentWorkflowValue=String(workflowSelect.val()||"");
+    var currentTemplateId=currentWorkflowValue.indexOf("library:")===0?currentWorkflowValue.slice(8):currentWorkflowValue;
+    if (hasSelection && workflowSelect.length && currentTemplateId !== selectedId) {
+      var reusableValue="library:"+selectedId;
+      var desiredValue=workflowSelect.find('option[value="'+reusableValue.replace(/"/g,'\\"')+'"]').length?reusableValue:selectedId;
+      workflowSelect.val(desiredValue).trigger("change");
     }
+    if (hasSelection) { $(document).trigger("dei:builder-selection-ready", [selectedId]); }
   });
   $(document).on("dei:artifact-inspection-requested", function (event, id, stage, record) {
     var artifact = record ? $.extend(true, {}, record) : storedArtifact("dei-" + String(id || ""));

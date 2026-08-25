@@ -197,7 +197,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       var candidate=targetFor(activeStep(readStep()));
       if(!candidate.length||candidate[0]!==activeTarget) scheduleRender(60);
     });
-    targetObserver.observe(document.body,{childList:true,subtree:true});
+    targetObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["disabled","hidden","aria-disabled","style"]});
   }
   function updateMarker(target) {
     var marker=$("#dei-guide-action-marker");
@@ -406,6 +406,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if(!guideActive()||readStep()!==2||!$(this).val()) return;
     if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection from the reusable library to continue the tutorial."); return; }
     advance();
+  });
+  $(document).on("dei:builder-selection-ready", function(){
+    if(guideActive()&&page()==="builder"&&readStep()===3) scheduleRender(0);
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });
   $(document).on("dei:detection-validation-complete", function(_event,validation){ var step=readStep(); if((step===4||step===18)&&walkthroughOwnsSelectedDetection()&&validation&&validation.status==="passed") advance(); });
