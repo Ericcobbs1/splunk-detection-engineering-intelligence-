@@ -89,7 +89,11 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function recordKey(record) {
     return String(record&&(record._key||record.detection_id||record.id)||"").replace(/^dei-/,"");
   }
-  function normalizeDetectionKey(value) { return String(value||"").replace(/^instance:/,"").replace(/^dei-/,""); }
+  function normalizeDetectionKey(value) {
+    // Workflow library options are namespaced while the embedded builder uses
+    // the raw detection id. Normalize both forms before readiness comparisons.
+    return String(value||"").replace(/^(library:|instance:)/,"").replace(/^dei-/,"");
+  }
   function sessionKey(base) {
     return base+"."+GUIDE_STATE_VERSION;
   }
