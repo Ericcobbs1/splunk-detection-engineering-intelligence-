@@ -24,17 +24,24 @@ async function login(page) {
 function collectRuntimeFailures(page, failures) {
   page.on("pageerror", error => failures.push(`pageerror: ${error.message}`));
   page.on("console", message => {
-    if (message.type() === "error") failures.push(`console: ${message.text()}`);
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // Chromium emits a generic console error for every failed resource. The
+    // response listener below records actionable DEI URLs and statuses instead.
+    if (/^Failed to load resource: the server responded with a status of \d+/i.test(text)) return;
+    const location = message.location();
+    const source = location.url ? ` (${location.url}:${location.lineNumber ?? 0})` : "";
+    failures.push(`console: ${text}${source}`);
   });
   page.on("response", response => {
     const url = response.url();
-    if (response.status() >= 500 && url.includes("splunk_detection_engineering_intelligence")) {
+    if (response.status() >= 400 && url.includes("splunk_detection_engineering_intelligence")) {
       failures.push(`http ${response.status()}: ${url}`);
     }
   });
 }
 
-test.describe.serial("DEI public release gate", () => {
+test.describe("DEI public release gate", () => {
   test.beforeEach(async ({ page }) => login(page));
 
   test("all owned pages render without browser or server failures", async ({ page }) => {
