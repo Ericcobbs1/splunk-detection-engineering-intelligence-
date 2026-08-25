@@ -1,7 +1,7 @@
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
 
-  var REPORT_KEY="dei.latestRecommendationReport"; var Store=null; var recommendations=[]; var library=[]; var libraryState="loading"; var records=[]; var items=[];
+  var REPORT_KEY="dei.latestRecommendationReport"; var Store=null; var recommendations=[]; var library=Array.isArray(window.DEIDetectionLibrary)?window.DEIDetectionLibrary.slice():[]; var libraryState=library.length?"ready":"error"; var records=[]; var items=[];
   var STAGES=[
     {id:"recommendation",label:"Recommendation"},{id:"draft",label:"Draft"},{id:"testing",label:"Testing"},
     {id:"peer_review",label:"Peer review"},{id:"catalog",label:"Catalog ready"},{id:"production",label:"Production"},
@@ -9,25 +9,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   ];
 
   function safeJson(value,fallback) { try { return JSON.parse(value||"null")||fallback; } catch (error) { return fallback; } }
-  function capabilityPayload(response) {
-    var value=response,depth=0;
-    while(value!=null&&depth<10) {
-      if(typeof value==="string") { value=safeJson(value,null); depth+=1; continue; }
-      if(Array.isArray(value)) { value=value.length===1?value[0]:null; depth+=1; continue; }
-      if(!value||typeof value!=="object") break;
-      if(Array.isArray(value.detections)) return value;
-      if(Array.isArray(value.entry)) { value=value.entry.length?value.entry[0]:null; depth+=1; continue; }
-      if(value.content!==undefined) { value=value.content; depth+=1; continue; }
-      if(value.payload!==undefined) { value=value.payload; depth+=1; continue; }
-      if(value.data!==undefined) { value=value.data; depth+=1; continue; }
-      break;
-    }
-    return {detections:[]};
-  }
   function esc(value) { return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
   function label(value) { return String(value||"unknown").replace(/_/g," ").replace(/\b\w/g,function (c) { return c.toUpperCase(); }); }
   function key(item) { return String(item&&(item._workflow_key||item._key||item.detection_id||item.id)||"").replace(/^dei-/,""); }
-  function capabilitiesEndpoint() { return Splunk.util.make_url("splunkd","__raw","servicesNS","-","splunk_detection_engineering_intelligence","dei","v1","capabilities"); }
   function stageFor(item) { var record=item.record; if (!record) { return "recommendation"; } if (record.catalog&&["ready","development","staging"].indexOf(record.catalog.status)!==-1) { return "catalog"; } return record.state||"draft"; }
   function mitre(item) { var values=item.mitre_techniques||(item.record&&item.record.mitre_attack)||[]; return values.map(function (value) { return typeof value==="string"?value:(value.id||value.technique_id||""); }).filter(Boolean); }
   function sources(item) { return item.sourcetypes||item.observed_sourcetypes||item.observed_sources||(item.record&&item.record.sourcetypes)||[]; }
@@ -119,7 +103,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function populate() { mergeItems(); var selected=requested()||String($("#workflow-detection-select").val()||""); var templates=items.filter(function(item){return item.library_template;}); var instances=items.filter(function(item){return !item.library_template;}); var libraryOptions=templates.length?templates.map(function (item) { return '<option value="'+esc(key(item))+'">'+esc(item.name||item.detection_id)+'</option>'; }).join(""):'<option value="" disabled="disabled">'+(libraryState==="loading"?"Loading detection library…":"Detection library unavailable")+'</option>'; $("#workflow-detection-select").html('<option value="">Select a detection</option><optgroup label="Detection Library · start a new use case">'+libraryOptions+'</optgroup>'+(instances.length?'<optgroup label="Lifecycle work · continue an existing use case">'+instances.map(function(item){return '<option value="'+esc(key(item))+'">'+esc(item.name||key(item))+' — '+esc(label(stageFor(item)))+'</option>';}).join("")+'</optgroup>':"")); if(selected&&items.some(function(item){return key(item)===selected;})){ $("#workflow-detection-select").val(selected); } else if(selected&&items.some(function(item){return key(item)==="instance:"+selected;})){ $("#workflow-detection-select").val("instance:"+selected); } if(libraryState==="ready"){ $("#workflow-data-status").removeClass("unhealthy").addClass("healthy").text("Library: "+templates.length+" detections · "+instances.length+" lifecycle use cases"); } else { $("#workflow-data-status").removeClass("healthy").addClass(libraryState==="error"?"unhealthy":"").text(libraryState==="loading"?"Detection library: loading…":"Detection library unavailable · reload or contact the app administrator"); } renderSelected(); $(document).trigger("dei:workflow-options-updated",[items.slice()]); }
   function initialize(attempt) {
     recommendations=(safeJson(window.sessionStorage.getItem(REPORT_KEY),{}).recommendations)||[];
-    if(attempt===0) { $.ajax({url:capabilitiesEndpoint(),method:"GET",data:{output_mode:"json"},dataType:"json",timeout:30000,headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}}).done(function(response){var payload=capabilityPayload(response); library=payload.detections||[]; libraryState=library.length?"ready":"error"; if(library.length) window.DEIDetectionLibrary=library.slice(); populate();}).fail(function(){ libraryState="error"; populate(); }); populate(); }
+    if(attempt===0) { populate(); }
     Store=window.DEILifecycleStore;
     if (!Store&&attempt<40) { window.setTimeout(function () { initialize(attempt+1); },50); return; }
     if (!Store) { records=[]; populate(); $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Workflow storage unavailable · showing current scan recommendations"); return; }

@@ -401,11 +401,29 @@ def test_builder_renders_scan_choices_before_durable_records_finish_loading():
     store = _source("dei_lifecycle_store_v1.js")
     assert "if(attempt===0)" in workflow
     assert "populate();" in workflow
-    assert "capabilitiesEndpoint" in workflow
+    assert "window.DEIDetectionLibrary" in workflow
+    assert "capabilitiesEndpoint" not in workflow
     assert "records are taking longer than expected" in workflow
     assert "current scan recommendations remain available" in workflow
     assert 'while(value&&typeof value==="object"&&value.payload!==undefined&&depth<3)' in store
     assert "response&&response.data&&Array.isArray(response.data.records)" in store
+
+
+def test_packaged_detection_library_is_loaded_before_every_catalog_consumer():
+    import json
+
+    asset = _source("dei_detection_library_v1.js")
+    prefix = "window.DEIDetectionLibrary=Object.freeze("
+    payload = asset.split(prefix, 1)[1].rsplit(");", 1)[0]
+    definitions = json.loads(payload)
+    assert len(definitions) == 31
+    assert len({item["detection_id"] for item in definitions}) == 31
+    assert all(item["knowledge_pack"] for item in definitions)
+
+    workflow_view = (ROOT / "app/default/data/ui/views/detection_workflow.xml").read_text()
+    catalog_view = (ROOT / "app/default/data/ui/views/detection_catalog.xml").read_text()
+    assert workflow_view.index("dei_detection_library_v1.js") < workflow_view.index("detection_query_generator_v5.js")
+    assert catalog_view.index("dei_detection_library_v1.js") < catalog_view.index("detection_catalog_v2.js")
 
 
 def test_tutorial_branch_actions_cannot_report_false_completion():

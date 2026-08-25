@@ -69,10 +69,8 @@ def test_reusable_library_templates_are_separate_from_lifecycle_instances() -> N
     assert 'record.template_detection_id = record.detection_id' in generator
     assert 'Start new use case' in catalog
     for source in (workflow, generator, catalog):
-        assert "function capabilityPayload(response)" in source
-        assert "Array.isArray(value.entry)" in source
-        assert "value.content!==undefined" in source
-        assert "value.payload!==undefined" in source
+        assert "window.DEIDetectionLibrary" in source
+        assert "capabilitiesEndpoint" not in source
 
 
 def test_unsupported_recommendation_has_safe_planning_and_remediation_paths() -> None:
