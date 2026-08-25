@@ -23,3 +23,4 @@ def test_kv_lookup_definitions_reference_their_same_named_collection() -> None:
         stanza = text.split(f"[{collection}]", 1)[1].split("[", 1)[0]
         assert f"collection = {collection}" in stanza
         assert "external_type = kvstore" in stanza
+        assert "fields_list = " in stanza

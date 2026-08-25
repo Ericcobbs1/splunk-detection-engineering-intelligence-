@@ -12,6 +12,7 @@ from dei_intelligence.api.storage_handler import (
     USER_PREFERENCES,
     KVStore,
     StorageHandler,
+    _lifecycle_gate_error,
 )
 
 
@@ -93,11 +94,11 @@ def test_kv_upsert_creates_when_record_does_not_exist() -> None:
 def test_lifecycle_write_and_read_use_governed_collection_and_delete_is_blocked() -> None:
     store = FakeStore()
     handler = StorageHandler(store_factory=lambda _: store)
-    record = {"_key": "det-1", "state": "testing", "history": []}
+    record = {"_key": "det-1", "state": "draft", "history": []}
     assert handler.handle(request({"resource": "lifecycle", "record": record}))["status"] == 200
     listed = handler.handle(request({"resource": "lifecycle", "operation": "read"}))
     saved = listed["payload"]["records"][0]
-    assert saved["state"] == "testing"
+    assert saved["state"] == "draft"
     assert saved["_revision"] == 1
     assert handler.handle(request({
         "resource": "lifecycle", "operation": "delete", "key": "det-1"
@@ -195,7 +196,7 @@ def test_server_removes_raw_validation_samples_before_persistence() -> None:
     handler = StorageHandler(store_factory=lambda _: store)
     record = {
         "_key": "det-sensitive",
-        "state": "testing",
+        "state": "draft",
         "history": [],
         "validation": {"status": "passed", "result_count": 1, "sample_results": [{"password": "secret", "_raw": "token"}]},
     }
@@ -203,6 +204,87 @@ def test_server_removes_raw_validation_samples_before_persistence() -> None:
     saved = store.records[LIFECYCLE]["det-sensitive"]
     assert saved["validation"]["result_count"] == 1
     assert "sample_results" not in saved["validation"]
+
+
+def test_new_lifecycle_record_cannot_skip_governed_entry_states() -> None:
+    store = FakeStore()
+    handler = StorageHandler(lambda _session: store)
+    record = {"_key": "det-skip", "state": "production", "history": []}
+    response = handler.handle(request({"resource": "lifecycle", "record": record}))
+    assert response["status"] == 409
+    assert "must begin" in response["payload"]["error"]
+    assert LIFECYCLE not in store.records
+
+
+def test_existing_lifecycle_update_requires_revision() -> None:
+    store = FakeStore()
+    handler = StorageHandler(lambda _session: store)
+    draft = {"_key": "det-revision", "state": "draft", "history": []}
+    assert handler.handle(request({"resource": "lifecycle", "record": draft}))["status"] == 200
+    saved = store.records[LIFECYCLE]["det-revision"]
+    response = handler.handle(request({"resource": "lifecycle", "record": saved}))
+    assert response["status"] == 409
+    assert "expected_revision is required" in response["payload"]["error"]
+
+
+def test_server_enforces_lifecycle_evidence_gates() -> None:
+    store = FakeStore()
+    handler = StorageHandler(lambda _session: store)
+    draft = {"_key": "det-gates", "state": "draft", "history": []}
+    assert handler.handle(request({"resource": "lifecycle", "record": draft}))["status"] == 200
+    saved = store.records[LIFECYCLE]["det-gates"]
+
+    testing = dict(saved, state="testing", status="testing")
+    rejected = handler.handle(request({"resource": "lifecycle", "record": testing, "expected_revision": 1}))
+    assert rejected["status"] == 409
+    assert "validation evidence" in rejected["payload"]["error"]
+
+    testing["validation"] = {"status": "passed"}
+    assert handler.handle(request({"resource": "lifecycle", "record": testing, "expected_revision": 1}))["status"] == 200
+    saved = store.records[LIFECYCLE]["det-gates"]
+    review = dict(saved, state="peer_review", status="peer_review")
+    rejected = handler.handle(request({"resource": "lifecycle", "record": review, "expected_revision": 2}))
+    assert rejected["status"] == 409
+    assert "submission evidence" in rejected["payload"]["error"]
+
+
+def test_monitoring_gate_requires_complete_numeric_and_narrative_evidence() -> None:
+    record = {
+        "validation": {"status": "passed"},
+        "review": {"decision": "approved", "submitted_by": "engineer"},
+        "deployment": {"external_object_id": "saved-search"},
+        "monitoring": {"last_checked_at": "now", "result_volume": 0, "runtime_ms": 1},
+    }
+    assert "review period" in _lifecycle_gate_error(record, "monitoring")
+    record["monitoring"].update({"review_period": "24h", "note": "scheduler and source checked"})
+    assert _lifecycle_gate_error(record, "monitoring") == ""
+
+
+def test_self_review_rejection_is_case_insensitive() -> None:
+    store = FakeStore()
+    store.records[LIFECYCLE] = {
+        "det-review": {
+            "_key": "det-review",
+            "_revision": 1,
+            "state": "peer_review",
+            "status": "peer_review",
+            "history": [],
+            "validation": {"status": "passed"},
+            "review": {"decision": "pending", "submitted_by": "Eric"},
+        }
+    }
+    handler = StorageHandler(lambda _session: store)
+    approved = dict(store.records[LIFECYCLE]["det-review"])
+    approved["review"] = {"decision": "approved", "submitted_by": "Eric"}
+    runtime = json.dumps({
+        "method": "POST",
+        "session": {"authtoken": "token", "user": "eric"},
+        "payload": {"resource": "lifecycle", "record": approved, "expected_revision": 1},
+    })
+    response = handler.handle(runtime)
+    assert response["status"] == 409
+    assert "cannot approve" in response["payload"]["error"]
+
 def test_handler_accepts_persistent_rest_bytes_payload() -> None:
     store = FakeStore()
     handler = StorageHandler(lambda _session: store)
