@@ -373,8 +373,17 @@ def test_tutorial_run_is_isolated_from_preexisting_lifecycle_records():
     assert 'Select a detection labeled Recommendation to continue the tutorial.' in adapter
     assert 'if(index===3 && $("#workflow-detection-select").val())' not in adapter
     assert 'if(index===4 && $("#detection-generator")' not in adapter
-    assert 'status.stage==="discover"&&guideActive&&page()==="environment"' in adapter
+    assert 'status.stage==="discover"&&guideActive()&&page()==="environment"' in adapter
     assert 'window.sessionStorage.setItem(sessionKey(SEEN_KEY),"false")' in adapter
+
+
+def test_tutorial_is_manual_launch_only_and_does_not_hijack_normal_work():
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'var ACTIVE_KEY="dei.nextGuide.active"' in adapter
+    assert 'window.sessionStorage.setItem(sessionKey(ACTIVE_KEY),"true")' in adapter
+    assert 'window.setTimeout(function(){ if(guideActive()) render(); },250)' in adapter
+    assert 'if(!guideActive()||readStep()!==2' in adapter
+    assert 'window.sessionStorage.getItem(sessionKey(SEEN_KEY))!=="true"' not in adapter
 
 
 def test_tutorial_branch_actions_cannot_report_false_completion():
@@ -412,7 +421,7 @@ def test_completion_step_never_highlights_the_entire_workspace():
 
 def test_guide_asset_version_bypasses_splunk_static_cache():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert 'window.DEIGuideAssetVersion="v13"' in adapter
+    assert 'window.DEIGuideAssetVersion="v14"' in adapter
     assert not (STATIC / "dei_guide_adapter_v7.js").exists()
     assert 'dei_interactive_guide_v3.js' in adapter
     assert 'data-dei-guide-bundle","v3"' in adapter
@@ -483,7 +492,7 @@ def test_tutorial_state_machine_covers_every_required_action_through_completion(
 
 def test_tutorial_cross_page_links_have_one_navigation_owner():
     adapter = _source("dei_guide_adapter_v8.js")
-    assert '".dei-open-environment-discovery", function(event){ if(readStep()===0){ event.preventDefault(); goToStep(1); } }' in adapter
+    assert '".dei-open-environment-discovery", function(event){ if(guideActive()&&readStep()===0){ event.preventDefault(); goToStep(1); } }' in adapter
     assert 'status.stage==="complete"||status.stage==="complete_with_warning"' in adapter
 
 
@@ -496,8 +505,9 @@ def test_tutorial_back_navigation_and_selection_scope_survive_page_changes():
     assert 'if(reviewCeiling<0) setReviewCeiling(index)' in adapter
     assert 'function applyTutorialSelectionScope(index)' in adapter
     assert 'var tutorialSelection=index===2&&reviewCeiling<0' in adapter
-    assert 'option.prop("disabled",tutorialSelection&&!!option.val()&&!recommendation)' in adapter
-    assert 'if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change")' in adapter
+    assert 'Guidance must never disable, clear, or replace' in adapter
+    assert 'option.prop("disabled",tutorialSelection' not in adapter
+    assert 'select.val("").trigger("change")' not in adapter
     assert 'No Recommendation-stage detection is currently available.' in adapter
     assert 'Loading Recommendation-stage detections' in adapter
     assert 'if(!selectedRecommendationOpportunity()) { restoreGuide(true);' in adapter

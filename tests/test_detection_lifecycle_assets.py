@@ -117,6 +117,20 @@ def test_approved_detections_move_from_engineering_queue_to_catalog() -> None:
         assert contract in catalog_javascript
 
 
+def test_catalog_displays_complete_governed_use_case_portfolio() -> None:
+    catalog = ElementTree.parse(CATALOG_PATH).getroot()
+    javascript = (STATIC_ROOT / "detection_catalog_v2.js").read_text(encoding="utf-8")
+    status_filter = catalog.find(".//*[@id='catalog-status-filter']")
+    assert status_filter is not None
+    assert {option.attrib["value"] for option in status_filter.findall("option")} >= {
+        "recommendation", "draft", "testing", "peer_review", "ready", "enabled", "monitoring", "retired"
+    }
+    assert "View every governed detection use case" in ElementTree.tostring(catalog, encoding="unicode")
+    assert "var all=records.slice();" in javascript
+    assert "return records.filter(function (record)" in javascript
+    assert "dei-catalog-continue" in javascript
+
+
 def test_guided_detection_builder_owns_the_action_workspace() -> None:
     lifecycle = ElementTree.parse(VIEW_PATH).getroot()
     builder = ElementTree.parse(APP_ROOT / "default" / "data" / "ui" / "views" / "detection_workflow.xml").getroot()
