@@ -16,7 +16,7 @@ def test_customer_navigation_exposes_six_clear_destinations() -> None:
         assert [(item.text, item.attrib["href"]) for item in nav.findall("a")] == [
             ("Home", "dei_home"), ("Discover", "command_center"),
             ("Coverage", "mitre_coverage"), ("Build", "detection_workflow"),
-            ("Operate", "detection_catalog"),
+            ("Detection Catalog", "detection_catalog"),
             ("Health", "detection_health"),
         ]
 

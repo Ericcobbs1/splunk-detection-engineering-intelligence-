@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v12";
+window.DEIGuideAssetVersion="v13";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -122,10 +122,17 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       option.prop("disabled",tutorialSelection&&!!option.val()&&!recommendation);
     });
     if(tutorialSelection&&select.val()&&!selectedRecommendationOpportunity()) select.val("").trigger("change");
-    if(tutorialSelection&&!select.find("option").filter(function(){return !!$(this).val()&&!$(this).prop("disabled");}).length) {
-      $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").html('Tutorial blocked: this scan has no unused Recommendation-stage detections. <a id="dei-tutorial-recovery" href="detection_catalog#lifecycle-map">Open Lifecycle and restart an eligible detection from Recommendation</a>, then return here; tutorial progress will be preserved.');
-    }
+    var eligible=select.find("option").filter(function(){return !!$(this).val()&&!$(this).prop("disabled");}).length;
+    var status=$("#workflow-tutorial-status");
+    if(!tutorialSelection||eligible) status.prop("hidden",true).empty();
+    else if(select.find("option[value]").length<=1) status.prop("hidden",false).removeClass("unhealthy").text("Loading Recommendation-stage detections…");
+    else status.prop("hidden",false).addClass("unhealthy").html('No Recommendation-stage detection is currently available. <a id="dei-tutorial-recovery" href="detection_catalog#lifecycle-map">Open Detection Catalog to restart an eligible detection</a>, then return here; tutorial progress will be preserved.');
   }
+
+  $(document).on("dei:workflow-options-updated",function(){
+    applyTutorialSelectionScope(readStep());
+    if(readStep()===2&&reviewCeiling<0) restoreGuide(true);
+  });
   function route(name) {
     var base={home:"dei_home",environment:"command_center",environment_insights:"environment_insights",mitre:"mitre_coverage",builder:"detection_workflow",catalog:"detection_catalog"}[name];
     var detection=walkthroughDetection()||String(window.localStorage.getItem("dei.selectedDetectionDraft")||"");
@@ -389,7 +396,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   });
   $(document).on("change", "#workflow-detection-select", function(){
     if(readStep()!==2||!$(this).val()) return;
-    if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-data-status").removeClass("healthy").addClass("unhealthy").text("Tutorial: select a detection labeled Recommendation. Existing lifecycle records remain available outside this walkthrough."); return; }
+    if(!selectedRecommendationOpportunity()) { restoreGuide(true); $("#workflow-tutorial-status").prop("hidden",false).addClass("unhealthy").text("Select a detection labeled Recommendation to continue the tutorial."); return; }
     advance();
   });
   $(document).on("dei:detection-draft-generated", function(_event,id,record){ completeDraft(id,record); });

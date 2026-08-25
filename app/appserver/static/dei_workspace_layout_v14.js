@@ -107,6 +107,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function renderWorkContext() {
     var selected=engagementState().selected;
     if (!selected || pageKey()==="home" || pageKey()==="discovery") { $("#dei-work-context").remove(); return; }
+    // This renderer is called after hydration, selection changes, and lifecycle
+    // events. Replace the shared context instead of stacking duplicate banners.
+    $("#dei-work-context").remove();
     var markup='<section id="dei-work-context" class="dei-work-context"><span><b>Current detection</b> · '+$("<div>").text(selected.label).html()+'</span><a href="'+selected.href+'">Continue work →</a></section>';
     if ($("#dei-active-scan-context").length) { $("#dei-active-scan-context").after(markup); }
     else { shell().find(".dei-product-bar").first().after(markup); }
@@ -121,7 +124,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       (resume?'<h2>'+$("<div>").text(resume.label).html()+'</h2><p>'+resume.detail+'</p><small>Last activity · '+new Date(resume.at).toLocaleString()+'</small><a href="'+resume.href+'">Continue detection →</a>':'<h2>No unfinished work</h2><p>Select a detection in Coverage or Builder and DEI will preserve your return point.</p><a href="mitre_coverage">Review detection opportunities →</a>')+'</article>'+
       '<article class="dei-recent-activity"><p class="dei-eyebrow">Recent activity</p><h2>Engineering history</h2><ol>'+(activities.length?activities.map(function(item){return '<li><a href="'+(item.href||"detection_catalog")+'"><strong>'+$("<div>").text(item.title).html()+'</strong><span>'+$("<div>").text(item.detail).html()+'</span><small>'+new Date(item.at).toLocaleString()+'</small></a></li>';}).join(""):'<li><span>Completed scans, saved drafts, validations, approvals, deployments, and health reviews will appear here.</span></li>')+'</ol></article></section>';
     if ($("#dei-engagement-home").length) { $("#dei-engagement-home").replaceWith(markup); }
-    else if ($("#dei-guided-workflow").length) { $("#dei-guided-workflow").after(markup); }
+    else { shell().append(markup); }
   }
 
   function draftRecovery() { return safeJson(safeStorageGet(DRAFT_RECOVERY_KEY+"."+username(),""),null); }

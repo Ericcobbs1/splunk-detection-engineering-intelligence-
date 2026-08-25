@@ -8,7 +8,7 @@
         <main id="dei-guided-detection-page" class="dei-shell dei-guided-detection-page">
           <section class="dei-product-bar" aria-label="DEI workspace navigation">
             <div class="dei-product-brand"><span class="dei-brand-mark">DEI</span><div><strong>Detection Engineering Intelligence</strong><span>Detection lifecycle</span></div></div>
-            <nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a class="active" href="detection_workflow">Build</a><a href="detection_catalog">Operate</a><a href="detection_health">Health</a></nav>
+<nav class="dei-workspace-nav"><a href="dei_home">Home</a><a href="command_center">Discover</a><a href="mitre_coverage">Coverage</a><a class="active" href="detection_workflow">Build</a><a href="detection_catalog">Detection Catalog</a><a href="detection_health">Health</a></nav>
             <div id="workflow-data-status" class="dei-status">Workflow: loading</div>
           </section>
 
@@ -21,6 +21,7 @@
             <div><span>Detection</span><h2 id="workflow-selector-title">Choose where to continue</h2></div>
             <select id="workflow-detection-select" aria-label="Detection workflow"><option value="">Select a detection</option></select>
           </section>
+          <div id="workflow-tutorial-status" class="dei-workflow-tutorial-status" role="status" aria-live="polite" hidden="hidden"></div>
 
           <section id="workflow-empty" class="dei-workflow-empty"><strong>Select a detection to begin.</strong><p>Run an environment scan first if no detection recommendations are available.</p><a class="dei-link-button dei-scan-discovery-link" href="command_center#dei-telemetry">Open Environment Discovery →</a></section>
 
