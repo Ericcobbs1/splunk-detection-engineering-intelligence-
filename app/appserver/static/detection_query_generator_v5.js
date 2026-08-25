@@ -898,6 +898,23 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       setStartFeedback("Select a detection to enable draft generation.", "ready");
       $("#builder-generate").prop("disabled", true);
     }
+    // The workflow router and builder initialize independently. If the user
+    // selected a reusable library definition before this selector finished
+    // loading, reconcile it now instead of requiring a second selection.
+    var workflowValue=String($("#workflow-detection-select").val()||"");
+    if (workflowValue.indexOf("library:")===0) {
+      requestBuilderSelection(workflowValue.slice(8));
+    }
+  }
+
+  function requestBuilderSelection(id) {
+    var requestedId=String(id||"").replace(/^(library:|instance:)/,"");
+    var select=$("#builder-detection-select");
+    var exists=select.find("option").filter(function(){return String($(this).val()||"")===requestedId;}).length;
+    if (!requestedId || !select.length || !exists) { return false; }
+    if (String(select.val()||"")!==requestedId) { select.val(requestedId).trigger("change"); }
+    else { $("#builder-generate").prop("disabled",false); }
+    return true;
   }
 
   function generateSelectedDetection(event) {
@@ -993,6 +1010,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       workflowSelect.val(desiredValue).trigger("change");
     }
     if (hasSelection) { $(document).trigger("dei:builder-selection-ready", [selectedId]); }
+  });
+  $(document).on("dei:builder-selection-requested", function (event,id) {
+    requestBuilderSelection(id);
   });
   $(document).on("dei:artifact-inspection-requested", function (event, id, stage, record) {
     var artifact = record ? $.extend(true, {}, record) : storedArtifact("dei-" + String(id || ""));
