@@ -57,6 +57,8 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
     assert '$(document).trigger("dei:builder-selection-requested",[item.detection_id])' in javascript
     assert 'Detection Library · start a new use case' in javascript
+    assert '$("#workflow-next-bar").prop("hidden",false)' in javascript
+    assert '$(document).on("click","#workflow-primary-action"' in javascript
 
 
 def test_reusable_library_templates_are_separate_from_lifecycle_instances() -> None:
