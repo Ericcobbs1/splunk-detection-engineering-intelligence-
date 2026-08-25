@@ -493,6 +493,10 @@ def test_library_selection_keeps_workflow_and_builder_in_sync_for_tutorial():
     assert 'var reusableValue="library:"+selectedId' in generator
     assert 'trigger("dei:builder-selection-ready", [selectedId])' in generator
     assert '$(document).on("dei:builder-selection-ready"' in adapter
+    assert "advanceFromLibrarySelectionWhenReady" in adapter
+    assert 'button=$("#builder-generate").filter(":visible").first()' in adapter
+    assert "builderSelected!==selected" in adapter
+    assert "Preparing the draft controls for the selected library detection" in adapter
     assert 'readStep()===3) scheduleRender(0)' in adapter
     assert 'attributeFilter:["disabled","hidden","aria-disabled","style"]' in adapter
 

@@ -112,6 +112,18 @@ def test_selecting_a_saved_draft_does_not_populate_spl_before_generate() -> None
     assert '$(`#generator-spl`)' not in generator
 
 
+def test_reset_keeps_the_required_generate_control_visible() -> None:
+    """Selecting a library item must not hide the next tutorial action."""
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    reset = generator.split("function resetDraftWorkspace(message)", 1)[1].split(
+        "function selectorGroup", 1
+    )[0]
+    assert '$("#detection-generator").show()' in reset
+    assert '$("#generator-output").hide()' in reset
+    assert '#detection-generator,#generator-output' not in reset
+    assert '$("#builder-generate").prop("disabled", !hasSelection)' in generator
+
+
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
     javascript = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
     for destination in ("#workflow-environment-panel", "#detection-generator", "#lifecycle-action-center"):
