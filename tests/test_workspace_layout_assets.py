@@ -161,7 +161,7 @@ def test_official_home_pipeline_is_immediately_visible_and_data_driven() -> None
     assert '$(document).on("click", "#dei-topology-core-action"' in javascript
     assert '"All evidence stages complete"' in javascript
     assert "Pipeline refresh complete." in javascript
-    assert "refresh timed out after 12 seconds" in javascript
+    assert "refresh timed out after 12 seconds" not in javascript
     assert "Scan.hydrate()" in javascript
     assert 'if (!root.length) { return; }' in javascript
     assert 'if (bar.length && !bar.find(".dei-workspace-controls").length)' in javascript

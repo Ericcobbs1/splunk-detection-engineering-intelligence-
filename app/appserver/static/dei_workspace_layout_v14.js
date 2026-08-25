@@ -415,32 +415,27 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       announceAction("Refreshing environment, lifecycle, validation, deployment, and health evidence…","info");
     }
     homeLifecycleLoading=true;
-    function complete(force) {
-      if(settled||sequence!==homeRefreshSequence||(!force&&(!lifecycleDone||!environmentDone))) return;
-      settled=true; window.clearTimeout(timer); homeLifecycleLoading=false; renderHomePipeline(true);
+    function complete() {
+      if(settled||sequence!==homeRefreshSequence||!lifecycleDone||!environmentDone) return;
+      settled=true; homeLifecycleLoading=false; renderHomePipeline(true);
       if(!interactive) return;
       var now=new Date(),count=(homeLifecycleRecords||[]).length;
       var suffix=" "+count+" lifecycle record"+(count===1?"":"s")+" loaded at "+now.toLocaleTimeString()+".";
       if(failures.length) finishHomeRefresh("Pipeline refresh completed with fallback data: "+failures.join("; ")+"."+suffix,"error");
       else finishHomeRefresh("Pipeline refresh complete."+suffix,"success");
     }
-    var timer=window.setTimeout(function(){
-      failures.push("refresh timed out after 12 seconds");
-      if(!lifecycleDone) homeLifecycleRecords=fallback;
-      lifecycleDone=true; environmentDone=true; complete(true);
-    },12000);
     if (!Store || !Store.load) {
-      homeLifecycleRecords=fallback; failures.push("lifecycle service unavailable"); lifecycleDone=true; complete(false);
+      homeLifecycleRecords=fallback; failures.push("lifecycle service unavailable"); lifecycleDone=true; complete();
     } else {
       Store.load().done(function(records){homeLifecycleRecords=Array.isArray(records)?records:[];})
         .fail(function(){homeLifecycleRecords=fallback;failures.push("lifecycle service unavailable");})
-        .always(function(){lifecycleDone=true;complete(false);});
+        .always(function(){lifecycleDone=true;complete();});
     }
     if(interactive){
       var Scan=window.DEIEnvironmentScan;
-      if(!Scan||!Scan.hydrate){failures.push("environment service unavailable");environmentDone=true;complete(false);}
+      if(!Scan||!Scan.hydrate){failures.push("environment service unavailable");environmentDone=true;complete();}
       else Scan.hydrate().fail(function(){failures.push("shared environment assessment unavailable");})
-        .always(function(){environmentDone=true;complete(false);});
+        .always(function(){environmentDone=true;complete();});
     }
   }
 
