@@ -308,3 +308,13 @@ def test_detection_usability_guidance_and_es_handoff_are_packaged() -> None:
     assert "lifecycle-review-period" in lifecycle
     assert "review_period:reviewPeriod" in lifecycle
     assert "Settings → Searches, Reports, and Alerts" in usability
+
+
+def test_unobserved_library_detection_stays_in_integrated_planning_builder() -> None:
+    workflow = (STATIC / "detection_workflow_v2.js").read_text(encoding="utf-8")
+    generator = (STATIC / "detection_query_generator_v5.js").read_text(encoding="utf-8")
+    readiness = '["partial","unsupported","requires_es","requires_enterprise_security","not_observed"]'
+    assert readiness in workflow
+    assert readiness in generator
+    assert '(buildable||planning)?"#builder-generate":remediationHref' in workflow
+    assert 'selectorGroup(items, "not_observed", "Detection library · telemetry not observed")' in generator

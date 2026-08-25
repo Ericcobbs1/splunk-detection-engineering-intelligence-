@@ -34,7 +34,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   function guide(item) {
     var record=item.record||{}; var id=encodeURIComponent(key(item)); var stage=stageFor(item); var validation=record.validation||{}; var review=record.review||{}; var deployment=record.deployment||{}; var monitoring=record.monitoring||{};
     var buildable=["production_ready","field_unverified","field_gap"].indexOf(item.readiness)!==-1;
-    var planning=["partial","unsupported","requires_es","requires_enterprise_security"].indexOf(item.readiness)!==-1;
+    // Keep the router aligned with the generator: an unobserved library item
+    // is authorable as a telemetry-gated planning draft, not diverted away.
+    var planning=["partial","unsupported","requires_es","requires_enterprise_security","not_observed"].indexOf(item.readiness)!==-1;
     var observed=sources(item); var techniques=mitre(item); var missing=missingSources(item); var fieldGaps=fieldGapSummary(item);
     var telemetryReady=item.readiness==="production_ready";
     var recommendationRequirements=[
