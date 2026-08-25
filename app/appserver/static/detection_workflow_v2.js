@@ -77,8 +77,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver,#workflow-unified-workspace").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
     var stage=stageFor(item);
     $("#workflow-unified-workspace").prop("hidden",false);
-    if (item.library_template && String($("#builder-detection-select").val()||"")!==item.detection_id) {
-      $("#builder-detection-select").val(item.detection_id).trigger("change");
+    if (item.library_template) {
+      // The generator may still be loading its library options. Publish an
+      // explicit request that it can reconcile after asynchronous startup.
+      $(document).trigger("dei:builder-selection-requested",[item.detection_id]);
     }
     applyArtifactMode(stage,item.record);
     window.setTimeout(function () { applyArtifactMode(stage,item.record); },0);

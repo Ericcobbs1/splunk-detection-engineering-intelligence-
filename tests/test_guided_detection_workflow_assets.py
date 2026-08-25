@@ -55,7 +55,7 @@ def test_workflow_driver_covers_every_detection_lifecycle_stage() -> None:
     assert '$(document).on("dei:detection-draft-generated dei:detection-artifact-saved"' in javascript
     assert "dei:detection-artifact-saved" in javascript
     assert "dei:lifecycle-action-complete" in (STATIC / "detection_lifecycle_v3.js").read_text(encoding="utf-8")
-    assert 'String($("#builder-detection-select").val()||"")!==item.detection_id' in javascript
+    assert '$(document).trigger("dei:builder-selection-requested",[item.detection_id])' in javascript
     assert 'Detection Library · start a new use case' in javascript
 
 
@@ -122,6 +122,9 @@ def test_reset_keeps_the_required_generate_control_visible() -> None:
     assert '$("#generator-output").hide()' in reset
     assert '#detection-generator,#generator-output' not in reset
     assert '$("#builder-generate").prop("disabled", !hasSelection)' in generator
+    assert 'function requestBuilderSelection(id)' in generator
+    assert '$(document).on("dei:builder-selection-requested"' in generator
+    assert 'requestBuilderSelection(workflowValue.slice(8))' in generator
 
 
 def test_workflow_keeps_core_builder_and_lifecycle_actions_on_one_page() -> None:
