@@ -485,6 +485,17 @@ def test_tutorial_waits_for_async_recommendations_without_corrupting_global_stat
     assert 'trigger("dei:workflow-options-updated"' in workflow
 
 
+def test_library_selection_keeps_workflow_and_builder_in_sync_for_tutorial():
+    generator = _source("detection_query_generator_v5.js")
+    adapter = _source("dei_guide_adapter_v8.js")
+    assert 'currentWorkflowValue.indexOf("library:")===0' in generator
+    assert 'var reusableValue="library:"+selectedId' in generator
+    assert 'trigger("dei:builder-selection-ready", [selectedId])' in generator
+    assert '$(document).on("dei:builder-selection-ready"' in adapter
+    assert 'readStep()===3) scheduleRender(0)' in adapter
+    assert 'attributeFilter:["disabled","hidden","aria-disabled","style"]' in adapter
+
+
 def test_completion_step_uses_finish_instead_of_show_me():
     adapter = _source("dei_guide_adapter_v8.js")
     react_source = (ROOT / "ui/interactive-guide.jsx").read_text(encoding="utf-8")
