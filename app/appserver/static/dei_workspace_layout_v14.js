@@ -6,6 +6,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   var MODES = ["analyst", "coverage", "engineering"];
   var homeLifecycleRecords = null;
   var homeLifecycleLoading = false;
+  var homeRefreshSequence = 0;
   var ENGAGEMENT_KEY = "dei.engagement.v1";
   var DRAFT_RECOVERY_KEY = "dei.builderRecovery.v1";
   var engagementTimer = null;
@@ -395,33 +396,52 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   function finishHomeRefresh(message, state) {
-    $("#dei-home-refresh").prop("disabled",false).attr("aria-busy","false").removeClass("refreshing");
+    $("#dei-home-refresh").prop("disabled",false).attr("aria-busy","false").removeClass("refreshing").text("Refresh pipeline");
     if (message) { announceAction(message,state); }
   }
 
   function refreshHomeLifecycleRecords(interactive) {
     var Store=window.DEILifecycleStore;
-    if (!$("#dei-home-detection-flow").length || homeLifecycleLoading) { return; }
-    if (interactive) {
-      $("#dei-home-refresh").prop("disabled",true).attr("aria-busy","true").addClass("refreshing");
-      announceAction("Refreshing saved lifecycle, validation, deployment, and health evidence…","info");
-    }
-    if (!Store || !Store.load) {
-      homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
-      renderHomePipeline(true);
-      if (interactive) { finishHomeRefresh("Pipeline refreshed from the latest browser evidence.","success"); }
+    if (!$("#dei-home-detection-flow").length) { return; }
+    if (homeLifecycleLoading) {
+      if (interactive) { announceAction("Pipeline refresh is already in progress.","info"); }
       return;
     }
+    var sequence=++homeRefreshSequence,settled=false,lifecycleDone=false,environmentDone=!interactive;
+    var fallback=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []),failures=[];
+    if (interactive) {
+      $("#dei-home-refresh").prop("disabled",true).attr("aria-busy","true").addClass("refreshing").text("Refreshing…");
+      $("#dei-home-flow-status").text("Refreshing environment and lifecycle evidence…");
+      announceAction("Refreshing environment, lifecycle, validation, deployment, and health evidence…","info");
+    }
     homeLifecycleLoading=true;
-    Store.load().done(function (records) {
-      homeLifecycleRecords=Array.isArray(records) ? records : [];
-      renderHomePipeline(true);
-      if (interactive) { finishHomeRefresh("Pipeline refreshed with the latest lifecycle evidence.","success"); }
-    }).fail(function () {
-      homeLifecycleRecords=safeJson(safeStorageGet("dei.detectionDraftArtifacts", ""), []);
-      renderHomePipeline(true);
-      if (interactive) { finishHomeRefresh("Lifecycle service was unavailable. Showing the latest saved browser evidence.","error"); }
-    }).always(function () { homeLifecycleLoading=false; });
+    function complete(force) {
+      if(settled||sequence!==homeRefreshSequence||(!force&&(!lifecycleDone||!environmentDone))) return;
+      settled=true; window.clearTimeout(timer); homeLifecycleLoading=false; renderHomePipeline(true);
+      if(!interactive) return;
+      var now=new Date(),count=(homeLifecycleRecords||[]).length;
+      var suffix=" "+count+" lifecycle record"+(count===1?"":"s")+" loaded at "+now.toLocaleTimeString()+".";
+      if(failures.length) finishHomeRefresh("Pipeline refresh completed with fallback data: "+failures.join("; ")+"."+suffix,"error");
+      else finishHomeRefresh("Pipeline refresh complete."+suffix,"success");
+    }
+    var timer=window.setTimeout(function(){
+      failures.push("refresh timed out after 12 seconds");
+      if(!lifecycleDone) homeLifecycleRecords=fallback;
+      lifecycleDone=true; environmentDone=true; complete(true);
+    },12000);
+    if (!Store || !Store.load) {
+      homeLifecycleRecords=fallback; failures.push("lifecycle service unavailable"); lifecycleDone=true; complete(false);
+    } else {
+      Store.load().done(function(records){homeLifecycleRecords=Array.isArray(records)?records:[];})
+        .fail(function(){homeLifecycleRecords=fallback;failures.push("lifecycle service unavailable");})
+        .always(function(){lifecycleDone=true;complete(false);});
+    }
+    if(interactive){
+      var Scan=window.DEIEnvironmentScan;
+      if(!Scan||!Scan.hydrate){failures.push("environment service unavailable");environmentDone=true;complete(false);}
+      else Scan.hydrate().fail(function(){failures.push("shared environment assessment unavailable");})
+        .always(function(){environmentDone=true;complete(false);});
+    }
   }
 
   function renderHomeHealthActions(issues, healthState) {
