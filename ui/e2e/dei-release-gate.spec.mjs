@@ -11,8 +11,8 @@ if (!username || !password) {
 async function login(page) {
   await page.goto(`${app}/dei_home`, { waitUntil: "domcontentloaded" });
   if (/\/account\/login/.test(page.url())) {
-    await page.getByLabel("Username").fill(username);
-    await page.getByLabel("Password").fill(password);
+    await page.locator("#username").fill(username);
+    await page.locator("#password").fill(password);
     await Promise.all([
       page.waitForURL(new RegExp(`${app}/`), { timeout: 30_000 }),
       page.getByRole("button", { name: "Sign In" }).click(),
