@@ -203,3 +203,15 @@ def test_server_removes_raw_validation_samples_before_persistence() -> None:
     saved = store.records[LIFECYCLE]["det-sensitive"]
     assert saved["validation"]["result_count"] == 1
     assert "sample_results" not in saved["validation"]
+def test_handler_accepts_persistent_rest_bytes_payload() -> None:
+    store = FakeStore()
+    handler = StorageHandler(lambda _session: store)
+    request = json.dumps({"sessionKey": "token", "method": "POST", "payload": {"resource": "lifecycle", "operation": "read"}}).encode("utf-8")
+    response = handler.handle(request)
+    assert response["status"] == 200
+
+
+def test_handler_rejects_non_utf8_persistent_rest_payload() -> None:
+    handler = StorageHandler(lambda _session: FakeStore())
+    response = handler.handle(b"\xff\xfe")
+    assert response["status"] == 400

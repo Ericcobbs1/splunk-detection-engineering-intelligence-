@@ -51,6 +51,7 @@
   }
 
   function saveFallback(record) {
+    record = sanitize(record);
     var records = fallbackRecords().filter(function (item) {
       return String(item._key || item.id) !== String(record._key || record.id);
     });
@@ -59,6 +60,21 @@
     persistenceWarning("write");
     record._persistence = {durable:false, mode:mode};
     return record;
+  }
+
+  function sanitize(value) {
+    if (Array.isArray(value)) { return value.map(sanitize); }
+    if (!value || typeof value !== "object") { return value; }
+    return Object.keys(value).reduce(function (copy, key) {
+      if (["sample_results", "raw_results", "_raw"].indexOf(key) === -1) { copy[key] = sanitize(value[key]); }
+      return copy;
+    }, {});
+  }
+
+  function responseMessage(xhr) {
+    var body=xhr&&xhr.responseJSON;
+    if (body&&typeof body.payload==="string") { body=safeJson(body.payload,{}); }
+    return String(body&&body.error||body&&body.message||"").trim();
   }
 
   function load() {
@@ -87,8 +103,13 @@
     request({resource:"lifecycle", operation:"upsert", expected_revision:record._revision, record:payload})
       .done(function (response) { mode = "Splunk KV Store"; recoveryPending=false; payload=$.extend(true,{},payload,response&&response.record||{}); payload._persistence={durable:true,mode:mode}; deferred.resolve(payload); })
       .fail(function (xhr) {
+        var status=xhr&&xhr.status||0; var detail=responseMessage(xhr);
+        if (status>=400&&status<500) {
+          deferred.reject({message:detail||"The governed lifecycle change was rejected. Reload the record and correct the highlighted requirement.",status:status});
+          return;
+        }
         var fallback=saveFallback(payload);
-        deferred.reject({message:"Shared lifecycle persistence failed. A non-durable recovery copy was saved in this browser.",status:xhr&&xhr.status||0,fallback:fallback});
+        deferred.reject({message:"Shared lifecycle persistence is unavailable. A sanitized, non-durable recovery copy was saved in this browser.",status:status,fallback:fallback});
       });
     return deferred.promise();
   }

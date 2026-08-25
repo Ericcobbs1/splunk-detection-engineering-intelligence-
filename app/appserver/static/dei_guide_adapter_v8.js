@@ -1,5 +1,5 @@
 window.DEIReactGuideConfigured=true;
-window.DEIGuideAssetVersion="v10";
+window.DEIGuideAssetVersion="v11";
 require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   "use strict";
   var guideLoadState="idle";
@@ -139,8 +139,9 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function monitoringMetricsReady() {
     var reviewPeriod=String($("#lifecycle-review-period").val()||"").trim();
-    var values=["#lifecycle-result-volume","#lifecycle-runtime","#lifecycle-true-positives","#lifecycle-false-positives"].map(function(selector){return Number($(selector).val());});
-    return !!reviewPeriod&&values.every(function(value){return isFinite(value)&&value>=0;});
+    var required=["#lifecycle-result-volume","#lifecycle-runtime"].map(function(selector){return String($(selector).val()||"").trim();});
+    var optional=["#lifecycle-true-positives","#lifecycle-false-positives"].map(function(selector){return String($(selector).val()||"").trim();});
+    return !!reviewPeriod&&required.every(function(raw){return raw!==""&&isFinite(Number(raw))&&Number(raw)>=0;})&&optional.every(function(raw){return raw===""||(isFinite(Number(raw))&&Number(raw)>=0);});
   }
   function prepareStep(step) {
     if(!step.tab) return;
@@ -292,6 +293,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     var index=readStep(),step=activeStep(index);
     if (page()!==step.page) { close(false); return; }
     prepareStep(step);
+    if((index===7||index===8||index===21||index===22)&&$("#lifecycle-review-handoff:visible").length){
+      step=$.extend({},step,{target:"#lifecycle-review-handoff",title:"Hand off to an independent reviewer",instruction:"This version is saved at Peer Review. Ask the assigned reviewer to sign in with their own Splunk account, open this detection, inspect the evidence, and approve or return it. This tutorial resumes automatically after their decision."});
+      step["action"+"Label"]="Waiting for the assigned reviewer";
+    }
     applyTutorialSelectionScope(index);
     if(index===17&&$("#generator-spl").attr("data-dei-guide-original")===undefined){ $("#generator-spl").attr("data-dei-guide-original",String($("#generator-spl").val()||"")); }
     if(reviewCeiling<0&&reconcileCompletedStep(index)) return;

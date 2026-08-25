@@ -210,7 +210,14 @@ class StorageHandler:
     def __init__(self, store_factory: Callable[[str], KVStore] = KVStore) -> None:
         self._store_factory = store_factory
 
-    def handle(self, request: str) -> dict[str, Any]:
+    def handle(self, request: str | bytes) -> dict[str, Any]:
+        if isinstance(request, bytes):
+            if len(request) > MAX_REQUEST_BYTES:
+                return persistent_response(413, {"error": "request payload is too large"})
+            try:
+                request = request.decode("utf-8")
+            except UnicodeDecodeError:
+                return persistent_response(400, {"error": "request must be valid UTF-8 JSON"})
         if len(request.encode("utf-8")) > MAX_REQUEST_BYTES:
             return persistent_response(413, {"error": "request payload is too large"})
         try:
