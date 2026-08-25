@@ -60,12 +60,12 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).map(function (mapping) { return mapping.observed_source; });
   }
 
-  function buildable(item) { return {production_ready:true,field_unverified:true,field_gap:true}[item.readiness]===true; }
+  function buildable(item) { return {production_ready:true,field_unverified:true,field_gap:true,partial:true,unsupported:true,requires_es:true,requires_enterprise_security:true,not_observed:true}[item.readiness]===true; }
   function stateFor(item, record) { return record && record.state ? record.state : "recommendation"; }
   function nextAction(item, record) {
     var state=stateFor(item,record);
     if (state==="recommendation") {
-      if (buildable(item)) { return "Generate and save a versioned detection draft"; }
+      if (buildable(item)) { return item.readiness==="production_ready"?"Generate and save a versioned detection draft":"Create a telemetry-gated planning draft"; }
       if (item.readiness==="partial") { return "Onboard the missing required telemetry"; }
       if (item.readiness==="field_gap") { return "Resolve confirmed fields in an engineering draft"; }
       return "Qualify telemetry and field prerequisites";

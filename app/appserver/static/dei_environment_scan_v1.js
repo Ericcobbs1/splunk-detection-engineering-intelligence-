@@ -102,15 +102,16 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
       function(xhr){ snapshot.persistence={durable:false,mode:"browser session",status:xhr&&xhr.status||0}; emit("warning","Analysis completed in this browser, but the shared assessment and immutable history could not both be saved. Resolve KV Store access before treating this scan as durable.",{assessment_id:snapshot.assessment_id,status:snapshot.persistence.status}); return snapshot; }
     );
   }
-  function hydrate() {
+  function hydrate(options) {
+    var settings=options||{};
     return $.ajax({url:scanEndpoint("latest"),method:"GET",dataType:"json",timeout:15000,
       headers:{"X-Splunk-Form-Key":Splunk.util.getConfigValue("FORM_KEY")}})
       .done(function (snapshot) {
         var local=Number(window.sessionStorage.getItem("dei.latestRecommendationTime")||0);
-        if (snapshot&&Number(snapshot.completed_at_ms||0)>local&&snapshot.report) {
+        if (snapshot&&snapshot.report&&(settings.force===true||Number(snapshot.completed_at_ms||0)>local)) {
           persistSession(snapshot);
           $(document).trigger("dei:environment-refreshed",[snapshot.report,snapshot.change_analysis||{},snapshot]);
-          emit("hydrated","Loaded the latest shared environment assessment.",{assessment_id:snapshot.assessment_id||""});
+          emit(settings.force===true?"refreshed":"hydrated",settings.force===true?"Reloaded the saved environment assessment.":"Loaded the latest shared environment assessment.",{assessment_id:snapshot.assessment_id||""});
         }
       });
   }

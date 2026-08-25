@@ -185,10 +185,10 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     }).join("") : '<p class="dei-empty">No ATT&amp;CK technique is currently mapped to this detection.</p>';
     var liveId = meta && meta.currentId ? meta.currentId : focus;
     var attackLink = liveId ? "https://attack.mitre.org/techniques/" + liveId.replace(".", "/") + "/" : "https://attack.mitre.org/matrices/enterprise/";
-    var buildable = ["production_ready","field_unverified","field_gap"].indexOf(item.readiness) !== -1;
-    var nextHref = buildable ? "detection_workflow?detection=" + encodeURIComponent(item.detection_id) : "command_center#dei-telemetry";
-    var nextLabel = buildable ? "Build this detection" : "Resolve telemetry gaps";
-    var nextDetail = buildable ? "Generate SPL, scheduling guidance, and validation evidence." : "Run a new scan after onboarding the required telemetry.";
+    var productionReady = item.readiness === "production_ready";
+    var nextHref = "detection_workflow?detection=" + encodeURIComponent(item.detection_id);
+    var nextLabel = productionReady ? "Build this detection" : "Create planning draft";
+    var nextDetail = productionReady ? "Generate SPL, scheduling guidance, and validation evidence." : "Author and syntax-test SPL now; lifecycle advancement remains gated by telemetry evidence.";
     var observedSourcetypes = observedSourcetypesForDetection(item);
     var improvementGuidance = [];
     if (!techniques.length) { improvementGuidance.push("Add a reviewed ATT&CK technique mapping before peer review."); }
