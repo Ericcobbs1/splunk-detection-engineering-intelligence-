@@ -51,7 +51,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     {page:"home",target:".dei-open-environment-discovery",title:"Open the Detection Workspace",instruction:"Use the unified workspace to scan telemetry and complete the governed detection lifecycle without page hopping.",actionLabel:"Select Open Detection Workspace"},
     {page:"builder",target:"#dei-analyze",title:"Run current telemetry discovery",instruction:"Run the intelligence scan at the top of this workspace so every downstream tutorial step uses current, saved evidence.",actionLabel:"Select Run intelligence scan"},
     {page:"builder",target:"#workflow-detection-select",title:"Choose a reusable detection",instruction:"Select any definition under Detection Library to start a new governed use case. Existing lifecycle records remain available separately and never remove a definition from the library.",actionLabel:"Select a library detection"},
-    {page:"builder",target:"#builder-generate",tab:"#workflow-tab-artifact",title:"Generate a reviewable draft",instruction:"Create the initial SPL and metadata from the selected telemetry evidence.",actionLabel:"Select Generate detection draft"},
+    {page:"builder",target:"#workflow-primary-action",title:"Generate a reviewable draft",instruction:"Use the persistent Next action button to create the initial SPL and metadata without searching farther down the page.",actionLabel:"Select Create draft"},
     {page:"builder",target:"#builder-run-validation",tab:"#workflow-tab-artifact",title:"Validate the detection",instruction:"Run the bounded historical search and review the returned evidence.",actionLabel:"Select Run validation"},
     {page:"builder",target:"#lifecycle-action-comment",tab:"#workflow-tab-change-control",title:"Document the validation handoff",instruction:"Summarize the validated analytic intent, expected analyst behavior, evidence, and known limitations for peer review.",actionLabel:"Enter the review submission note"},
     {page:"builder",target:'[data-action="submit_review"]',tab:"#workflow-tab-change-control",title:"Send the validated version to review",instruction:"Submit this exact version and its evidence. The next screen is the independent approval decision.",actionLabel:"Select Submit for peer review"},
@@ -123,7 +123,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
   function advanceFromLibrarySelectionWhenReady() {
     if(!guideActive()||readStep()!==2||!selectedRecommendationOpportunity()) return false;
-    var button=$("#builder-generate").filter(":visible").first();
+    var button=$("#builder-generate").first();
     var selected=normalizeDetectionKey($("#workflow-detection-select").val()||"");
     var builderSelected=normalizeDetectionKey($("#builder-detection-select").val()||"");
     if(!button.length||button.prop("disabled")||!selected||builderSelected!==selected) {

@@ -33,6 +33,10 @@
             <select id="workflow-detection-select" aria-label="Detection workflow"><option value="">Select a detection</option></select>
           </section>
           <div id="workflow-tutorial-status" class="dei-workflow-tutorial-status" role="status" aria-live="polite" hidden="hidden"></div>
+          <section id="workflow-next-bar" class="dei-workflow-next-bar" hidden="hidden" aria-live="polite">
+            <div><span>Next action</span><h3 id="workflow-next-title">Review the recommendation</h3><p id="workflow-next-explanation">Select a detection to see its required action.</p></div>
+            <a id="workflow-primary-action" href="#detection-generator">Continue →</a>
+          </section>
 
           <section id="workflow-empty" class="dei-workflow-empty"><strong>Select a detection to begin.</strong><p>The complete detection library remains available. Run or review Environment Intelligence above when telemetry evidence needs updating.</p><a class="dei-link-button dei-scan-discovery-link" href="#workflow-environment-panel">Review environment evidence ↑</a></section>
 
@@ -45,9 +49,9 @@
 
             <div class="dei-workflow-focus-grid">
               <article class="dei-workflow-next-card">
-                <p>Do this next</p><h3 id="workflow-next-title">Review the recommendation</h3><p id="workflow-next-explanation"></p>
+                <p>Required before advancement</p><h3>Evidence gate</h3>
                 <div id="workflow-requirements" class="dei-workflow-requirements"></div>
-                <div class="dei-workflow-next-actions"><a id="workflow-primary-action" href="#detection-generator">Continue →</a><a id="workflow-secondary-action" href="#workflow-environment-panel" hidden="hidden">Review telemetry evidence ↑</a></div>
+                <div class="dei-workflow-next-actions"><a id="workflow-secondary-action" href="#workflow-environment-panel" hidden="hidden">Review telemetry evidence ↑</a></div>
                 <small id="workflow-action-note">The required workspace is available below.</small>
               </article>
               <aside class="dei-workflow-help-card">

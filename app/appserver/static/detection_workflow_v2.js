@@ -74,7 +74,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
 
   function renderSelected() {
     var id=String($("#workflow-detection-select").val()||""); var item=items.filter(function (candidate) { return key(candidate)===id; })[0];
-    if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver,#workflow-unified-workspace").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
+    if (!item) { $("#workflow-empty").prop("hidden",false); $("#workflow-driver,#workflow-unified-workspace,#workflow-next-bar").prop("hidden",true); $(document).trigger("dei:workflow-detection-selected",[""]); return; }
     var stage=stageFor(item);
     $("#workflow-unified-workspace").prop("hidden",false);
     if (item.library_template) {
@@ -90,6 +90,7 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
     if (item.record && stage!=="draft") { $(document).trigger("dei:artifact-inspection-requested",[key(item.record),stage,item.record]); }
     var current=Math.max(0,STAGES.map(function (value) { return value.id; }).indexOf(stage)); var config=guide(item); var record=item.record||{};
     $("#workflow-empty").prop("hidden",true); $("#workflow-driver").prop("hidden",false);
+    $("#workflow-next-bar").prop("hidden",false);
     $("#workflow-stage-count").text("Stage "+(current+1)+" of "+STAGES.length); $("#workflow-detection-title").text(item.name||key(item));
     $("#workflow-current-stage").text("Current stage: "+label(stage)+(record.version?" · Version "+record.version:""));
     var metadata=[item.readiness?label(item.readiness):"",mitre(item).join(" · "),sources(item).join(" · ")].filter(Boolean); $("#workflow-detection-meta").html(metadata.map(function (value) { return "<span>"+esc(value)+"</span>"; }).join(""));
@@ -118,6 +119,22 @@ require(["jquery", "splunkjs/mvc/simplexml/ready!"], function ($) {
   }
 
   $("#workflow-detection-select").on("change",renderSelected); initialize(0);
+  $(document).on("click","#workflow-primary-action",function(event){
+    var href=String($(this).attr("href")||"");
+    if(href==="#builder-generate"){
+      event.preventDefault();
+      $("#workflow-tab-artifact").trigger("click");
+      window.setTimeout(function(){
+        var button=$("#builder-generate");
+        if(button.length&&!button.prop("disabled")){ button.trigger("click"); }
+        var workspace=document.getElementById("detection-generator");
+        if(workspace){workspace.scrollIntoView({behavior:"smooth",block:"start"});}
+      },0);
+      return;
+    }
+    if(href==="#detection-generator"){ $("#workflow-tab-artifact").trigger("click"); }
+    if(href==="#lifecycle-action-center"){ $("#workflow-tab-change-control").trigger("click"); }
+  });
   $(document).on("dei:lifecycle-records-updated",function (event,loaded) { records=Array.isArray(loaded)?loaded:records; populate(); });
   $(document).on("dei:environment-refreshed",function () {
     recommendations=(safeJson(window.sessionStorage.getItem(REPORT_KEY),{}).recommendations)||[];
